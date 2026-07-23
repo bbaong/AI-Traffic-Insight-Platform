@@ -1,1 +1,1 @@
-# daegu-traffic-platform
+# car-insurance-ai-platform
