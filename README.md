@@ -1,1 +1,1 @@
-# car-insurance-ai-platform
+# AI Traffic Insight Platform
