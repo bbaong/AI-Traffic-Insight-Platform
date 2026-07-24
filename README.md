@@ -1,1 +1,1 @@
-# daegu-traffic-platform
+# AI Traffic Insight Platform
