@@ -1,15 +1,285 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model accident_condition_stats {
+  stat_id            BigInt                             @id @default(autoincrement()) @db.UnsignedBigInt
+  district_id        Int                                @db.UnsignedInt
+  period_start       DateTime                           @db.Date
+  period_end         DateTime                           @db.Date
+  dimension          accident_condition_stats_dimension
+  dimension_value    String                             @db.VarChar(50)
+  accident_count     Int                                @default(0) @db.UnsignedInt
+  severe_death_count Int                                @default(0) @db.UnsignedInt
+  created_at         DateTime                           @default(now()) @db.DateTime(0)
+  districts          districts                          @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_condstat_district")
+
+  @@index([district_id, dimension], map: "idx_condstat_district_dim")
+  @@index([period_start, period_end], map: "idx_condstat_period")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model accident_records {
+  record_id         BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
+  district_id       Int                          @db.UnsignedInt
+  accident_date     DateTime                     @db.Date
+  time_of_day       accident_records_time_of_day
+  weather_condition String                       @db.VarChar(20)
+  road_condition    String                       @db.VarChar(20)
+  vehicle_type      String                       @db.VarChar(20)
+  severity          accident_records_severity
+  source            String                       @default("TAAS") @db.VarChar(50)
+  created_at        DateTime                     @default(now()) @db.DateTime(0)
+  districts         districts                    @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_accrecord_district")
+
+  @@index([district_id, accident_date], map: "idx_accrecord_district_date")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model cohort_benchmark_stats {
+  benchmark_id    BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
+  scope           String                           @default("전국") @db.VarChar(20)
+  dimension       cohort_benchmark_stats_dimension
+  dimension_value String                           @db.VarChar(20)
+  avg_risk_score  Decimal                          @db.Decimal(5, 2)
+  sample_count    Int                              @db.UnsignedInt
+  period_start    DateTime                         @db.Date
+  period_end      DateTime                         @db.Date
+  updated_at      DateTime                         @default(now()) @db.DateTime(0)
+
+  @@index([dimension, dimension_value], map: "idx_benchmark_dim")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customer_risk_profiles {
+  profile_id                   BigInt                                   @id @default(autoincrement()) @db.UnsignedBigInt
+  profile_code                 String                                   @unique(map: "profile_code") @db.VarChar(20)
+  based_on_profile_id          BigInt?                                  @db.UnsignedBigInt
+  user_id                      BigInt                                   @db.UnsignedBigInt
+  customer_memo                String?                                  @db.VarChar(100)
+  age_group                    String                                   @db.VarChar(10)
+  gender                       customer_risk_profiles_gender
+  vehicle_type                 String                                   @default("") @db.VarChar(50)
+  district_id                  Int                                      @db.UnsignedInt
+  driving_time_slot            customer_risk_profiles_driving_time_slot
+  weather_condition            String                                   @db.VarChar(20)
+  road_condition               String                                   @db.VarChar(20)
+  risk_score                   Decimal                                  @db.Decimal(5, 2)
+  risk_grade                   customer_risk_profiles_risk_grade
+  severe_injury_probability    Decimal                                  @db.Decimal(5, 2)
+  score_diff_vs_cohort_avg     Decimal?                                 @db.Decimal(5, 2)
+  percentile_rank              Decimal?                                 @db.Decimal(5, 2)
+  sample_size                  Int?                                     @db.UnsignedInt
+  is_low_confidence            Boolean                                  @default(false)
+  model_version                String                                   @default("customer_score_v1") @db.VarChar(30)
+  analyzed_at                  DateTime                                 @default(now()) @db.DateTime(0)
+  customer_risk_profiles       customer_risk_profiles?                  @relation("customer_risk_profilesTocustomer_risk_profiles", fields: [based_on_profile_id], references: [profile_id], onUpdate: Restrict, map: "fk_profile_based_on")
+  other_customer_risk_profiles customer_risk_profiles[]                 @relation("customer_risk_profilesTocustomer_risk_profiles")
+  districts                    districts                                @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_profile_district")
+  users                        users                                    @relation(fields: [user_id], references: [user_id], onUpdate: Restrict, map: "fk_profile_user")
+
+  @@index([based_on_profile_id], map: "fk_profile_based_on")
+  @@index([district_id], map: "fk_profile_district")
+  @@index([analyzed_at], map: "idx_profile_analyzed")
+  @@index([user_id], map: "idx_profile_user")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model departments {
+  department_id   Int      @id @default(autoincrement()) @db.UnsignedInt
+  department_name String   @db.VarChar(100)
+  created_at      DateTime @default(now()) @db.DateTime(0)
+  users           users[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model district_monthly_trend {
+  trend_id           BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  district_id        Int       @db.UnsignedInt
+  trend_month        String    @db.Char(7)
+  accident_count     Int       @default(0) @db.UnsignedInt
+  severe_death_count Int       @default(0) @db.UnsignedInt
+  districts          districts @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_trend_district")
+
+  @@unique([district_id, trend_month], map: "uq_trend_district_month")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model district_risk_scores {
+  score_id                BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
+  district_id             Int                             @db.UnsignedInt
+  period_start            DateTime                        @db.Date
+  period_end              DateTime                        @db.Date
+  priority_score          Decimal                         @db.Decimal(5, 2)
+  risk_grade              district_risk_scores_risk_grade
+  rank_in_city            Int?                            @db.UnsignedTinyInt
+  total_accident_count    Int                             @db.UnsignedInt
+  severe_death_count      Int                             @db.UnsignedInt
+  yoy_accident_change_pct Decimal?                        @db.Decimal(5, 2)
+  analysis_summary        String?                         @db.VarChar(255)
+  sample_size             Int?                            @db.UnsignedInt
+  is_low_confidence       Boolean                         @default(false)
+  model_version           String                          @default("district_score_v1") @db.VarChar(30)
+  calculated_at           DateTime                        @default(now()) @db.DateTime(0)
+  districts               districts                       @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_districtscore_district")
+
+  @@index([risk_grade], map: "idx_districtscore_grade")
+  @@index([district_id, period_end], map: "idx_districtscore_period")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model districts {
+  district_id              Int                        @id @default(autoincrement()) @db.UnsignedInt
+  district_name            String                     @unique(map: "district_name") @db.VarChar(50)
+  population               Int?                       @db.UnsignedInt
+  registered_vehicle_count Int?                       @db.UnsignedInt
+  avg_daily_traffic        Int?                       @db.UnsignedInt
+  boundary_geojson         String?                    @db.LongText
+  weather_grid_nx          Int?                       @db.UnsignedSmallInt
+  weather_grid_ny          Int?                       @db.UnsignedSmallInt
+  created_at               DateTime                   @default(now()) @db.DateTime(0)
+  accident_condition_stats accident_condition_stats[]
+  accident_records         accident_records[]
+  customer_risk_profiles   customer_risk_profiles[]
+  district_monthly_trend   district_monthly_trend[]
+  district_risk_scores     district_risk_scores[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model reports {
+  report_id      BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
+  report_type    reports_report_type
+  target_type    reports_target_type
+  target_id      BigInt              @db.UnsignedBigInt
+  generated_by   BigInt              @db.UnsignedBigInt
+  included_items String?             @db.LongText
+  file_path      String?             @db.VarChar(255)
+  share_link     String?             @db.VarChar(255)
+  generated_at   DateTime            @default(now()) @db.DateTime(0)
+  users          users               @relation(fields: [generated_by], references: [user_id], onUpdate: Restrict, map: "fk_report_user")
+
+  @@index([generated_by], map: "idx_report_generated_by")
+  @@index([target_type, target_id], map: "idx_report_target")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model risk_factor_contributions {
+  contribution_id  BigInt                                @id @default(autoincrement()) @db.UnsignedBigInt
+  target_type      risk_factor_contributions_target_type
+  target_id        BigInt                                @db.UnsignedBigInt
+  factor_name      String                                @db.VarChar(50)
+  contribution_pct Decimal                               @db.Decimal(5, 2)
+  display_order    Int                                   @default(0) @db.UnsignedTinyInt
+
+  @@index([target_type, target_id], map: "idx_contribution_target")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user_login_logs {
+  log_id     BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    BigInt   @db.UnsignedBigInt
+  login_at   DateTime @default(now()) @db.DateTime(0)
+  ip_address String?  @db.VarChar(45)
+  users      users    @relation(fields: [user_id], references: [user_id], onUpdate: Restrict, map: "fk_loginlog_user")
+
+  @@index([user_id, login_at], map: "idx_loginlog_user_time")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model users {
+  user_id                BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  login_id               String                   @unique(map: "login_id") @db.VarChar(50)
+  password_hash          String                   @db.VarChar(255)
+  name                   String                   @db.VarChar(50)
+  role                   users_role
+  department_id          Int?                     @db.UnsignedInt
+  org_name               String?                  @db.VarChar(100)
+  position               String?                  @db.VarChar(50)
+  email                  String?                  @db.VarChar(100)
+  is_active              Boolean                  @default(true)
+  last_login_at          DateTime?                @db.DateTime(0)
+  created_at             DateTime                 @default(now()) @db.DateTime(0)
+  customer_risk_profiles customer_risk_profiles[]
+  reports                reports[]
+  user_login_logs        user_login_logs[]
+  departments            departments?             @relation(fields: [department_id], references: [department_id], onUpdate: Restrict, map: "fk_users_department")
+
+  @@index([department_id], map: "fk_users_department")
+}
+
+enum risk_factor_contributions_target_type {
+  DISTRICT_SCORE
+  CUSTOMER_PROFILE
+}
+
+enum reports_report_type {
+  ADMIN_REFERENCE
+  CONSULT_REFERENCE
+}
+
+enum cohort_benchmark_stats_dimension {
+  AGE_GROUP
+  VEHICLE_TYPE
+}
+
+enum reports_target_type {
+  DISTRICT
+  CUSTOMER_PROFILE
+}
+
+enum accident_records_time_of_day {
+  DAY
+  NIGHT
+}
+
+enum accident_condition_stats_dimension {
+  TIME_OF_DAY
+  WEATHER
+  ROAD_SURFACE
+  AGE_GROUP
+  VEHICLE_TYPE
+  ACCIDENT_TYPE
+}
+
+enum users_role {
+  ROLE_A
+  ROLE_B
+}
+
+enum district_risk_scores_risk_grade {
+  Low
+  Moderate
+  High
+  Critical
+}
+
+enum customer_risk_profiles_gender {
+  MALE
+  FEMALE
+}
+
+enum accident_records_severity {
+  DEATH
+  SERIOUS
+  MINOR
+  REPORTED
+}
+
+enum customer_risk_profiles_driving_time_slot {
+  DAY
+  NIGHT
+}
+
+enum customer_risk_profiles_risk_grade {
+  Low
+  Moderate
+  High
+  Critical
 }
