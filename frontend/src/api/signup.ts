@@ -11,23 +11,34 @@ export type SignupResult =
   | { ok: false; message: string };
 
 /** 아이디 중복 확인 */
-export async function checkLoginId(loginId: string,):Promise<{ available: boolean }> {
-  const params = new URLSearchParams({ loginId });
-  const res = await fetch(
-    `${API_BASE}/api/user/idCheck?${params.toString()}`,
-  );
+export async function checkLoginId(
+  loginId: string,
+): Promise<{ available: boolean }> {
+  const res = await fetch(`${API_BASE}/api/user/idCheck`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login_id: loginId }),
+  });
 
-  if (!res.ok) {
-    throw new Error('checkLoginId failed');
+  const data = (await res.json().catch(() => ({}))) as {
+    success?: boolean;
+    message?: string;
+  };
+
+  if (res.ok && data.success === true) {
+    return { available: true };
   }
 
-  const data = (await res.json()) as { available: boolean };
-  return { available: Boolean(data.available) };
+  if (res.status === 400 && data.success === false) {
+    return { available: false };
+  }
+
+  throw new Error('checkLoginId failed');
 }
 
 /** departments 테이블 목록 */
 export async function fetchDepartments(): Promise<Department[]> {
-  const res = await fetch(`${API_BASE}/api/departments`);
+  const res = await fetch(`${API_BASE}/api/user/departments`);
 
   if (!res.ok) {
     throw new Error('fetchDepartments failed');
@@ -51,7 +62,7 @@ export async function signupGov(
 ): Promise<SignupResult> {
   return signupRequest({
     login_id: payload.loginId,
-    hashed_password: payload.password,
+    password: payload.password,
     name: payload.name,
     role: payload.role,
     department_id: payload.departmentId,

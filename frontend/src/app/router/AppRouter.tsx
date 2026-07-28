@@ -7,7 +7,7 @@ import { SignupCompletePage } from '../../pages/auth/SignupCompletePage';
 import { SignupFormEntryPage } from '../../pages/auth/SignupFormEntryPage';
 import { SignupRoleGatePage } from '../../pages/auth/SignupRoleGatePage';
 import { GovDashboardPage } from '../../pages/gov/GovDashboardPage';
-import { InsDashboardPage } from '../../pages/insurance/InsDashboardPage';
+import { InsDashboardPage } from '../../pages/ins/InsDashboardPage';
 import { DevPolygonPickerPage } from '../../pages/dev/DevPolygonPickerPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';

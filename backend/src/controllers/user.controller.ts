@@ -123,8 +123,26 @@ export const idCheck = async (req: Request, res: Response) => {
   const user = await prisma.users.findUnique({
     where: { login_id: login_id },
   });
-  if (user) {
-    return res.status(200).json({ success: true, message: '아이디 중복' });
+  if (!user) {
+    return res.status(200).json({ success: true, message: '아이디 중복 아님' });
   }
-  return res.status(400).json({ success: false, message: '아이디 중복 아님' });
+  return res.status(400).json({ success: false, message: '아이디 중복' });
 };
+
+//부서 목록 조회
+export const getDepartments = async (req: Request, res: Response) => {
+  try {
+    const departments = await prisma.departments.findMany({
+      orderBy: { department_id: 'asc' },
+      select: {
+        department_id: true,
+        department_name: true,
+      },
+    });
+    return res.status(200).json(departments);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: '부서 목록 조회 실패' });
+  }
+};
+
