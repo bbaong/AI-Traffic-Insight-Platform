@@ -1,0 +1,70 @@
+:root {
+  /* Brand / semantic */
+  --color-navy: #0f1b2d; /* CTA 배경, 헤드라인 */
+  --color-teal: #0e7c86; /* Primary, 지자체 */
+  --color-teal-bg: #e8f3f4; /* 지자체 틴트 */
+  --color-teal-text: #0a5b63; /* 틴트 위 텍스트 */
+  --color-amber: #d97706; /* 보험사 */
+  --color-amber-bg: #fbf3e7; /* 보험사 틴트 */
+  --color-amber-text: #a15c00; /* 앰버 라벨 (랜딩) */
+  --color-amber-tint-text: #8a4e05; /* 틴트 위 텍스트 */
+  --color-amber-tag-bg: #fbf0e0;
+  --color-amber-tag-text: #8a4e05;
+  --color-teal-tag-bg: #e8f3f4;
+  --color-teal-tag-text: #0a5b63;
+  --color-red: #b3261e; /* Critical */
+  --color-ink: #0f1b2d; /* 본문 강조 */
+  --color-body: #4a5a6e; /* 본문 */
+  --color-muted: #5a6b80; /* 보조 */
+  --color-hint: #7a8899; /* 라벨·캡션 */
+  --color-footer: #8894a3;
+  --color-footer-copy: #a6b1bf;
+  --color-cta-sub: #94a8bd;
+  --color-cta-hint: #6e8199;
+  --color-cta-outline: #3a4c66;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f7f9fb; /* 교차 배경 */
+  --color-page-bg: #f7f9fb; /* 로그인·대시보드 본문 배경 */
+  --color-card: #ffffff;
+  --color-border: #dde3ea;
+  --color-border-light: #e6ebf0;
+  --color-border-strong: #c6d0db;
+  --color-step-inactive-bg: #edf1f5;
+  --color-step-inactive-text: #a9b4c2;
+  --color-danger: #b3261e;
+  --color-danger-bg: #fcecec;
+  --color-danger-border: #e24b4a;
+  --color-success: #0e7c86;
+  --color-disabled: #c5ced8;
+  --color-disabled-text: #8894a3;
+  --color-map-placeholder: #eef2f5;
+
+  /* 위험도 (색+텍스트+아이콘 3중 표기) */
+  --risk-critical: #b3261e;
+  --risk-high: #d97706;
+  --risk-moderate: #ca8a04;
+  --risk-low: #2e7d32;
+
+  /* Dashboard layout */
+  --sidebar-width: 220px;
+  --header-height: 56px;
+  --dashboard-gap: 14px;
+  --dashboard-radius: 8px;
+
+  /* Typography */
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+
+  /* Radii / spacing — laptop-first */
+  --layout-max: 1160px;
+  --layout-gutter: 40px;
+  --radius-card: 10px;
+  --radius-login-card: 12px;
+  --radius-role-card: 14px;
+  --radius-button: 8px;
+  --radius-logo: 6px;
+  --radius-icon-badge: 10px;
+  --button-padding: 12px 26px;
+}

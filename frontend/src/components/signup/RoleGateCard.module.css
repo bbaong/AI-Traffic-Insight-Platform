@@ -1,0 +1,100 @@
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 28px 24px;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: var(--radius-role-card);
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 2px;
+}
+
+.cardTeal:hover {
+  border-color: var(--color-teal);
+}
+
+.cardAmber:hover {
+  border-color: var(--color-amber);
+}
+
+.arrow {
+  position: absolute;
+  top: 22px;
+  right: 20px;
+  color: var(--color-border-strong);
+}
+
+.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-icon-badge);
+  flex-shrink: 0;
+}
+
+.badgeTeal {
+  background: var(--color-teal-bg);
+  color: var(--color-teal);
+}
+
+.badgeAmber {
+  background: var(--color-amber-bg);
+  color: var(--color-amber);
+}
+
+.label {
+  margin: 0;
+  padding-right: 28px;
+  font-size: 18px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink);
+}
+
+.description {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--color-muted);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+}
+
+.tag {
+  padding: 5px 9px;
+  font-size: 12px;
+  border-radius: var(--radius-button);
+}
+
+.tagTeal {
+  background: var(--color-teal-bg);
+  color: var(--color-teal-text);
+}
+
+.tagAmber {
+  background: var(--color-amber-bg);
+  color: var(--color-amber-tint-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}

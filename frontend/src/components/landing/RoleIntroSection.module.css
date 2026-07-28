@@ -1,0 +1,110 @@
+.section {
+  background: var(--color-surface);
+  padding: 88px var(--layout-gutter);
+}
+
+.inner {
+  max-width: var(--layout-max);
+  margin: 0 auto;
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: 24px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink);
+  text-align: center;
+}
+
+.subtitle {
+  margin: 0 0 36px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--color-body);
+  text-align: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  padding: 28px 26px;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border);
+  border-radius: 0;
+  border-left-width: 3px;
+}
+
+.cardGov {
+  border-left-color: var(--color-teal);
+}
+
+.cardIns {
+  border-left-color: var(--color-amber);
+}
+
+.label {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+}
+
+.labelGov {
+  color: var(--color-teal);
+}
+
+.labelIns {
+  color: var(--color-amber-text);
+}
+
+.cardTitle {
+  margin: 0 0 12px;
+  font-size: 19px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink);
+}
+
+.body {
+  margin: 0 0 16px;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--color-body);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tag {
+  padding: 5px 10px;
+  font-size: 12.5px;
+  border-radius: 5px;
+}
+
+.tagGov {
+  background: var(--color-teal-tag-bg);
+  color: var(--color-teal-tag-text);
+}
+
+.tagIns {
+  background: var(--color-amber-tag-bg);
+  color: var(--color-amber-tag-text);
+}
+
+@media (max-width: 1023px) {
+  .section {
+    padding: 56px 20px;
+  }
+
+  .title {
+    font-size: 20px;
+  }
+}

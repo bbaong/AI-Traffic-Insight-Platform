@@ -1,0 +1,41 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  gap: var(--dashboard-gap);
+  min-height: 0;
+}
+
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--dashboard-gap);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
+  gap: var(--dashboard-gap);
+  align-items: stretch;
+  min-height: 0;
+}
+
+.slot {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.slot > * {
+  flex: 1;
+}
+
+@media (max-width: 1024px) {
+  .kpiRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+  }
+}

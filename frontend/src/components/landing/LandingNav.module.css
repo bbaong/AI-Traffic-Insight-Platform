@@ -1,0 +1,68 @@
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px var(--layout-gutter);
+  background: var(--color-surface);
+  border-bottom: 0.5px solid var(--color-border-light);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--color-ink);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.logoMark {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-logo);
+  background: var(--color-teal);
+  flex-shrink: 0;
+}
+
+.brandName {
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.01em;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.anchorLink {
+  padding: 10px 12px;
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  color: var(--color-body);
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-radius: var(--radius-button);
+}
+
+.anchorLink:hover {
+  color: var(--color-ink);
+}
+
+@media (max-width: 640px) {
+  .nav {
+    padding: 12px 16px;
+  }
+
+  .anchorLink {
+    display: none;
+  }
+}

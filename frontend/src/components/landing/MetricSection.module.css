@@ -1,0 +1,36 @@
+.section {
+  background: var(--color-surface);
+  padding: 72px var(--layout-gutter);
+}
+
+.inner {
+  max-width: var(--layout-max);
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 32px;
+  text-align: center;
+}
+
+.label {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: var(--color-hint);
+}
+
+.value {
+  margin: 0;
+  font-size: 22px;
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+@media (max-width: 1023px) {
+  .section {
+    padding: 48px 20px;
+  }
+}

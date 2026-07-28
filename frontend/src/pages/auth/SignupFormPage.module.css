@@ -1,0 +1,163 @@
+.page {
+  --signup-accent: var(--color-teal);
+  --signup-accent-bg: var(--color-teal-bg);
+  --signup-accent-text: var(--color-teal-text);
+  --signup-accent-hover: var(--color-teal-text);
+
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+}
+
+.page[data-accent='amber'] {
+  --signup-accent: var(--color-amber);
+  --signup-accent-bg: var(--color-amber-bg);
+  --signup-accent-text: var(--color-amber-tint-text);
+  --signup-accent-hover: var(--color-amber-tint-text);
+}
+
+.accentBar {
+  height: 3px;
+  background: var(--signup-accent);
+  flex-shrink: 0;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 32px 64px;
+}
+
+.inner {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink);
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: var(--font-weight-medium);
+  background: var(--signup-accent-bg);
+  color: var(--signup-accent-text);
+}
+
+.sectionSub {
+  margin: -6px 0 0;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.prevBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30%;
+  min-width: 96px;
+  height: 48px;
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 14.5px;
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+}
+
+.prevBtn:hover {
+  border-color: var(--color-hint);
+}
+
+.submitBtn {
+  flex: 1;
+  height: 48px;
+  border: none;
+  border-radius: 6px;
+  background: var(--signup-accent);
+  color: var(--color-surface);
+  font-family: inherit;
+  font-size: 14.5px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: var(--signup-accent-hover);
+}
+
+.submitBtn:disabled {
+  background: var(--color-disabled);
+  color: var(--color-disabled-text);
+  cursor: not-allowed;
+}
+
+.submitHint {
+  margin: -16px 0 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--color-hint);
+}
+
+@media (max-width: 560px) {
+  .main {
+    padding: 28px 16px 48px;
+  }
+
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .prevBtn {
+    width: 100%;
+  }
+}

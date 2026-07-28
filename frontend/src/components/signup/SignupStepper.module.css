@@ -1,0 +1,84 @@
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  --stepper-accent: var(--color-teal);
+  --stepper-accent-hover: var(--color-teal-text);
+}
+
+.accentTeal {
+  --stepper-accent: var(--color-teal);
+  --stepper-accent-hover: var(--color-teal-text);
+}
+
+.accentAmber {
+  --stepper-accent: var(--color-amber);
+  --stepper-accent-hover: var(--color-amber-tint-text);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.active {
+  background: var(--stepper-accent);
+  color: var(--color-surface);
+}
+
+.completed {
+  background: var(--stepper-accent);
+  color: var(--color-surface);
+}
+
+.inactive {
+  background: var(--color-step-inactive-bg);
+  color: var(--color-step-inactive-text);
+}
+
+.line {
+  width: 36px;
+  height: 1px;
+  background: var(--color-border-strong);
+  flex-shrink: 0;
+}
+
+.lineActive {
+  background: var(--stepper-accent);
+}
+
+.label {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-hint);
+}
+
+.changeLink {
+  color: var(--stepper-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.changeLink:hover {
+  color: var(--stepper-accent-hover);
+}
+
+@media (max-width: 560px) {
+  .label {
+    white-space: normal;
+  }
+}
