@@ -1,0 +1,49 @@
+{
+  "variant": "unweighted",
+  "label": "샘플가중치 없음",
+  "use_sample_weight": false,
+  "best_model": "LogisticRegression",
+  "feature_cols": [
+    "구군",
+    "가해운전자 연령대",
+    "가해운전자 성별",
+    "가해운전자 차종",
+    "주야"
+  ],
+  "risk_score_map": {
+    "부상신고사고": 20.0,
+    "경상사고": 40.0,
+    "중상사고": 75.0,
+    "사망사고": 100.0
+  },
+  "comparison": [
+    {
+      "model": "LogisticRegression",
+      "accuracy": 0.7052312357846854,
+      "balanced_accuracy": 0.2541039587369252,
+      "macro_f1": 0.21531783650313455
+    },
+    {
+      "model": "HistGradientBoosting",
+      "accuracy": 0.7044730856709629,
+      "balanced_accuracy": 0.2535414662851152,
+      "macro_f1": 0.2148384658760979
+    },
+    {
+      "model": "GradientBoosting",
+      "accuracy": 0.7035633055344959,
+      "balanced_accuracy": 0.25379472368051564,
+      "macro_f1": 0.21586677759838874
+    },
+    {
+      "model": "RandomForest",
+      "accuracy": 0.7022744503411675,
+      "balanced_accuracy": 0.25928918656779903,
+      "macro_f1": 0.22846342271377518
+    }
+  ],
+  "test_accuracy": 0.7052312357846854,
+  "test_balanced_accuracy": 0.2541039587369252,
+  "test_macro_f1": 0.21531783650313455,
+  "note": "위험도 = Σ(등급확률 × 점수). 부상신고20 / 경상40 / 중상75 / 사망100"
+}

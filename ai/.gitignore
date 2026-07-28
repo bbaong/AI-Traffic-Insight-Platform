@@ -1,0 +1,38 @@
+# 학습/추론 데이터 (Git 제외)
+data/
+
+# 모델 가중치
+models/*.pkl
+models/*.pt
+models/*.onnx
+models/*.pth
+models/*.h5
+models/*.joblib
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+
+# Jupyter
+.ipynb_checkpoints/
+
+# 환경
+.env
+.venv/
+venv/
+env/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 로그
+*.log
