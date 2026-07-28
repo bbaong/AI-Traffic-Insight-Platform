@@ -29,8 +29,10 @@ export function LoginPage() {
   const [lockedUntil, setLockedUntil] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
+  // 잠금 상태 체크
   const isLocked = lockedUntil !== null && now < lockedUntil;
 
+  // 잠금 시간 체크
   useEffect(() => {
     if (!lockedUntil) return;
     const id = window.setInterval(() => {
@@ -44,6 +46,7 @@ export function LoginPage() {
     return () => window.clearInterval(id);
   }, [lockedUntil]);
 
+  // 로그인 처리
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     if (submitting || isLocked) return;
@@ -53,23 +56,28 @@ export function LoginPage() {
     setShowAttemptHint(false);
 
     try {
+      // 로그인 요청
       const result = await login({
         loginId: loginId.trim(),
         password,
       });
 
+      // 로그인 실패 처리
       if (result.ok === false) {
+        // 비활성화된 계정 처리
         if (result.reason === 'INACTIVE') {
           setErrorMessage('비활성화된 계정입니다. 관리자에게 문의하세요.');
           setShowAttemptHint(false);
           return;
         }
 
+        // 실패 회수 증가
         const nextFails = failCount + 1;
         setFailCount(nextFails);
         setErrorMessage('아이디 또는 비밀번호가 올바르지 않습니다.');
         setShowAttemptHint(true);
 
+        // 최대 실패 회수 초과 시 잠금
         if (nextFails >= MAX_FAILURES) {
           setLockedUntil(Date.now() + LOCK_MS);
         }
@@ -81,22 +89,27 @@ export function LoginPage() {
       setLockedUntil(null);
       setUser(result.user, remember);
 
+      // 관리자 계정 처리
       if (result.user.role === 'ROLE_A') {
         navigate(ROUTES.DASHBOARD_GOV, { replace: true });
       } else {
+        // 보험사 계정 처리
         navigate(ROUTES.DASHBOARD_INS, { replace: true });
       }
     } finally {
+      // 로그인 완료 후 상태 초기화
       setSubmitting(false);
     }
   }
 
+  // 제출 가능 여부 체크
   const canSubmit =
     !submitting &&
     !isLocked &&
     loginId.trim() !== '' &&
     password !== '';
 
+  // 페이지 렌더링
   return (
     <div className={styles.page}>
       <AuthTopBar label="로그인" />
