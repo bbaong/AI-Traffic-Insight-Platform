@@ -144,6 +144,16 @@
   color: var(--color-hint);
 }
 
+.submitError {
+  margin: 0 0 8px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13.5px;
+  text-align: center;
+}
+
 @media (max-width: 560px) {
   .main {
     padding: 28px 16px 48px;

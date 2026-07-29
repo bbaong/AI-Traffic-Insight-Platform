@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { fetchDepartments } from '../../api/signup';
+import { fetchDepartments, signupGov } from '../../api/signup';
 import { AuthTopBar } from '../../components/auth/AuthTopBar';
 import { FormField } from '../../components/signup/FormField';
 import fieldStyles from '../../components/signup/FormField.module.css';
@@ -10,6 +10,7 @@ import {
   type SignupAccountValues,
 } from '../../components/signup/SignupAccountFields';
 import { SignupStepper } from '../../components/signup/SignupStepper';
+import { Toast } from '../../components/ui/Toast';
 import { ROUTES } from '../../constants/routes';
 import type { Department, SignupGovPayload } from '../../types/signup';
 import styles from './SignupFormPage.module.css';
@@ -37,6 +38,9 @@ export function SignupGovFormPage() {
   const [isIdChecked, setIsIdChecked] = useState(false);
   const [departmentId, setDepartmentId] = useState<number | null>(null);
   const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,9 +104,9 @@ export function SignupGovFormPage() {
     setAccount((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    if (!canSubmit || departmentId === null) return;
+    if (!canSubmit || departmentId === null || submitting) return;
 
     const payload: SignupGovPayload = {
       role: 'ROLE_A',
@@ -118,8 +122,26 @@ export function SignupGovFormPage() {
     const trimmedEmail = email.trim();
     if (trimmedEmail) payload.email = trimmedEmail;
 
-    console.log('[SignupGovPayload]', payload);
-    navigate(ROUTES.SIGNUP_COMPLETE);
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const result = await signupGov(payload);
+
+      if (result.ok === false) {
+        setSubmitError(result.message);
+        return;
+      }
+
+      setShowSuccessToast(true);
+      window.setTimeout(() => {
+        navigate(ROUTES.SIGNUP_COMPLETE);
+      }, 1200);
+    } catch {
+      setSubmitError('회원가입에 실패했습니다. 다시 시도해 주세요.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -214,17 +236,23 @@ export function SignupGovFormPage() {
               <button
                 type="submit"
                 className={styles.submitBtn}
-                disabled={!canSubmit}
+                disabled={!canSubmit || submitting}
               >
-                가입 완료
+                {submitting ? '가입 중…' : '가입 완료'}
               </button>
             </div>
-            {!canSubmit && disabledHint ? (
+            {submitError ? (
+              <p className={styles.submitError} role="alert">
+                {submitError}
+              </p>
+            ) : null}
+            {!canSubmit && !submitting && disabledHint ? (
               <p className={styles.submitHint}>{disabledHint}</p>
             ) : null}
           </form>
         </div>
       </main>
+      <Toast message="가입성공" visible={showSuccessToast} />
     </div>
   );
 }

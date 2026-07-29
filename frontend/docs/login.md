@@ -3,8 +3,8 @@
 ## 1. 개요
 
 `login_id` + 비밀번호로 접속하는 화면이다.  
-**Role 선택 UI는 없다** — 목업/서버가 계정의 `role`을 반환하면 그걸로 대시보드를 분기한다.  
-현재는 `mocks/users.mock.ts` + `api/auth.ts`의 `login()` 목업으로 성공/실패를 판정한다.
+**Role 선택 UI는 없다** — 서버가 계정의 `role`을 반환하면 그걸로 대시보드를 분기한다.  
+인증은 `api/auth.ts`의 `login()`이 `POST /api/user/login`으로 처리한다. (상세: [login-api-integration.md](./login-api-integration.md))
 
 ---
 
@@ -17,23 +17,28 @@ src/
 │  ├─ LoginPage.module.css
 │  ├─ GovDashboardPlaceholderPage.tsx  # /dashboard/gov 임시
 │  └─ InsDashboardPlaceholderPage.tsx  # /dashboard/insurance 임시
-├─ mocks/users.mock.ts                 # 테스트 계정
-├─ api/auth.ts                         # login() 목업
+├─ mocks/users.mock.ts                 # (레거시) 로그인 연동 후 미사용
+├─ api/auth.ts                         # login() → POST /api/user/login
 ├─ stores/authStore.ts                 # Zustand 로그인 상태
 ├─ types/auth.ts                       # LoginPayload, LoginResult, MockUser
 ├─ constants/routes.ts                 # DASHBOARD_GOV / DASHBOARD_INS
-└─ docs/login.md
+└─ docs/
+   ├─ login.md
+   └─ login-api-integration.md          # 백엔드 연동 보고서
 ```
 
 ---
 
-## 3. 목업 데이터
+## 3. API 연동 (요약)
 
-| 아이디 | 비밀번호 | 결과 |
-|---|---|---|
-| `gov_daegu` | `test1234` | 성공 → `/dashboard/gov` (ROLE_A) |
-| `ins_sample` | `test1234` | 성공 → `/dashboard/insurance` (ROLE_B) |
-| `inactive` | `test1234` | 실패 `INACTIVE` |
+| 항목 | 값 |
+|---|---|
+| Endpoint | `POST /api/user/login` |
+| Body | `{ id, password }` |
+| 성공 | `user_id` → `userId`, `name`, `role` → `authStore` |
+| 실패 | `INVALID` (메시지 통일) / `INACTIVE` |
+
+Postman·매핑·테스트 체크리스트는 [login-api-integration.md](./login-api-integration.md) 참고.
 
 ---
 
@@ -64,7 +69,7 @@ src/
 
 ## 6. 다음 작업
 
-- 실제 `POST /auth/login` 연동
-- `user_login_logs` 기록 · `last_login_at` 갱신
+- `user_login_logs` 기록 · `last_login_at` 갱신 (서버)
 - 서버측 계정 잠금 (프론트 카운트는 보조)
-- 대시보드 정식 화면 · `ProtectedRoute`
+- JWT/세션 도입 검토
+- `mocks/users.mock.ts` 정리

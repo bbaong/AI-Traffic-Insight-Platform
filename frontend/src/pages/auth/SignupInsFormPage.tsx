@@ -1,5 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { signupIns } from '../../api/signup';
 import { AuthTopBar } from '../../components/auth/AuthTopBar';
 import { FormField } from '../../components/signup/FormField';
 import fieldStyles from '../../components/signup/FormField.module.css';
@@ -9,6 +10,7 @@ import {
   type SignupAccountValues,
 } from '../../components/signup/SignupAccountFields';
 import { SignupStepper } from '../../components/signup/SignupStepper';
+import { Toast } from '../../components/ui/Toast';
 import { ROUTES } from '../../constants/routes';
 import type { SignupInsPayload } from '../../types/signup';
 import styles from './SignupFormPage.module.css';
@@ -32,6 +34,9 @@ export function SignupInsFormPage() {
   const [isIdChecked, setIsIdChecked] = useState(false);
   const [orgName, setOrgName] = useState('');
   const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   const emailInvalid = email.trim() !== '' && !isValidEmail(email.trim());
   const orgNameTrimmed = orgName.trim();
@@ -81,9 +86,9 @@ export function SignupInsFormPage() {
     setAccount((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    if (!canSubmit) return;
+    if (!canSubmit || submitting) return;
 
     const payload: SignupInsPayload = {
       role: 'ROLE_B',
@@ -99,8 +104,26 @@ export function SignupInsFormPage() {
     const trimmedEmail = email.trim();
     if (trimmedEmail) payload.email = trimmedEmail;
 
-    console.log('[SignupInsPayload]', payload);
-    navigate(ROUTES.SIGNUP_COMPLETE);
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const result = await signupIns(payload);
+
+      if (result.ok === false) {
+        setSubmitError(result.message);
+        return;
+      }
+
+      setShowSuccessToast(true);
+      window.setTimeout(() => {
+        navigate(ROUTES.SIGNUP_COMPLETE);
+      }, 1200);
+    } catch {
+      setSubmitError('회원가입에 실패했습니다. 다시 시도해 주세요.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -178,17 +201,23 @@ export function SignupInsFormPage() {
               <button
                 type="submit"
                 className={styles.submitBtn}
-                disabled={!canSubmit}
+                disabled={!canSubmit || submitting}
               >
-                가입 완료
+                {submitting ? '가입 중…' : '가입 완료'}
               </button>
             </div>
-            {!canSubmit && disabledHint ? (
+            {submitError ? (
+              <p className={styles.submitError} role="alert">
+                {submitError}
+              </p>
+            ) : null}
+            {!canSubmit && !submitting && disabledHint ? (
               <p className={styles.submitHint}>{disabledHint}</p>
             ) : null}
           </form>
         </div>
       </main>
+      <Toast message="가입성공" visible={showSuccessToast} />
     </div>
   );
 }

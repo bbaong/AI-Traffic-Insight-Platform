@@ -1,31 +1,58 @@
-import { MOCK_USERS } from '../mocks/users.mock';
-import type { LoginPayload, LoginResult } from '../types/auth';
+import type { LoginPayload, LoginResult, UserRole } from '../types/auth';
 
-/**
- * 로그인.
- * TODO: 실제 POST /auth/login 으로 교체
- */
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
+
+function isUserRole(value: unknown): value is UserRole {
+  return value === 'ROLE_A' || value === 'ROLE_B';
+}
+
+/** 로그인 */
 export async function login(payload: LoginPayload): Promise<LoginResult> {
-  await new Promise((r) => setTimeout(r, 400));
+  const res = await fetch(`${API_BASE}/api/user/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: payload.loginId,
+      password: payload.password,
+    }),
+  });
 
-  const found = MOCK_USERS.find((u) => u.loginId === payload.loginId);
-
-  // 보안: 아이디 존재 여부를 노출하지 않기 위해
-  //       아이디 불일치와 비번 불일치를 같은 INVALID 로 통일
-  if (!found || found.password !== payload.password) {
-    return { ok: false, reason: 'INVALID' };
-  }
-
-  if (!found.isActive) {
-    return { ok: false, reason: 'INACTIVE' };
-  }
-
-  return {
-    ok: true,
-    user: {
-      userId: found.userId,
-      name: found.name,
-      role: found.role,
-    },
+  const data = (await res.json().catch(() => ({}))) as {
+    success?: boolean;
+    message?: string;
+    data?: {
+      user_id?: string | number;
+      name?: string;
+      role?: string;
+      is_active?: boolean;
+    };
   };
+
+  if (res.ok && data.success === true && data.data) {
+    const user = data.data;
+
+    if (user.is_active === false) {
+      return { ok: false, reason: 'INACTIVE' };
+    }
+
+    if (!isUserRole(user.role) || !user.name) {
+      return { ok: false, reason: 'INVALID' };
+    }
+
+    const userId = Number(user.user_id);
+    if (!Number.isFinite(userId)) {
+      return { ok: false, reason: 'INVALID' };
+    }
+
+    return {
+      ok: true,
+      user: {
+        userId,
+        name: user.name,
+        role: user.role,
+      },
+    };
+  }
+
+  return { ok: false, reason: 'INVALID' };
 }
