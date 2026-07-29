@@ -1,12 +1,16 @@
 .sidebar {
   width: var(--sidebar-width);
-  min-height: 100vh;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
   background: var(--color-navy);
   color: var(--color-surface);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .brand {
@@ -17,6 +21,7 @@
   border-bottom: 0.5px solid color-mix(in srgb, var(--color-surface) 12%, transparent);
   text-decoration: none;
   color: inherit;
+  flex-shrink: 0;
 }
 
 .logoMark {
@@ -39,10 +44,11 @@
 
 .nav {
   flex: 1;
-  padding: 12px 10px;
+  padding: 12px 10px 8px;
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-height: 0;
 }
 
 .link {
@@ -77,6 +83,7 @@
 .footer {
   padding: 12px 14px 16px;
   border-top: 0.5px solid color-mix(in srgb, var(--color-surface) 12%, transparent);
+  flex-shrink: 0;
 }
 
 .userName {

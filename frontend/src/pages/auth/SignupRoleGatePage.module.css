@@ -16,30 +16,38 @@
 
 .inner {
   width: 100%;
-  max-width: 720px;
+  max-width: 640px;
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 32px;
+}
+
+.stepperWrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .headingBlock {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
 }
 
 .title {
   margin: 0;
-  font-size: 28px;
+  font-size: 19px;
   font-weight: var(--font-weight-medium);
   color: var(--color-ink);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
 }
 
 .subtitle {
   margin: 0;
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--color-muted);
 }
 
@@ -47,6 +55,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  align-items: stretch;
 }
 
 .loginHint {
@@ -74,10 +83,6 @@
 
   .inner {
     gap: 28px;
-  }
-
-  .title {
-    font-size: 22px;
   }
 
   .grid {

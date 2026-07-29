@@ -14,7 +14,7 @@ export const ROLE_META: Record<UserRole, RoleMeta> = {
   ROLE_A: {
     label: '지자체',
     description:
-      '관할 시군구의 사고 위험도와 우선점검 대상을 확인하고 행정 참고 리포트를 만듭니다.',
+      '관할 시군구의 사고 위험도와 우선점검 대상을 확인하고\n행정 참고 리포트를 만듭니다.',
     tags: ['위험도 지도', '우선점검 순위'],
     icon: 'building-bank',
     accent: 'teal',
@@ -22,7 +22,7 @@ export const ROLE_META: Record<UserRole, RoleMeta> = {
   ROLE_B: {
     label: '보험사',
     description:
-      '고객 조건별 사고 위험 점수와 중상 확률을 산출하고 상담 참고 자료를 받습니다.',
+      '고객 조건별 사고 위험 점수와 중상 확률을 산출하고\n상담 참고 자료를 받습니다.',
     tags: ['위험 점수', '상담 리포트'],
     icon: 'shield-half',
     accent: 'amber',

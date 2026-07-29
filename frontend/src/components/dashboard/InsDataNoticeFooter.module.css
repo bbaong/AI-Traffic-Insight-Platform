@@ -1,0 +1,48 @@
+.mapStack {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mapStack > :first-child {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.footer {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-top: 6px;
+  padding: 10px 4px 2px;
+  border-top: 0.5px solid var(--color-border-light);
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-step-inactive-text);
+}
+
+.text {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.5;
+  font-weight: var(--font-weight-regular);
+}
+
+.notice {
+  color: var(--color-muted);
+  font-weight: var(--font-weight-medium);
+}
+
+.sep {
+  color: var(--color-hint);
+}
+
+.disclaimer {
+  color: var(--color-hint);
+  font-weight: var(--font-weight-regular);
+}

@@ -3,7 +3,11 @@ import { checkLoginId } from '../../api/signup';
 import { FormField } from './FormField';
 import fieldStyles from './FormField.module.css';
 
-const LOGIN_ID_PATTERN = /^[A-Za-z0-9]{4,50}$/;
+/** 영문·숫자 모두 포함, 4~50자 (영문만/숫자만 불가) */
+const LOGIN_ID_PATTERN = /^(?=.*[A-Za-z])(?=.*[0-9])[A-Za-z0-9]{4,50}$/;
+
+const FORMAT_HINT = '· 영문·숫자 모두 포함, 4~50자';
+const FORMAT_ERROR = '영문과 숫자를 모두 포함한 4~50자로 입력하세요';
 
 export interface IdCheckFieldProps {
   id?: string;
@@ -24,6 +28,12 @@ export function IdCheckField({
   const [error, setError] = useState<string | undefined>();
   const [success, setSuccess] = useState<string | undefined>();
 
+  const trimmed = value.trim();
+  const isFormatValid = LOGIN_ID_PATTERN.test(trimmed);
+  const formatError =
+    trimmed.length > 0 && !isFormatValid ? FORMAT_ERROR : undefined;
+  const displayError = error ?? formatError;
+
   function handleChange(next: string): void {
     onChange(next);
     if (isChecked || error || success) {
@@ -34,10 +44,10 @@ export function IdCheckField({
   }
 
   async function handleCheck(): Promise<void> {
-    if (!LOGIN_ID_PATTERN.test(value)) {
+    if (!isFormatValid) {
       onCheckedChange(false);
       setSuccess(undefined);
-      setError('영문·숫자 4~50자로 입력하세요');
+      setError(FORMAT_ERROR);
       return;
     }
 
@@ -46,7 +56,7 @@ export function IdCheckField({
     setSuccess(undefined);
 
     try {
-      const result = await checkLoginId(value);
+      const result = await checkLoginId(trimmed);
       if (result.available) {
         onCheckedChange(true);
         setSuccess('✓ 사용 가능한 아이디입니다');
@@ -65,7 +75,7 @@ export function IdCheckField({
     }
   }
 
-  const describedBy = error
+  const describedBy = displayError
     ? `${id}-error`
     : success
       ? `${id}-success`
@@ -76,8 +86,8 @@ export function IdCheckField({
       id={id}
       label="아이디"
       required
-      hint="· 영문·숫자 4~50자"
-      error={error}
+      hint={FORMAT_HINT}
+      error={displayError}
       success={isChecked ? success : undefined}
     >
       <div className={fieldStyles.idRow}>
@@ -88,8 +98,8 @@ export function IdCheckField({
           autoComplete="username"
           value={value}
           onChange={(e) => handleChange(e.target.value)}
-          className={`${fieldStyles.control} ${error ? fieldStyles.controlInvalid : ''}`}
-          aria-invalid={Boolean(error)}
+          className={`${fieldStyles.control} ${displayError ? fieldStyles.controlInvalid : ''}`}
+          aria-invalid={Boolean(displayError)}
           aria-describedby={describedBy}
           maxLength={50}
         />
@@ -99,7 +109,7 @@ export function IdCheckField({
           onClick={() => {
             void handleCheck();
           }}
-          disabled={checking || value.trim() === ''}
+          disabled={checking || !isFormatValid}
         >
           {checking ? '확인 중' : '중복확인'}
         </button>

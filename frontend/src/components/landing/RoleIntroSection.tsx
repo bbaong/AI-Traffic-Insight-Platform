@@ -23,7 +23,7 @@ export function RoleIntroSection() {
         </p>
 
         <div className={styles.grid}>
-          <article className={`${styles.card} ${styles.cardGov}`}>
+          <article className={styles.card}>
             <p className={`${styles.label} ${styles.labelGov}`}>
               지자체 교통안전 담당자
             </p>
@@ -41,7 +41,7 @@ export function RoleIntroSection() {
             </ul>
           </article>
 
-          <article className={`${styles.card} ${styles.cardIns}`}>
+          <article className={styles.card}>
             <p className={`${styles.label} ${styles.labelIns}`}>
               보험사 상담 · 심사 담당자
             </p>

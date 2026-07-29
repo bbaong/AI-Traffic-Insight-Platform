@@ -14,6 +14,12 @@ function readStoredUser(): AuthUser | null {
   }
 }
 
+/** 스토리지만 비움. React 리렌더 없이 즉시 페이지 이동할 때 사용 */
+export function clearAuthStorage(): void {
+  localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
+}
+
 interface AuthState {
   user: AuthUser | null;
   setUser: (user: AuthUser, remember: boolean) => void;
@@ -30,8 +36,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ user });
   },
   clearUser: () => {
-    localStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_KEY);
+    clearAuthStorage();
     set({ user: null });
   },
 }));

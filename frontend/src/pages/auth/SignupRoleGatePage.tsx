@@ -19,13 +19,14 @@ export function SignupRoleGatePage() {
 
       <main className={styles.main}>
         <div className={styles.inner}>
-          <SignupStepper currentStep={1} />
+          <div className={styles.stepperWrap}>
+            <SignupStepper currentStep={1} />
+          </div>
 
           <div className={styles.headingBlock}>
             <h1 className={styles.title}>어떤 업무로 사용하시나요</h1>
             <p className={styles.subtitle}>
-              선택한 유형에 따라 대시보드와 입력 항목이 달라집니다. 가입 후에는
-              변경이 어렵습니다.
+              아래 가입 유형을 확인하시고 해당하는 유형을 선택하세요.
             </p>
           </div>
 

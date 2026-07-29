@@ -19,9 +19,11 @@ export function Header({ title, role }: HeaderProps) {
           {isGov ? '지자체' : '보험사'}
         </span>
       </div>
-      <button type="button" className={styles.period} disabled>
-        최근 12개월 ▾
-      </button>
+      {isGov ? (
+        <button type="button" className={styles.period} disabled>
+          최근 12개월 ▾
+        </button>
+      ) : null}
     </header>
   );
 }
