@@ -1,0 +1,148 @@
+{
+  "environment": {
+    "python": "3.11.0",
+    "platform": "Windows-10-10.0.26200-SP0",
+    "cpu_count": 8,
+    "total_ram_gb": 15.69,
+    "sklearn": "1.9.0",
+    "numpy": "2.4.6",
+    "pandas": "3.0.3"
+  },
+  "dataset": {
+    "n_total": 65948,
+    "n_train": 52758,
+    "n_test": 13190,
+    "test_size": 0.2,
+    "random_state": 42,
+    "feature_cols": [
+      "구군",
+      "가해운전자 연령대",
+      "가해운전자 성별",
+      "가해운전자 차종",
+      "주야"
+    ],
+    "target_col": "사고내용",
+    "class_distribution_test": {
+      "경상사고": 9297,
+      "중상사고": 2999,
+      "부상신고사고": 794,
+      "사망사고": 100
+    }
+  },
+  "variants": {
+    "unweighted": {
+      "model_path": "best_risk_model_unweighted.pkl",
+      "estimator": "LogisticRegression",
+      "metrics": {
+        "accuracy": 0.705231,
+        "balanced_accuracy": 0.254104,
+        "macro_f1": 0.215318,
+        "weighted_f1": 0.585603,
+        "per_class": {
+          "경상사고": {
+            "precision": 0.7061,
+            "recall": 0.9987,
+            "f1-score": 0.8273,
+            "support": 9297
+          },
+          "부상신고사고": {
+            "precision": 0.3611,
+            "recall": 0.0164,
+            "f1-score": 0.0313,
+            "support": 794
+          },
+          "사망사고": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1-score": 0.0,
+            "support": 100
+          },
+          "중상사고": {
+            "precision": 1.0,
+            "recall": 0.0013,
+            "f1-score": 0.0027,
+            "support": 2999
+          }
+        },
+        "n_test": 13190
+      },
+      "latency": {
+        "n_warmup": 20,
+        "n_runs": 200,
+        "mean_ms": 2.2546,
+        "std_ms": 0.3577,
+        "p50_ms": 2.1173,
+        "p95_ms": 2.9833,
+        "p99_ms": 3.6433,
+        "min_ms": 1.8816,
+        "max_ms": 4.1662
+      },
+      "memory": {
+        "model_file_mb": 0.0036,
+        "rss_before_load_mb": 153.97,
+        "rss_after_load_mb": 157.73,
+        "rss_delta_load_mb": 3.76,
+        "rss_after_infer_mb": 157.82,
+        "tracemalloc_peak_mb": 2.7719,
+        "gpu_vram": "N/A (CPU-only sklearn model)"
+      }
+    },
+    "weighted": {
+      "model_path": "best_risk_model_weighted.pkl",
+      "estimator": "GradientBoostingClassifier",
+      "metrics": {
+        "accuracy": 0.462244,
+        "balanced_accuracy": 0.358416,
+        "macro_f1": 0.260064,
+        "weighted_f1": 0.508584,
+        "per_class": {
+          "경상사고": {
+            "precision": 0.7581,
+            "recall": 0.5856,
+            "f1-score": 0.6608,
+            "support": 9297
+          },
+          "부상신고사고": {
+            "precision": 0.1535,
+            "recall": 0.4761,
+            "f1-score": 0.2321,
+            "support": 794
+          },
+          "사망사고": {
+            "precision": 0.0109,
+            "recall": 0.29,
+            "f1-score": 0.0211,
+            "support": 100
+          },
+          "중상사고": {
+            "precision": 0.2742,
+            "recall": 0.082,
+            "f1-score": 0.1263,
+            "support": 2999
+          }
+        },
+        "n_test": 13190
+      },
+      "latency": {
+        "n_warmup": 20,
+        "n_runs": 200,
+        "mean_ms": 2.8721,
+        "std_ms": 0.3771,
+        "p50_ms": 2.7601,
+        "p95_ms": 3.6048,
+        "p99_ms": 3.9964,
+        "min_ms": 2.3663,
+        "max_ms": 4.5856
+      },
+      "memory": {
+        "model_file_mb": 1.4475,
+        "rss_before_load_mb": 163.92,
+        "rss_after_load_mb": 175.62,
+        "rss_delta_load_mb": 11.7,
+        "rss_after_infer_mb": 174.65,
+        "tracemalloc_peak_mb": 6.7486,
+        "gpu_vram": "N/A (CPU-only sklearn model)"
+      }
+    }
+  }
+}
