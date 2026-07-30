@@ -29,9 +29,9 @@
 .chart {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
-  height: 160px;
-  padding-top: 8px;
+  gap: 8px;
+  height: 140px;
+  padding-top: 20px;
 }
 
 .barCol {
@@ -43,6 +43,13 @@
   gap: 6px;
   min-width: 0;
   height: 100%;
+}
+
+.barValue {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-body);
+  line-height: 1;
 }
 
 .bar {
@@ -58,8 +65,9 @@
 }
 
 .barLabel {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-hint);
+  white-space: nowrap;
 }
 
 .formGrid {

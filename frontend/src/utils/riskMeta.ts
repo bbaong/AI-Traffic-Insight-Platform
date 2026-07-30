@@ -8,22 +8,22 @@ export interface RiskLevelMeta {
 
 const RISK_META: Record<RiskLevel, RiskLevelMeta> = {
   CRITICAL: {
-    label: 'Critical',
+    label: '매우높음',
     icon: '⚠',
     colorVar: 'var(--risk-critical)',
   },
   HIGH: {
-    label: 'High',
+    label: '높음',
     icon: '▲',
     colorVar: 'var(--risk-high)',
   },
   MODERATE: {
-    label: 'Moderate',
+    label: '보통',
     icon: '△',
     colorVar: 'var(--risk-moderate)',
   },
   LOW: {
-    label: 'Low',
+    label: '낮음',
     icon: '●',
     colorVar: 'var(--risk-low)',
   },

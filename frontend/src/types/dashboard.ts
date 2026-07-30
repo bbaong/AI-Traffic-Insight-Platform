@@ -26,6 +26,8 @@ export interface AiSummaryData {
   score: number | string;
   factors: RiskFactorBar[];
   recommendation: string;
+  /** 배지 옆 고객 프로필 한 줄 요약 (예: 달서구 · 51-60세 · 남 · 승용 · 주간) */
+  profileSummary?: string;
 }
 
 export interface PriorityRegionRow {

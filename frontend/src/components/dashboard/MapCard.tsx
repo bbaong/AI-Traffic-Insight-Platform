@@ -33,10 +33,10 @@ export const DISTRICT_RISK_MOCK: Record<string, RiskLevel> = {
 };
 
 const LEGEND = [
-  { label: '⚠ Critical', color: RISK_COLORS.CRITICAL },
-  { label: '▲ High', color: RISK_COLORS.HIGH },
-  { label: '△ Moderate', color: RISK_COLORS.MODERATE },
-  { label: '● Low', color: RISK_COLORS.LOW },
+  { label: '⚠ 매우높음', color: RISK_COLORS.CRITICAL },
+  { label: '▲ 높음', color: RISK_COLORS.HIGH },
+  { label: '△ 보통', color: RISK_COLORS.MODERATE },
+  { label: '● 낮음', color: RISK_COLORS.LOW },
 ] as const;
 
 const ACCENT = '#0E7C86';
@@ -56,10 +56,10 @@ const HOVER_STROKE = {
 } as const;
 
 const SELECTED_STROKE = {
-  strokeWeight: 3,
-  strokeColor: ACCENT,
+  strokeWeight: 4,
+  strokeColor: '#333333',
   strokeOpacity: 1,
-  fillOpacity: 0.72,
+  fillOpacity: 0.8,
 } as const;
 
 export interface MapCardProps {
@@ -96,12 +96,12 @@ function styleFor(
 ) {
   const fillColor = RISK_COLORS[risk];
   if (selected === code) {
-    return { ...SELECTED_STROKE, fillColor };
+    return { ...SELECTED_STROKE, fillColor, zIndex: 5 };
   }
   if (hovered === code) {
-    return { ...HOVER_STROKE, fillColor };
+    return { ...HOVER_STROKE, fillColor, zIndex: 4 };
   }
-  return { ...BASE_STROKE, fillColor };
+  return { ...BASE_STROKE, fillColor, zIndex: 1 };
 }
 
 /** GOV·INS 공용 카카오맵 · 구·군 Choropleth */
@@ -270,7 +270,7 @@ export function MapCard({
           strokeStyle: 'solid',
           fillColor: ACCENT,
           fillOpacity: 0,
-          zIndex: 2,
+          zIndex: 0, // 구군(선택 zIndex 5)보다 아래
         });
         outline.setMap(map);
         outlines.push(outline);
