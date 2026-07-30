@@ -5,13 +5,11 @@
   min-height: 0;
 }
 
-.kpiRow {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--dashboard-gap);
+.topSlot {
+  min-width: 0;
 }
 
-.row {
+.mainRow {
   display: grid;
   grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
   gap: var(--dashboard-gap);
@@ -19,23 +17,48 @@
   min-height: 0;
 }
 
-.slot {
+.mapSlot {
   min-width: 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
 }
 
+.mapSlot > * {
+  flex: 1;
+}
+
+.sideStack {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--dashboard-gap);
+}
+
+.slot {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 .slot > * {
   flex: 1;
 }
 
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--dashboard-gap);
+}
+
 @media (max-width: 1024px) {
-  .kpiRow {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .mainRow {
+    grid-template-columns: 1fr;
   }
 
-  .row {
-    grid-template-columns: 1fr;
+  .kpiRow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

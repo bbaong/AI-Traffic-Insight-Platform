@@ -29,7 +29,12 @@ export function LandingNav() {
   return (
     <header className={styles.nav}>
       <Link to={ROUTES.LANDING} className={styles.brand} aria-label="AI Traffic Insight 홈">
-        <span className={styles.logoMark} aria-hidden="true" />
+        <img
+          src="/icon_logo.png"
+          alt=""
+          className={styles.logoMark}
+          aria-hidden="true"
+        />
         <span className={styles.brandName}>AI Traffic Insight</span>
       </Link>
 

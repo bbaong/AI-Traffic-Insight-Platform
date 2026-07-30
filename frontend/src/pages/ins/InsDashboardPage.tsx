@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { predictRisk } from '../../api/prediction';
+import { DAEGU_DISTRICTS } from '../../constants/daeguBoundaries';
+import { useDistrictStore } from '../../stores/districtStore';
 import {
   AiSummaryCard,
   DashboardCard,
@@ -8,11 +11,40 @@ import {
 import { InsDataNoticeFooter } from '../../components/dashboard/InsDataNoticeFooter';
 import noticeStyles from '../../components/dashboard/InsDataNoticeFooter.module.css';
 import { insDashboardMock } from '../../mocks/data/insDashboard.mock';
+import type { AiSummaryData, RiskLevel } from '../../types/dashboard';
 import styles from '../gov/GovDashboardPage.module.css';
+
+/** 모델이 학습한 연령대 (차트 X축) */
+const AGE_BANDS = [
+  '20세 이하',
+  '21-30세',
+  '31-40세',
+  '41-50세',
+  '51-60세',
+  '61-64세',
+  '65세 이상',
+] as const;
+
+const AGE_SHORT: Record<string, string> = {
+  '20세 이하': '≤20',
+  '21-30세': '21-30',
+  '31-40세': '31-40',
+  '41-50세': '41-50',
+  '51-60세': '51-60',
+  '61-64세': '61-64',
+  '65세 이상': '65+',
+};
+
+const gradeMap: Record<string, RiskLevel> = {
+  사망사고: 'CRITICAL',
+  중상사고: 'HIGH',
+  경상사고: 'MODERATE',
+  부상신고사고: 'LOW',
+};
 
 export function InsDashboardPage() {
   const d = insDashboardMock;
-  const maxCohort = Math.max(...d.cohortByAge.map((b) => b.value), 1);
+  const setSelectedCode = useDistrictStore((s) => s.setSelectedCode);
   const [profile, setProfile] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const field of d.profileFields) {
@@ -20,77 +52,178 @@ export function InsDashboardPage() {
     }
     return initial;
   });
+  const [aiSummary, setAiSummary] = useState<AiSummaryData | null>(null);
+  const [cohortByAge, setCohortByAge] = useState<
+    { label: string; value: number }[]
+  >([]);
+  const [loading, setLoading] = useState(false);
+
+  const values = cohortByAge.map((b) => b.value);
+  const dataMin = values.length ? Math.min(...values) : 0;
+  const dataMax = values.length ? Math.max(...values) : 0;
+  const pad = 5;
+  const yMin = Math.max(0, Math.floor(dataMin - pad));
+  const yMax = Math.min(100, Math.ceil(Math.max(dataMax + pad, yMin + 10)));
+
+  async function handleAnalyze() {
+    try {
+      setLoading(true);
+  
+      const base = {
+        구군: profile.region,
+        성별: profile.gender,
+        차종: profile.vehicle,
+        주야: profile.time,
+        variant: 'weighted' as const,
+      };
+  
+      // 연령대별 병렬 예측 (유사 조건 비교)
+      const ageResults = await Promise.all(
+        AGE_BANDS.map(async (age) => {
+          const r = await predictRisk({ ...base, 연령대: age });
+          return { age, result: r };
+        }),
+      );
+  
+      setCohortByAge(
+        ageResults.map(({ age, result }) => ({
+          label: AGE_SHORT[age] ?? age,
+          value: result.위험도,
+        })),
+      );
+  
+      // 선택한 연령대 결과 → AI 요약
+      const selected =
+        ageResults.find((x) => x.age === profile.age)?.result ??
+        ageResults[0].result;
+  
+      const factors = Object.entries(selected.등급확률).map(([name, p]) => ({
+        name,
+        contribution: Math.round(p * 100),
+      }));
+  
+      setAiSummary({
+        riskLevel: gradeMap[selected.예측등급] ?? 'MODERATE',
+        title: '상담 고객 위험 요약',
+        scoreLabel: '위험 점수',
+        score: selected.위험도,
+        factors,
+        recommendation: `예측 등급: ${selected.예측등급} · 참고 지표이며 인수 심사의 직접 근거가 아닙니다`,
+        profileSummary: [
+          profile.region,
+          profile.age,
+          profile.gender,
+          profile.vehicle,
+          profile.time,
+        ]
+          .filter(Boolean)
+          .join(' · '),
+      });
+      // 프로필 지역 → 지도 선택 동기화
+      const district = DAEGU_DISTRICTS.find((d) => d.name === profile.region);
+      if (district) {
+        setSelectedCode(district.code);
+      }
+    } catch (e) {
+      console.error(e);
+      alert('분석에 실패했습니다. AI/백엔드 서버를 확인하세요.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
-    <>
-      <DashboardShell
-        kpis={d.kpis}
-        mapSlot={
-          <div className={noticeStyles.mapStack}>
-            <MapCard title="지역 위험도 지도 · Choropleth" />
-            <InsDataNoticeFooter />
+    <DashboardShell
+      topSlot={
+        <DashboardCard title="고객 프로필 입력">
+          <div className={styles.formGrid}>
+            {d.profileFields.map((field) => (
+              <label key={field.id} className={styles.field} htmlFor={field.id}>
+                <span className={styles.fieldLabel}>{field.label}</span>
+                <select
+                  id={field.id}
+                  className={styles.select}
+                  value={profile[field.id] ?? ''}
+                  onChange={(e) =>
+                    setProfile((prev) => ({
+                      ...prev,
+                      [field.id]: e.target.value,
+                    }))
+                  }
+                >
+                  {field.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
+            <button
+              type="button"
+              className={styles.analyzeBtn}
+              onClick={handleAnalyze}
+              disabled={loading}
+            >
+              {loading ? '분석 중…' : '분석 실행'}
+            </button>
           </div>
-        }
-        aiSummarySlot={<AiSummaryCard data={d.aiSummary} accent="amber" />}
-        bottomLeftSlot={
-          <DashboardCard title="고객 프로필 입력">
-            <div className={styles.formGrid}>
-              {d.profileFields.map((field) => (
-                <label key={field.id} className={styles.field} htmlFor={field.id}>
-                  <span className={styles.fieldLabel}>{field.label}</span>
-                  <select
-                    id={field.id}
-                    className={styles.select}
-                    value={profile[field.id] ?? ''}
-                    onChange={(e) =>
-                      setProfile((prev) => ({
-                        ...prev,
-                        [field.id]: e.target.value,
-                      }))
-                    }
-                  >
-                    {field.options.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ))}
-              <button
-                type="button"
-                className={styles.analyzeBtn}
-                onClick={() => {
-                  console.log('[InsProfileAnalyze]', profile);
-                }}
-              >
-                분석 실행
-              </button>
+        </DashboardCard>
+      }
+      mapSlot={
+        <div className={noticeStyles.mapStack}>
+          <MapCard title="지역 위험도 지도 · Choropleth" />
+          <InsDataNoticeFooter />
+        </div>
+      }
+      aiSummarySlot={
+        aiSummary ? (
+          <AiSummaryCard data={aiSummary} accent="amber" />
+        ) : (
+          <DashboardCard title="AI 분석 요약">
+            <div className={styles.emptyHint}>
+              <span>
+                고객 프로필을 입력한 뒤 <strong>분석 실행</strong>을 눌러 주세요.
+              </span>
             </div>
           </DashboardCard>
-        }
-        bottomRightSlot={
-          <DashboardCard title="유사 고객군 위험도 · 연령대별">
+        )
+      }
+      sideBottomSlot={
+        <DashboardCard title="동일 조건 · 연령대별 위험도">
+          {cohortByAge.length === 0 ? (
+            <div className={styles.emptyHint}>
+              <span>
+                분석 실행 후 동일 조건의 연령대별 위험도가 표시됩니다.
+              </span>
+            </div>
+          ) : (
             <div
               className={styles.chart}
               role="img"
               aria-label="연령대별 위험 점수"
             >
-              {d.cohortByAge.map((item) => (
+              {cohortByAge.map((item) => (
                 <div key={item.label} className={styles.barCol}>
+                  <span className={styles.barValue}>{item.value}</span>
                   <div
                     className={`${styles.bar} ${styles.barAmber}`}
-                    style={{ height: `${(item.value / maxCohort) * 100}%` }}
+                    style={{
+                      height: `${
+                        ((item.value - yMin) / (yMax - yMin || 1)) * 100
+                      }%`,
+                    }}
                     title={`${item.label}: ${item.value}`}
                   />
                   <span className={styles.barLabel}>{item.label}</span>
                 </div>
               ))}
             </div>
-          </DashboardCard>
-        }
-      />
-    </>
+          )}
+        </DashboardCard>
+      }
+      kpis={d.kpis}
+    />
   );
 }
 

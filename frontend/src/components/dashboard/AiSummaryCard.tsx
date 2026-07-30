@@ -19,14 +19,19 @@ export function AiSummaryCard({ data, accent = 'teal' }: AiSummaryCardProps) {
     <DashboardCard title="AI 분석 요약">
       <div className={styles.scoreRow}>
         <div>
-          <span
-            className={styles.badge}
-            style={{ background: risk.colorVar }}
-            aria-label={`${risk.label} 위험도`}
-          >
-            <span aria-hidden="true">{risk.icon}</span>
-            <span>{risk.label}</span>
-          </span>
+          <div className={styles.badgeRow}>
+            <span
+              className={styles.badge}
+              style={{ background: risk.colorVar }}
+              aria-label={`${risk.label} 위험도`}
+            >
+              <span aria-hidden="true">{risk.icon}</span>
+              <span>{risk.label}</span>
+            </span>
+            {data.profileSummary ? (
+              <span className={styles.profileSummary}>{data.profileSummary}</span>
+            ) : null}
+          </div>
           <p className={styles.title} style={{ marginTop: 10 }}>
             {data.title}
           </p>

@@ -29,9 +29,9 @@
 .chart {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
-  height: 160px;
-  padding-top: 8px;
+  gap: 8px;
+  height: 140px;
+  padding-top: 20px;
 }
 
 .barCol {
@@ -43,6 +43,13 @@
   gap: 6px;
   min-width: 0;
   height: 100%;
+}
+
+.barValue {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-body);
+  line-height: 1;
 }
 
 .bar {
@@ -58,8 +65,9 @@
 }
 
 .barLabel {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--color-hint);
+  white-space: nowrap;
 }
 
 .formGrid {
@@ -113,4 +121,23 @@
   .formGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+.emptyHint {
+  margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-hint);
+  min-height: 120px;
+}
+
+.emptyHint strong {
+  color: var(--color-body);
+  font-weight: var(--font-weight-medium);
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   DAEGU_DISTRICTS,
   DAEGU_OUTLINE_PATHS,
@@ -6,6 +6,7 @@ import {
 } from '../../constants/daeguBoundaries';
 import { DAEGU_CENTER, DAEGU_ZOOM_LEVEL } from '../../constants/map';
 import { useKakaoLoader } from '../../hooks/useKakaoLoader';
+import { useDistrictStore } from '../../stores/districtStore';
 import type { RiskLevel } from '../../types/dashboard';
 import { DashboardCard } from './DashboardCard';
 import styles from './MapCard.module.css';
@@ -32,10 +33,10 @@ export const DISTRICT_RISK_MOCK: Record<string, RiskLevel> = {
 };
 
 const LEGEND = [
-  { label: '⚠ Critical', color: RISK_COLORS.CRITICAL },
-  { label: '▲ High', color: RISK_COLORS.HIGH },
-  { label: '△ Moderate', color: RISK_COLORS.MODERATE },
-  { label: '● Low', color: RISK_COLORS.LOW },
+  { label: '⚠ 매우높음(≥75)', color: RISK_COLORS.CRITICAL },
+  { label: '▲ 높음(40–74)', color: RISK_COLORS.HIGH },
+  { label: '△ 보통(20–39)', color: RISK_COLORS.MODERATE },
+  { label: '● 낮음(<20)', color: RISK_COLORS.LOW },
 ] as const;
 
 const ACCENT = '#0E7C86';
@@ -55,10 +56,10 @@ const HOVER_STROKE = {
 } as const;
 
 const SELECTED_STROKE = {
-  strokeWeight: 3,
-  strokeColor: ACCENT,
+  strokeWeight: 4,
+  strokeColor: '#333333',
   strokeOpacity: 1,
-  fillOpacity: 0.72,
+  fillOpacity: 0.8,
 } as const;
 
 export interface MapCardProps {
@@ -95,12 +96,12 @@ function styleFor(
 ) {
   const fillColor = RISK_COLORS[risk];
   if (selected === code) {
-    return { ...SELECTED_STROKE, fillColor };
+    return { ...SELECTED_STROKE, fillColor, zIndex: 5 };
   }
   if (hovered === code) {
-    return { ...HOVER_STROKE, fillColor };
+    return { ...HOVER_STROKE, fillColor, zIndex: 4 };
   }
-  return { ...BASE_STROKE, fillColor };
+  return { ...BASE_STROKE, fillColor, zIndex: 1 };
 }
 
 /** GOV·INS 공용 카카오맵 · 구·군 Choropleth */
@@ -110,6 +111,9 @@ export function MapCard({
   onDistrictSelect,
 }: MapCardProps) {
   const { status, retry } = useKakaoLoader();
+  const selectedCode = useDistrictStore((s) => s.selectedCode);
+  const setSelectedCode = useDistrictStore((s) => s.setSelectedCode);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<{
     relayout?: () => void;
@@ -128,8 +132,7 @@ export function MapCard({
   const selectCbRef = useRef(onDistrictSelect);
   riskRef.current = riskByCode;
   selectCbRef.current = onDistrictSelect;
-
-  const [selectedCode, setSelectedCode] = useState<string | null>(null);
+  selectedRef.current = selectedCode;
 
   const applyStyles = (hovered: string | null, selected: string | null) => {
     for (const layer of layersRef.current) {
@@ -177,7 +180,6 @@ export function MapCard({
     window.kakao.maps.load(() => {
       if (cancelled || !containerRef.current) return;
 
-      // StrictMode remount: clear previous overlays/polygons
       for (const layer of layersRef.current) {
         for (const poly of layer.polygons) poly.setMap(null);
       }
@@ -254,7 +256,6 @@ export function MapCard({
 
       layersRef.current = layers;
 
-      // 외곽선 상단 레이어 (본토 + 군위 분리 path)
       const outlines: KakaoPolygon[] = [];
       for (const ring of DAEGU_OUTLINE_PATHS) {
         if (ring.length < 3) continue;
@@ -269,7 +270,7 @@ export function MapCard({
           strokeStyle: 'solid',
           fillColor: ACCENT,
           fillOpacity: 0,
-          zIndex: 2,
+          zIndex: 0, // 구군(선택 zIndex 5)보다 아래
         });
         outline.setMap(map);
         outlines.push(outline);
@@ -279,7 +280,6 @@ export function MapCard({
       window.setTimeout(() => {
         map.relayout?.();
         if (!bounds.isEmpty?.()) {
-          // padding으로 본토가 과도하게 작아지지 않게 여백 확보
           map.setBounds(bounds, 40, 40, 40, 40);
         } else {
           map.setCenter(center);
@@ -299,9 +299,8 @@ export function MapCard({
       mapRef.current = null;
       if (containerRef.current) containerRef.current.innerHTML = '';
     };
-  }, [status]);
+  }, [status, setSelectedCode]);
 
-  // 위험도 prop 변경 시 색만 갱신
   useEffect(() => {
     for (const layer of layersRef.current) {
       layer.risk = riskByCode[layer.district.code] ?? 'LOW';
@@ -309,8 +308,40 @@ export function MapCard({
     applyStyles(hoveredRef.current, selectedRef.current);
   }, [riskByCode]);
 
+  useEffect(() => {
+    selectedRef.current = selectedCode;
+    applyStyles(hoveredRef.current, selectedCode);
+  }, [selectedCode]);
+
   return (
-    <DashboardCard title={title}>
+    <DashboardCard
+      title={title}
+      action={
+        <div className={styles.regionFilters}>
+          <select
+            className={styles.regionSelect}
+            value="daegu"
+            aria-label="시도 선택"
+            disabled
+          >
+            <option value="daegu">대구광역시</option>
+          </select>
+          <select
+            className={styles.regionSelect}
+            value={selectedCode ?? ''}
+            aria-label="구군 선택"
+            onChange={(e) => setSelectedCode(e.target.value || null)}
+          >
+            <option value="">구·군 선택</option>
+            {DAEGU_DISTRICTS.map((d) => (
+              <option key={d.code} value={d.code}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      }
+    >
       <div className={styles.mapWrap}>
         {status === 'loading' ? (
           <div className={styles.stateBox} aria-busy="true">

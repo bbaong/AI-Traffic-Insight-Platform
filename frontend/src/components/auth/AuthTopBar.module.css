@@ -18,16 +18,18 @@
 }
 
 .logoMark {
-  width: 17px;
-  height: 17px;
+  width: 22px;   /* Landing 22 / Auth 17 / Sidebar 18 — 화면마다 유지해도 됨 */
+  height: 22px;
   border-radius: 4px;
-  background: var(--color-teal);
+  object-fit: contain; /* 비율 유지, 길쭉해지지 않게 */
+  display: block;
   flex-shrink: 0;
+  /* background / logoAmber 삭제 */
 }
 
-.logoAmber {
+/* .logoAmber {
   background: var(--color-amber);
-}
+} */
 
 .brandName {
   font-size: 14px;

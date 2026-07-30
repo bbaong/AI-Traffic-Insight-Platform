@@ -7,17 +7,18 @@ import {
 import { govDashboardMock } from '../../mocks/data/govDashboard.mock';
 import { getRiskMeta } from '../../utils/riskMeta';
 import styles from './GovDashboardPage.module.css';
+import { getGovAiSummary } from '../../mocks/data/districtAiSummary.mock';
+import { useDistrictStore } from '../../stores/districtStore';
 
 export function GovDashboardPage() {
   const d = govDashboardMock;
+  const selectedCode = useDistrictStore((s) => s.selectedCode);
+  const aiSummary = getGovAiSummary(selectedCode);
   const maxHour = Math.max(...d.accidentByHour.map((b) => b.value), 1);
 
   return (
     <DashboardShell
-      kpis={d.kpis}
-      mapSlot={<MapCard title="시군구 위험도 지도 · Choropleth" />}
-      aiSummarySlot={<AiSummaryCard data={d.aiSummary} accent="teal" />}
-      bottomLeftSlot={
+      topSlot={
         <DashboardCard title="우선점검 시군구 순위">
           <table className={styles.table}>
             <thead>
@@ -53,7 +54,11 @@ export function GovDashboardPage() {
           </table>
         </DashboardCard>
       }
-      bottomRightSlot={
+      mapSlot={<MapCard title="시군구 위험도 지도 · Choropleth" />}
+      aiSummarySlot={
+        <AiSummaryCard key={selectedCode ?? 'none'} data={aiSummary} accent="teal" />
+      }
+      sideBottomSlot={
         <DashboardCard title="사고 통계 · 시간대별">
           <div className={styles.chart} role="img" aria-label="시간대별 사고 건수">
             {d.accidentByHour.map((item) => (
@@ -69,6 +74,7 @@ export function GovDashboardPage() {
           </div>
         </DashboardCard>
       }
+      kpis={d.kpis}
     />
   );
 }
