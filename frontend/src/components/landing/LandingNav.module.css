@@ -37,9 +37,37 @@
 .actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 20px;          /* 그룹 사이 여백 */
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.navLinks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--color-border-light);
+  flex-shrink: 0;
+}
+
+.authActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.userName {
+  margin-right: 4px;
+  padding: 10px 4px;
+  font-size: 14px;                    /* anchorLink와 동일 */
+  font-weight: var(--font-weight-regular);
+  color: var(--color-body);           /* anchorLink와 동일 */
+  white-space: nowrap;
 }
 
 .anchorLink {

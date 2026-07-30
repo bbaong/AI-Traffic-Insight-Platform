@@ -6,6 +6,7 @@ export const ROUTES = {
   SIGNUP_COMPLETE: '/signup/complete',
   DASHBOARD_GOV: '/dashboard/gov',
   DASHBOARD_INS: '/dashboard/insurance',
+  MYPAGE: '/mypage',
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

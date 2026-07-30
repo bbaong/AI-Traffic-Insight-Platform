@@ -92,11 +92,24 @@ export const loginUsers = async (req: Request, res: Response) => {
         message: '비밀번호가 일치하지 않습니다.',
         error: 'password 일치하지 않음' });
     }
-    //로그인 성공
-    return res.status(200).json({ 
-      success: true, 
+    // 비밀번호 검증 성공 후
+    const [_, updatedUser] = await prisma.$transaction([
+      prisma.user_login_logs.create({
+        data: {
+          user_id: user.user_id,
+          ip_address: req.ip ?? req.socket.remoteAddress ?? null,
+        },
+      }),
+      prisma.users.update({
+        where: { user_id: user.user_id },
+        data: { last_login_at: new Date() },
+      }),
+    ]);
+    const { password_hash, ...safeUser } = updatedUser;
+    return res.status(200).json({
+      success: true,
       message: '로그인 성공',
-      data: user
+      data: safeUser,
     });
    
   } catch (error) {

@@ -1,0 +1,64 @@
+.page {
+    max-width: 640px;
+  }
+  
+  .card {
+    background: var(--color-card);
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--dashboard-radius);
+    padding: 20px 22px;
+    box-sizing: border-box;
+  }
+  
+  .cardTitle {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-ink);
+  }
+  
+  .hint {
+    margin: 0 0 18px;
+    font-size: 12.5px;
+    color: var(--color-hint);
+  }
+  
+  .list {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  
+  .row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 12px;
+    padding: 12px 0;
+    border-top: 0.5px solid var(--color-border-light);
+  }
+  
+  .row:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+  
+  .label {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-hint);
+  }
+  
+  .value {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--color-ink);
+    word-break: break-word;
+  }
+  
+  @media (max-width: 480px) {
+    .row {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+  }

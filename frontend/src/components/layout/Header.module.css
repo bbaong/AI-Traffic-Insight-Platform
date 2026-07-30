@@ -57,3 +57,47 @@
   color: var(--color-body);
   cursor: default;
 }
+
+.menuButton {
+  display: none; /* 데스크톱에선 숨김 */
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0.5px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.menuIcon,
+.menuIcon::before,
+.menuIcon::after {
+  display: block;
+  width: 16px;
+  height: 1.5px;
+  background: var(--color-ink);
+  border-radius: 1px;
+}
+
+.menuIcon {
+  position: relative;
+}
+
+.menuIcon::before,
+.menuIcon::after {
+  content: '';
+  position: absolute;
+  left: 0;
+}
+
+.menuIcon::before { top: -5px; }
+.menuIcon::after { top: 5px; }
+
+@media (max-width: 1024px) {
+  .menuButton {
+    display: inline-flex;
+  }
+}

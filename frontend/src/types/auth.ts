@@ -17,8 +17,16 @@ export interface LoginPayload {
 
 export type AuthUser = {
   userId: number;
+  loginId: string;
   name: string;
   role: UserRole;
+  position: string | null;
+  email: string | null;
+  departmentId: number | null;
+  departmentName: string | null; // 없으면 null (추후 API)
+  orgName: string | null;
+  createdAt: string | null;
+  lastLoginAt: string | null;
 };
 
 export type LoginResult =

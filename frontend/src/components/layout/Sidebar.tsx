@@ -7,26 +7,27 @@ import styles from './Sidebar.module.css';
 
 export interface SidebarProps {
   role: UserRole;
+  open?: boolean;
+  onNavigate?: () => void;
 }
 
-export function Sidebar({ role }: SidebarProps) {
+export function Sidebar({ role, open = false, onNavigate }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
   const menus = SIDEBAR_MENUS[role];
   const isGov = role === 'ROLE_A';
 
   function handleLogout(): void {
-    // clearUser()는 user=null 리렌더 → /login 깜빡임이 난다.
-    // 스토리지만 지우고 바로 홈으로 풀 이동한다.
     clearAuthStorage();
     window.location.replace(ROUTES.LANDING);
   }
 
   return (
-    <aside className={styles.sidebar}>
+    <aside className={`${styles.sidebar} ${open ? styles.open : ''}`}>
       <Link
         to={ROUTES.LANDING}
         className={styles.brand}
         aria-label="AI Traffic Insight 홈"
+        onClick={onNavigate}
       >
         <span
           className={`${styles.logoMark} ${isGov ? '' : styles.logoAmber}`}
@@ -40,6 +41,7 @@ export function Sidebar({ role }: SidebarProps) {
           <NavLink
             key={item.id}
             to={item.path}
+            onClick={onNavigate}
             className={({ isActive }) =>
               `${styles.link} ${
                 isActive

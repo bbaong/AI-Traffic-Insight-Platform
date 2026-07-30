@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../constants/routes';
+import { clearAuthStorage, useAuthStore } from '../../stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './LandingNav.module.css';
 
@@ -11,6 +12,20 @@ function scrollToId(id: string): void {
 }
 
 export function LandingNav() {
+  const user = useAuthStore((s) => s.user);
+
+  const dashboardPath =
+    user?.role === 'ROLE_A'
+      ? ROUTES.DASHBOARD_GOV
+      : user?.role === 'ROLE_B'
+        ? ROUTES.DASHBOARD_INS
+        : null;
+
+  function handleLogout(): void {
+    clearAuthStorage();
+    window.location.replace(ROUTES.LANDING);
+  }
+
   return (
     <header className={styles.nav}>
       <Link to={ROUTES.LANDING} className={styles.brand} aria-label="AI Traffic Insight 홈">
@@ -33,18 +48,42 @@ export function LandingNav() {
         >
           데이터 기준
         </button>
-        <Link
-          to={ROUTES.LOGIN}
-          className={`${buttonStyles.button} ${buttonStyles.outline}`}
-        >
-          로그인
-        </Link>
-        <Link
-          to={ROUTES.SIGNUP}
-          className={`${buttonStyles.button} ${buttonStyles.primary}`}
-        >
-          회원가입
-        </Link>
+
+        {user && dashboardPath ? (
+          <>
+            {user.name ? (
+              <span className={styles.userName}>{user.name}</span>
+            ) : null}
+            <button
+              type="button"
+              className={`${buttonStyles.button} ${buttonStyles.outline}`}
+              onClick={handleLogout}
+            >
+              로그아웃
+            </button>
+            <Link
+            to={dashboardPath}
+            className={`${buttonStyles.button} ${buttonStyles.primary}`}
+            >
+              대시보드
+            </Link>
+          </>
+        ) : (
+          <>
+            <Link
+              to={ROUTES.LOGIN}
+              className={`${buttonStyles.button} ${buttonStyles.outline}`}
+            >
+              로그인
+            </Link>
+            <Link
+              to={ROUTES.SIGNUP}
+              className={`${buttonStyles.button} ${buttonStyles.primary}`}
+            >
+              회원가입
+            </Link>
+          </>
+        )}
       </nav>
     </header>
   );

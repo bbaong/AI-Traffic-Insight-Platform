@@ -18,8 +18,24 @@
   box-sizing: border-box;
 }
 
+.backdrop {
+  display: none;
+}
+
 @media (max-width: 1024px) {
-  .layout {
-    flex-direction: column;
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgb(15 27 45 / 40%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .backdropVisible {
+    opacity: 1;
+    pointer-events: auto;
   }
 }
