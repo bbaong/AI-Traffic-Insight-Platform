@@ -21,7 +21,7 @@ export function AppLayout() {
       : user.role === 'ROLE_A'
         ? '지자체 대시보드'
         : '보험사 대시보드';
-        
+
   return (
     <div
       className={styles.layout}

@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import userRoutes from './routes/user.route';
 import cors from 'cors';
+import predictionRoutes from './routes/prediction.route';
 
 const app = express();
 const port = 5000;
@@ -11,6 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 
 //라우터 등록
 app.use('/api/user', userRoutes);
+
+app.use('/api/prediction', predictionRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello, TypeScript with Express!');
