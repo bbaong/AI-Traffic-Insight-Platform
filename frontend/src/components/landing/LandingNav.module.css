@@ -24,7 +24,7 @@
   width: 22px;
   height: 22px;
   border-radius: var(--radius-logo);
-  background: var(--color-teal);
+  /* background: var(--color-teal); */
   flex-shrink: 0;
 }
 

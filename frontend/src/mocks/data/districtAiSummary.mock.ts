@@ -121,6 +121,6 @@ export const govAiSummaryDefault: AiSummaryData = {
 };
 
 export function getGovAiSummary(code: string | null): AiSummaryData {
-  if (!code) return govAiSummaryDefault;
-  return govAiSummaryByDistrict[code] ?? govAiSummaryDefault;
+    const key = code ?? 'suseong';
+    return govAiSummaryByDistrict[key] ?? govAiSummaryByDistrict.suseong;
 }

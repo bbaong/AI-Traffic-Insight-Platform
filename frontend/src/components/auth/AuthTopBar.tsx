@@ -18,8 +18,10 @@ export function AuthTopBar({ label, accent = 'teal' }: AuthTopBarProps) {
         className={styles.brand}
         aria-label="AI Traffic Insight 홈"
       >
-        <span
-          className={`${styles.logoMark} ${accent === 'amber' ? styles.logoAmber : ''}`}
+        <img
+          src="/icon_logo.png"
+          alt=""
+          className={styles.logoMark}
           aria-hidden="true"
         />
         <span className={styles.brandName}>AI Traffic Insight</span>

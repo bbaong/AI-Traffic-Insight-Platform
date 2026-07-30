@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { predictRisk } from '../../api/prediction';
+import { DAEGU_DISTRICTS } from '../../constants/daeguBoundaries';
+import { useDistrictStore } from '../../stores/districtStore';
 import {
   AiSummaryCard,
   DashboardCard,
@@ -42,6 +44,7 @@ const gradeMap: Record<string, RiskLevel> = {
 
 export function InsDashboardPage() {
   const d = insDashboardMock;
+  const setSelectedCode = useDistrictStore((s) => s.setSelectedCode);
   const [profile, setProfile] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const field of d.profileFields) {
@@ -49,17 +52,19 @@ export function InsDashboardPage() {
     }
     return initial;
   });
-  const [aiSummary, setAiSummary] = useState<AiSummaryData>(d.aiSummary);
-  const [cohortByAge, setCohortByAge] = useState(d.cohortByAge); // 분석 후 AI로 교체
+  const [aiSummary, setAiSummary] = useState<AiSummaryData | null>(null);
+  const [cohortByAge, setCohortByAge] = useState<
+    { label: string; value: number }[]
+  >([]);
   const [loading, setLoading] = useState(false);
 
   const values = cohortByAge.map((b) => b.value);
-  const dataMin = Math.min(...values);
-  const dataMax = Math.max(...values);
-  // Y축을 데이터 근처로 좁힘 (상하 여유 5점, 최소 폭 10)
+  const dataMin = values.length ? Math.min(...values) : 0;
+  const dataMax = values.length ? Math.max(...values) : 0;
   const pad = 5;
   const yMin = Math.max(0, Math.floor(dataMin - pad));
   const yMax = Math.min(100, Math.ceil(Math.max(dataMax + pad, yMin + 10)));
+
   async function handleAnalyze() {
     try {
       setLoading(true);
@@ -114,6 +119,11 @@ export function InsDashboardPage() {
           .filter(Boolean)
           .join(' · '),
       });
+      // 프로필 지역 → 지도 선택 동기화
+      const district = DAEGU_DISTRICTS.find((d) => d.name === profile.region);
+      if (district) {
+        setSelectedCode(district.code);
+      }
     } catch (e) {
       console.error(e);
       alert('분석에 실패했습니다. AI/백엔드 서버를 확인하세요.');
@@ -166,30 +176,50 @@ export function InsDashboardPage() {
           <InsDataNoticeFooter />
         </div>
       }
-      aiSummarySlot={<AiSummaryCard data={aiSummary} accent="amber" />}
+      aiSummarySlot={
+        aiSummary ? (
+          <AiSummaryCard data={aiSummary} accent="amber" />
+        ) : (
+          <DashboardCard title="AI 분석 요약">
+            <div className={styles.emptyHint}>
+              <span>
+                고객 프로필을 입력한 뒤 <strong>분석 실행</strong>을 눌러 주세요.
+              </span>
+            </div>
+          </DashboardCard>
+        )
+      }
       sideBottomSlot={
         <DashboardCard title="동일 조건 · 연령대별 위험도">
-          <div
-            className={styles.chart}
-            role="img"
-            aria-label="연령대별 위험 점수"
-          >
-            {cohortByAge.map((item) => (
-              <div key={item.label} className={styles.barCol}>
-                <span className={styles.barValue}>{item.value}</span>
-                <div
-                  className={`${styles.bar} ${styles.barAmber}`}
-                  style={{
-                    height: `${
-                      ((item.value - yMin) / (yMax - yMin || 1)) * 100
-                    }%`,
-                  }}
-                  title={`${item.label}: ${item.value}`}
-                />
-                <span className={styles.barLabel}>{item.label}</span>
-              </div>
-            ))}
-          </div>
+          {cohortByAge.length === 0 ? (
+            <div className={styles.emptyHint}>
+              <span>
+                분석 실행 후 동일 조건의 연령대별 위험도가 표시됩니다.
+              </span>
+            </div>
+          ) : (
+            <div
+              className={styles.chart}
+              role="img"
+              aria-label="연령대별 위험 점수"
+            >
+              {cohortByAge.map((item) => (
+                <div key={item.label} className={styles.barCol}>
+                  <span className={styles.barValue}>{item.value}</span>
+                  <div
+                    className={`${styles.bar} ${styles.barAmber}`}
+                    style={{
+                      height: `${
+                        ((item.value - yMin) / (yMax - yMin || 1)) * 100
+                      }%`,
+                    }}
+                    title={`${item.label}: ${item.value}`}
+                  />
+                  <span className={styles.barLabel}>{item.label}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </DashboardCard>
       }
       kpis={d.kpis}

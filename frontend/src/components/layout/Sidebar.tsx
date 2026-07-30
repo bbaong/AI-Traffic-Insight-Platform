@@ -29,8 +29,10 @@ export function Sidebar({ role, open = false, onNavigate }: SidebarProps) {
         aria-label="AI Traffic Insight 홈"
         onClick={onNavigate}
       >
-        <span
-          className={`${styles.logoMark} ${isGov ? '' : styles.logoAmber}`}
+        <img
+          src="/icon_logo.png"
+          alt=""
+          className={styles.logoMark}
           aria-hidden="true"
         />
         <span className={styles.brandName}>AI Traffic Insight</span>

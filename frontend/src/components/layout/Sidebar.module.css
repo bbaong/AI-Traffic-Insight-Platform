@@ -28,7 +28,8 @@
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  background: var(--color-teal);
+  background: #ffffff;
+  border: 2px solid #ffffff;
   flex-shrink: 0;
 }
 

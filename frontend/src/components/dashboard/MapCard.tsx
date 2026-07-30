@@ -33,10 +33,10 @@ export const DISTRICT_RISK_MOCK: Record<string, RiskLevel> = {
 };
 
 const LEGEND = [
-  { label: '⚠ 매우높음', color: RISK_COLORS.CRITICAL },
-  { label: '▲ 높음', color: RISK_COLORS.HIGH },
-  { label: '△ 보통', color: RISK_COLORS.MODERATE },
-  { label: '● 낮음', color: RISK_COLORS.LOW },
+  { label: '⚠ 매우높음(≥75)', color: RISK_COLORS.CRITICAL },
+  { label: '▲ 높음(40–74)', color: RISK_COLORS.HIGH },
+  { label: '△ 보통(20–39)', color: RISK_COLORS.MODERATE },
+  { label: '● 낮음(<20)', color: RISK_COLORS.LOW },
 ] as const;
 
 const ACCENT = '#0E7C86';
