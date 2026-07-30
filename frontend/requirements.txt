@@ -1,43 +1,4 @@
-# ============================================
-# Frontend 설치 가이드 (처음 설치하는 경우)
-# ============================================
-# 사전 요구사항: Node.js 18 이상, npm
-# 작업 디렉터리: AI-Traffic-Insight-Platform/frontend
-#
-# 1) 의존성 설치
-#    npm install
-#
-# 2) 환경 변수 파일 생성
-#    frontend 폴더에 .env 파일을 만들고 아래 내용을 채워 넣으세요.
-#
-#    VITE_KAKAO_MAP_APP_KEY=카카오_JavaScript_키
-#    VITE_API_BASE_URL=http://localhost:5000
-#
-# 3) 백엔드 서버 실행 (필수 — 로그인·회원가입·중복확인·부서목록 API)
-#    AI-Traffic-Insight-Platform/backend 에서:
-#    npm install
-#    npx prisma generate
-#    npm run dev
-#    → http://localhost:5000
-#
-#    백엔드가 꺼져 있으면 아이디 중복확인 시
-#    "중복확인에 실패했습니다. 다시 시도하세요" 가 표시됩니다.
-#
-# 4) 프론트 개발 서버 실행
-#    npm run dev
-#
-#    주소 예: http://localhost:5173
-#
-# --- 기타 자주 쓰는 명령어 ---
-#    npm run build          # 프로덕션 빌드
-#    npm run preview        # 빌드 결과 미리보기
-#    npm run lint           # ESLint
-#
-# 참고:
-# - 이 프로젝트는 Node.js 기반입니다. pip install이 아니라 npm install을 사용합니다.
-# - VITE_ 접두사 환경 변수는 서버 재시작(또는 Vite 재시작) 후 반영됩니다.
-# - API Base URL 미설정 시 기본값은 http://localhost:5000 입니다.
-# ============================================
+# For setup and run instructions, see the root README.md section "Frontend Setup Guide".
 
 # Runtime
 @emotion/react>=11.14.0
