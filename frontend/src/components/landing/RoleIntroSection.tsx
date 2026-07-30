@@ -2,7 +2,7 @@ import styles from './RoleIntroSection.module.css';
 import { useFadeInClassName } from './useFadeInClassName';
 
 const GOV_TAGS = ['위험도 지도', '우선점검 순위', '행정 참고 리포트'] as const;
-const INS_TAGS = ['위험 점수', '유사 고객군', '상담 참고 리포트'] as const;
+const INS_TAGS = ['연령대별 위험 점수', '유사 고객군 분석', '상담 참고 리포트'] as const;
 
 export function RoleIntroSection() {
   const { ref, className } = useFadeInClassName();
@@ -16,10 +16,10 @@ export function RoleIntroSection() {
     >
       <div className={styles.inner}>
         <h2 id="role-intro-heading" className={styles.title}>
-          두 가지 업무, 하나의 데이터
+        맞춤 분석 엔진, 두 개의 전용 대시보드
         </h2>
         <p className={styles.subtitle}>
-          같은 사고 데이터를 업무에 맞게 다르게 보여줍니다.
+        지자체와 보험사, 업무 목적에 최적화된 업무 화면을 제공합니다.
         </p>
 
         <div className={styles.grid}>
@@ -45,10 +45,10 @@ export function RoleIntroSection() {
             <p className={`${styles.label} ${styles.labelIns}`}>
               보험사 상담 · 심사 담당자
             </p>
-            <h3 className={styles.cardTitle}>이 고객은 언제 위험해질까</h3>
+            <h3 className={styles.cardTitle}>이 고객을 어떻게 설득할까</h3>
             <p className={styles.body}>
-              6개 조건을 입력하면 위험 점수와 중상 확률, 상담에 쓸 근거를
-              받습니다.
+              5가지 요인을 바탕으로 고객별 위험 점수와 심각도를 산출하여, 객관적인 상담 및 심사 
+              근거를 확보할 수 있습니다.
             </p>
             <ul className={styles.tags}>
               {INS_TAGS.map((tag) => (
