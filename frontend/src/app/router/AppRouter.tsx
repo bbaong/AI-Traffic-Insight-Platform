@@ -12,6 +12,7 @@ import { DevPolygonPickerPage } from '../../pages/dev/DevPolygonPickerPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { MyPage } from '../../pages/mypage/MyPage';
+import { SettingsPage } from '../../pages/settings/SettingsPage';
 
 /**
  * 앱 라우터.
@@ -36,6 +37,7 @@ export function AppRouter() {
             <Route path={ROUTES.DASHBOARD_INS} element={<InsDashboardPage />} />
           </Route>
           <Route path={ROUTES.MYPAGE} element={<MyPage />} />
+          <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
         </Route>
       </Route>
 

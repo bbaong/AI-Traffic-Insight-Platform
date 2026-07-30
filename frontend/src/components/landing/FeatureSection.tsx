@@ -69,18 +69,18 @@ interface FeatureItem {
 const FEATURES: FeatureItem[] = [
   {
     icon: <MapIcon />,
-    title: '시군구 단위로 봅니다',
-    body: '지도와 표, 리포트까지 지역 단위가 같습니다.',
+    title: '행정·상담 맞춤 단위 제공',
+    body: '시군구 단위의 체계적인 정밀 데이터 분석으로 실효성 있는 현황을 파악합니다.',
   },
   {
     icon: <ChartIcon />,
-    title: '근거를 함께 줍니다',
-    body: '요인별 기여도와 평균 대비 배율까지 보여줍니다.',
+    title: '위험 요인 정밀 분석',
+    body: '분석 조건에 따른 종합 위험도와 사고 유형별 수치를 보여줍니다.',
   },
   {
     icon: <DocIcon />,
-    title: '바로 문서가 됩니다',
-    body: '보고서와 상담 자료를 화면에서 그대로 만듭니다.',
+    title: '자동 리포트 생성',
+    body: '분석 결과를 행정 및 상담 참고 리포트로  출력합니다.',
   },
 ];
 
@@ -95,10 +95,10 @@ export function FeatureSection() {
     >
       <div className={styles.inner}>
         <h2 id="feature-heading" className={styles.title}>
-          점수 하나로 끝내지 않습니다
+          명확한 정량 수치와 객관적 분석 근거
         </h2>
         <p className={styles.subtitle}>
-          판단에 필요한 근거를 함께 제공합니다.
+          단순 통계를 넘어 의사결정에 필요한 데이터를 제공합니다.
         </p>
 
         <div className={styles.grid}>

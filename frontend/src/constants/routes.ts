@@ -7,6 +7,7 @@ export const ROUTES = {
   DASHBOARD_GOV: '/dashboard/gov',
   DASHBOARD_INS: '/dashboard/insurance',
   MYPAGE: '/mypage',
+  SETTINGS: '/common/settings',
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];
