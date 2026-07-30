@@ -5,10 +5,10 @@ import {
   MapCard,
 } from '../../components/dashboard';
 import { govDashboardMock } from '../../mocks/data/govDashboard.mock';
-import { getRiskMeta } from '../../utils/riskMeta';
-import styles from './GovDashboardPage.module.css';
 import { getGovAiSummary } from '../../mocks/data/districtAiSummary.mock';
+import { getRiskMeta } from '../../utils/riskMeta';
 import { useDistrictStore } from '../../stores/districtStore';
+import styles from './GovDashboardPage.module.css';
 
 export function GovDashboardPage() {
   const d = govDashboardMock;
@@ -56,11 +56,19 @@ export function GovDashboardPage() {
       }
       mapSlot={<MapCard title="시군구 위험도 지도 · Choropleth" />}
       aiSummarySlot={
-        <AiSummaryCard key={selectedCode ?? 'none'} data={aiSummary} accent="teal" />
+        <AiSummaryCard
+          key={selectedCode ?? 'none'}
+          data={aiSummary}
+          accent="teal"
+        />
       }
       sideBottomSlot={
         <DashboardCard title="사고 통계 · 시간대별">
-          <div className={styles.chart} role="img" aria-label="시간대별 사고 건수">
+          <div
+            className={styles.chart}
+            role="img"
+            aria-label="시간대별 사고 건수"
+          >
             {d.accidentByHour.map((item) => (
               <div key={item.label} className={styles.barCol}>
                 <div

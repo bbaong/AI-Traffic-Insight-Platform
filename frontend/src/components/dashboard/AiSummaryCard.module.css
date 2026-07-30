@@ -61,7 +61,7 @@
 
 .factor {
   display: grid;
-  grid-template-columns: 72px 1fr 36px;
+  grid-template-columns: 96px 1fr 36px; /* 기존 72px이면 늘리기 */
   gap: 8px;
   align-items: center;
 }
@@ -69,6 +69,9 @@
 .factorName {
   font-size: 12px;
   color: var(--color-body);
+  white-space: nowrap;      /* 한 줄 고정 */
+  overflow: hidden;         /* 넘치면 숨김 */
+  text-overflow: ellipsis;  /* ... 표시 */
 }
 
 .track {
@@ -103,4 +106,9 @@
   font-size: 12.5px;
   line-height: 1.5;
   color: var(--color-body);
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+  min-width: 0;
 }

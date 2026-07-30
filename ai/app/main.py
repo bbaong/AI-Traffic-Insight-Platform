@@ -28,7 +28,7 @@ def predict(body: PredictRequest) -> PredictResponse:
             성별=body.성별,
             차종=body.차종,
             주야=body.주야,
-            variant=body.variant,
+            노면상태=body.노면상태,
         )
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc

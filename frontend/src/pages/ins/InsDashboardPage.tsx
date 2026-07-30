@@ -35,13 +35,6 @@ const AGE_SHORT: Record<string, string> = {
   '65세 이상': '65+',
 };
 
-const gradeMap: Record<string, RiskLevel> = {
-  사망사고: 'CRITICAL',
-  중상사고: 'HIGH',
-  경상사고: 'MODERATE',
-  부상신고사고: 'LOW',
-};
-
 export function InsDashboardPage() {
   const d = insDashboardMock;
   const setSelectedCode = useDistrictStore((s) => s.setSelectedCode);
@@ -68,13 +61,13 @@ export function InsDashboardPage() {
   async function handleAnalyze() {
     try {
       setLoading(true);
-  
+
       const base = {
         구군: profile.region,
         성별: profile.gender,
         차종: profile.vehicle,
         주야: profile.time,
-        variant: 'weighted' as const,
+        노면상태: profile.surface ?? '건조',
       };
   
       // 연령대별 병렬 예측 (유사 조건 비교)
@@ -101,24 +94,31 @@ export function InsDashboardPage() {
         name,
         contribution: Math.round(p * 100),
       }));
-  
+      
+      const level = selected.예측등급 as RiskLevel;
+      
       setAiSummary({
-        riskLevel: gradeMap[selected.예측등급] ?? 'MODERATE',
+        riskLevel:
+          level === 'CRITICAL' || level === 'HIGH' || level === 'MODERATE' || level === 'LOW'
+            ? level
+            : 'MODERATE',
         title: '상담 고객 위험 요약',
         scoreLabel: '위험 점수',
         score: selected.위험도,
         factors,
-        recommendation: `예측 등급: ${selected.예측등급} · 참고 지표이며 인수 심사의 직접 근거가 아닙니다`,
+        recommendation: '참고 지표이며 인수 심사의 직접 근거가 아닙니다',
         profileSummary: [
           profile.region,
           profile.age,
           profile.gender,
           profile.vehicle,
           profile.time,
+          profile.surface,
         ]
           .filter(Boolean)
           .join(' · '),
       });
+
       // 프로필 지역 → 지도 선택 동기화
       const district = DAEGU_DISTRICTS.find((d) => d.name === profile.region);
       if (district) {
