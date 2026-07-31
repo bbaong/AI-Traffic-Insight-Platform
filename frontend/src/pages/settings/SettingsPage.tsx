@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { changePassword } from '../../api/user';
-import { Toast } from '../../components/ui/Toast';
+import { changePassword } from '../../shared/api/user';
+import { Toast } from '../../shared/components/ui/Toast';
 import { useAuthStore } from '../../stores/authStore';
 import styles from './SettingsPage.module.css';
 

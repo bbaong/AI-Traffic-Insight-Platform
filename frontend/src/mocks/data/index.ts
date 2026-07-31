@@ -4,4 +4,4 @@ export type {
   LandingHighlight,
   LandingRiskLevel,
 } from './govDashboard.mock';
-export { insDashboardMock } from './insDashboard.mock';
+export { insDashboardMock } from '../../domains/ins/mocks/insDashboard.mock';

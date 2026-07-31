@@ -1,4 +1,4 @@
-import type { GovDashboardData } from '../../types/dashboard';
+import type { GovDashboardData } from '../../shared/types/dashboard';
 
 export type LandingRiskLevel = 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
 

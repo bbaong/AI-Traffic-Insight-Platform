@@ -1,4 +1,4 @@
-import type { Department } from '../types/signup';
+import type { Department } from '../domains/auth/types/signup';
 
 /**
  * 아이디 중복 확인.
