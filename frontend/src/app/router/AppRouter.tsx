@@ -1,18 +1,18 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { AppLayout } from '../../layouts/AppLayout';
-import { ROUTES } from '../../constants/routes';
+import { AppLayout } from '../../shared/layouts/AppLayout';
+import { ROUTES } from '../../shared/constants/routes';
 import { LandingPage } from '../../pages/home/LandingPage';
-import { LoginPage } from '../../pages/auth/LoginPage';
-import { SignupCompletePage } from '../../pages/auth/SignupCompletePage';
-import { SignupFormEntryPage } from '../../pages/auth/SignupFormEntryPage';
-import { SignupRoleGatePage } from '../../pages/auth/SignupRoleGatePage';
-import { GovDashboardPage } from '../../pages/gov/GovDashboardPage';
-import { InsDashboardPage } from '../../pages/ins/InsDashboardPage';
+import { LoginPage } from '../../domains/auth/pages/LoginPage';
+import { SignupCompletePage } from '../../domains/auth/pages/SignupCompletePage';
+import { SignupFormEntryPage } from '../../domains/auth/pages/SignupFormEntryPage';
+import { SignupRoleGatePage } from '../../domains/auth/pages/SignupRoleGatePage';
+import { GovDashboardPage } from '../../domains/gov/pages/GovDashboardPage';
+import { InsDashboardPage } from '../../domains/ins/pages/InsDashboardPage';
 import { DevPolygonPickerPage } from '../../pages/dev/DevPolygonPickerPage';
 import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { MyPage } from '../../pages/mypage/MyPage';
-import { SettingsPage } from '../../pages/settings/SettingsPage';
+import { SettingsGate } from '../../pages/settings/SettingsGate';
 
 /**
  * 앱 라우터.
@@ -37,7 +37,7 @@ export function AppRouter() {
             <Route path={ROUTES.DASHBOARD_INS} element={<InsDashboardPage />} />
           </Route>
           <Route path={ROUTES.MYPAGE} element={<MyPage />} />
-          <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+          <Route path={ROUTES.SETTINGS} element={<SettingsGate />} />
         </Route>
       </Route>
 

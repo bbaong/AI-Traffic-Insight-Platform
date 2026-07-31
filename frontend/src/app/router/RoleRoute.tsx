@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { ROUTES } from '../../constants/routes';
+import { ROUTES } from '../../shared/constants/routes';
 import { useAuthStore } from '../../stores/authStore';
-import type { UserRole } from '../../types/auth';
+import type { UserRole } from '../../shared/types/auth';
 
 export interface RoleRouteProps {
   allow: UserRole;

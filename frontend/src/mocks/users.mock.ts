@@ -1,4 +1,4 @@
-import type { MockUser } from '../types/auth';
+import type { MockUser } from '../shared/types/auth';
 
 // 테스트 계정
 //   지자체: gov_daegu / test1234  → /dashboard/gov 로 분기
