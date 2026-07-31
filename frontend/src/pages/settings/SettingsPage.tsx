@@ -1,13 +1,13 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { changePassword } from '../../shared/api/user';
 import { Toast } from '../../shared/components/ui/Toast';
-import { useAuthStore } from '../../stores/authStore';
+import { ROUTES } from '../../shared/constants/routes';
+import { clearAuthStorage, useAuthStore } from '../../stores/authStore';
 import styles from './SettingsPage.module.css';
 
 export function SettingsPage() {
   const user = useAuthStore((s) => s.user);
 
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fieldError, setFieldError] = useState<string | null>(null);
@@ -17,7 +17,10 @@ export function SettingsPage() {
 
   useEffect(() => {
     if (!showSuccessToast) return;
-    const id = window.setTimeout(() => setShowSuccessToast(false), 1400);
+    const id = window.setTimeout(() => {
+      clearAuthStorage();
+      window.location.replace(ROUTES.LOGIN);
+    }, 1200);
     return () => window.clearTimeout(id);
   }, [showSuccessToast]);
 
@@ -27,16 +30,10 @@ export function SettingsPage() {
     confirmPassword.length > 0 && newPassword !== confirmPassword;
   const newPasswordTooShort =
     newPassword.length > 0 && newPassword.length < 8;
-  const sameAsCurrent =
-    currentPassword.length > 0 &&
-    newPassword.length > 0 &&
-    currentPassword === newPassword;
 
   const canSubmit =
-    currentPassword !== '' &&
     newPassword.length >= 8 &&
     newPassword === confirmPassword &&
-    !sameAsCurrent &&
     !submitting;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
@@ -54,16 +51,11 @@ export function SettingsPage() {
       setFieldError('새 비밀번호가 일치하지 않습니다.');
       return;
     }
-    if (currentPassword === newPassword) {
-      setFieldError('현재 비밀번호와 동일합니다.');
-      return;
-    }
 
     setSubmitting(true);
     try {
       const result = await changePassword({
         userId: user.userId,
-        currentPassword,
         newPassword,
       });
 
@@ -72,7 +64,6 @@ export function SettingsPage() {
         return;
       }
 
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setShowSuccessToast(true);
@@ -90,7 +81,7 @@ export function SettingsPage() {
           비밀번호 변경
         </h2>
         <p className={styles.hint}>
-          현재 비밀번호 확인 후 새 비밀번호로 변경합니다. (최소 8자)
+          새 비밀번호를 입력해 변경합니다. (최소 8자)
         </p>
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
@@ -99,21 +90,6 @@ export function SettingsPage() {
               {submitError}
             </p>
           ) : null}
-
-          <div className={styles.field}>
-            <label htmlFor="currentPassword" className={styles.label}>
-              현재 비밀번호
-            </label>
-            <input
-              id="currentPassword"
-              name="currentPassword"
-              type="password"
-              autoComplete="current-password"
-              className={styles.control}
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-            />
-          </div>
 
           <div className={styles.field}>
             <label htmlFor="newPassword" className={styles.label}>
@@ -125,27 +101,18 @@ export function SettingsPage() {
               type="password"
               autoComplete="new-password"
               className={`${styles.control} ${
-                newPasswordTooShort || sameAsCurrent
-                  ? styles.controlInvalid
-                  : ''
+                newPasswordTooShort ? styles.controlInvalid : ''
               }`}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              aria-invalid={newPasswordTooShort || sameAsCurrent}
+              aria-invalid={newPasswordTooShort}
               aria-describedby={
-                newPasswordTooShort || sameAsCurrent
-                  ? 'newPassword-error'
-                  : undefined
+                newPasswordTooShort ? 'newPassword-error' : undefined
               }
             />
             {newPasswordTooShort ? (
               <p id="newPassword-error" className={styles.fieldError}>
                 비밀번호는 8자 이상이어야 합니다.
-              </p>
-            ) : null}
-            {!newPasswordTooShort && sameAsCurrent ? (
-              <p id="newPassword-error" className={styles.fieldError}>
-                현재 비밀번호와 동일합니다.
               </p>
             ) : null}
           </div>

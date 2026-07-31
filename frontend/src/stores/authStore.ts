@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { AuthUser } from '../shared/types/auth';
+import { clearSettingsVerifyStorage } from './settingsVerifyStore';
 
 const STORAGE_KEY = 'ati_auth_user';
 
@@ -18,6 +19,7 @@ function readStoredUser(): AuthUser | null {
 export function clearAuthStorage(): void {
   localStorage.removeItem(STORAGE_KEY);
   sessionStorage.removeItem(STORAGE_KEY);
+  clearSettingsVerifyStorage();
 }
 
 interface AuthState {
