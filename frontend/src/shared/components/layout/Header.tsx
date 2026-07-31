@@ -6,6 +6,8 @@ export interface HeaderProps {
   role: UserRole;
   onMenuClick?: () => void;
   menuOpen?: boolean;
+  /** GOV 대시보드에서만 기간 표시. 마이페이지 등에서는 false */
+  showPeriod?: boolean;
 }
 
 export function Header({
@@ -13,6 +15,7 @@ export function Header({
   role,
   onMenuClick,
   menuOpen = false,
+  showPeriod = false,
 }: HeaderProps) {
   const isGov = role === 'ROLE_A';
 
@@ -35,7 +38,7 @@ export function Header({
           {isGov ? '지자체' : '보험사'}
         </span>
       </div>
-      {isGov ? (
+      {showPeriod && isGov ? (
         <button type="button" className={styles.period} disabled>
           최근 12개월 ▾
         </button>

@@ -28,36 +28,50 @@ export function LandingNav() {
 
   return (
     <header className={styles.nav}>
-      <Link to={ROUTES.LANDING} className={styles.brand} aria-label="AI Traffic Insight 홈">
-        <img
-          src="/icon_logo.png"
-          alt=""
-          className={styles.logoMark}
-          aria-hidden="true"
-        />
-        <span className={styles.brandName}>AI Traffic Insight</span>
-      </Link>
+      <div className={styles.left}>
+        <Link to={ROUTES.LANDING} className={styles.brand} aria-label="AI Traffic Insight 홈">
+          <img
+            src="/icon_logo.png"
+            alt=""
+            className={styles.logoMark}
+            aria-hidden="true"
+          />
+          <span className={styles.brandName}>AI Traffic Insight</span>
+        </Link>
 
-      <nav className={styles.actions} aria-label="랜딩 내비게이션">
-        <button
-          type="button"
-          className={styles.anchorLink}
-          onClick={() => scrollToId('intro')}
-        >
-          서비스 소개
-        </button>
-        <button
-          type="button"
-          className={styles.anchorLink}
-          onClick={() => scrollToId('data')}
-        >
-          데이터 기준
-        </button>
+        <nav className={styles.navLinks} aria-label="랜딩 섹션">
+          <button
+            type="button"
+            className={styles.anchorLink}
+            onClick={() => scrollToId('intro')}
+          >
+            서비스 소개
+          </button>
+          <button
+            type="button"
+            className={styles.anchorLink}
+            onClick={() => scrollToId('data')}
+          >
+            데이터 기준
+          </button>
+        </nav>
+      </div>
 
+      <div className={styles.actions} aria-label="계정">
         {user && dashboardPath ? (
           <>
             {user.name ? (
-              <span className={styles.userName}>{user.name}</span>
+              <div className={styles.userChip}>
+                <span
+                  className={`${styles.avatar} ${
+                    user.role === 'ROLE_A' ? styles.avatarTeal : styles.avatarAmber
+                  }`}
+                  aria-hidden="true"
+                >
+                  {(user.name.trim().charAt(0) || '?').toUpperCase()}
+                </span>
+                <span className={styles.userName}>{user.name} 님</span>
+              </div>
             ) : null}
             <button
               type="button"
@@ -67,8 +81,8 @@ export function LandingNav() {
               로그아웃
             </button>
             <Link
-            to={dashboardPath}
-            className={`${buttonStyles.button} ${buttonStyles.primary}`}
+              to={dashboardPath}
+              className={`${buttonStyles.button} ${buttonStyles.primary}`}
             >
               대시보드
             </Link>
@@ -89,7 +103,7 @@ export function LandingNav() {
             </Link>
           </>
         )}
-      </nav>
+      </div>
     </header>
   );
 }

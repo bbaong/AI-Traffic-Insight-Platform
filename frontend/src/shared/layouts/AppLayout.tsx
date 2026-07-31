@@ -45,6 +45,7 @@ export function AppLayout() {
           role={user.role}
           onMenuClick={() => setSidebarOpen((v) => !v)}
           menuOpen={sidebarOpen}
+          showPeriod={location.pathname === ROUTES.DASHBOARD_GOV}
         />
         <div className={styles.content}>
           <Outlet />

@@ -29,6 +29,7 @@ export async function login(payload: LoginPayload): Promise<LoginResult> {
       position?: string | null;
       email?: string | null;
       department_id?: number | null;
+      department_name?: string | null;
       org_name?: string | null;
       created_at?: string | null;
       last_login_at?: string | null;
@@ -62,7 +63,7 @@ export async function login(payload: LoginPayload): Promise<LoginResult> {
         email: user.email ?? null,
         departmentId:
           user.department_id != null ? Number(user.department_id) : null,
-        departmentName: null,
+        departmentName: user.department_name?.trim() || null,
         orgName: user.org_name ?? null,
         createdAt: user.created_at ?? null,
         lastLoginAt: user.last_login_at ?? null,
