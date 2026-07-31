@@ -6,6 +6,6 @@ interface DistrictState {
 }
 
 export const useDistrictStore = create<DistrictState>((set) => ({
-  selectedCode: null,
+  selectedCode: 'suseong', // 기본: 수성구
   setSelectedCode: (code) => set({ selectedCode: code }),
 }));

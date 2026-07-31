@@ -15,12 +15,59 @@ ai/
 └── app/            # FastAPI 서빙
 ```
 
-## 설치
+## 설치 가이드 (처음 설치하는 경우)
+
+- 사전 요구사항: Python 3.11 이상, pip
+- 작업 디렉터리: `AI-Traffic-Insight-Platform/ai`
+
+### 1) 가상환경 생성 및 활성화 (권장)
 
 ```bash
-cd ai
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+# source .venv/bin/activate
+```
+
+### 2) 의존성 설치
+
+```bash
 pip install -r requirements.txt
 ```
+
+### 3) 원천 데이터 준비
+
+- `data/raw/`에 사고·인구 CSV를 배치
+- 예: `사고분석.csv` (Git 미포함)
+
+### 4) 전처리 및 모델 학습 (최초 1회, `.pkl` 생성용)
+
+```bash
+python -m src.preprocess
+python -m src.train
+```
+
+### 5) API 서버 실행
+
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+- 서버 주소 예: `http://localhost:8000`
+- API 문서: `http://localhost:8000/docs`
+
+### 기타 자주 쓰는 명령어
+
+```bash
+python -m src.inference --구군 달서구 --연령대 "51-60세" --성별 남 --차종 승용
+docker build -t ai-traffic-risk .
+docker run -p 8000:8000 ai-traffic-risk
+```
+
+### 참고
+
+- 이 프로젝트는 Python 기반이며 `npm install`이 아니라 `pip install` 사용
+- `models/*.pkl`이 없으면 `POST /predict`가 503 반환 (학습 선행 필요)
+- `data/`, `models/*.pkl`은 Git 제외 대상
 
 ## 데이터 전처리
 
