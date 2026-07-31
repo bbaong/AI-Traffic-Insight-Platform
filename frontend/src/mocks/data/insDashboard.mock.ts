@@ -101,6 +101,19 @@ export const insDashboardMock: InsDashboardData = {
         { value: '야간', label: '야간' },
       ],
     },
+    {
+      id: 'surface',
+      label: '노면상태',
+      options: [
+        { value: '건조', label: '건조' },
+        { value: '젖음/습기', label: '젖음/습기' },
+        { value: '적설', label: '적설' },
+        { value: '서리/결빙', label: '서리/결빙' },
+        { value: '해빙', label: '해빙' },
+        { value: '침수', label: '침수' },
+        { value: '기타', label: '기타' },
+      ],
+    },
   ],
   cohortByAge: [
     { label: '20대', value: 58 },

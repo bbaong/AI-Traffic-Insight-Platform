@@ -1,21 +1,21 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
 
 export interface PredictRequest {
-  구군: string;
-  연령대: string;
-  성별: string;
-  차종: string;
-  주야?: string;
-  variant?: 'weighted' | 'unweighted';
-}
-
-export interface PredictResult {
-  버전: string;
-  variant: string;
-  예측등급: string; // 예: 중상사고
-  위험도: number;
-  등급확률: Record<string, number>;
-}
+    구군: string;
+    연령대: string;
+    성별: string;
+    차종: string;
+    주야?: string;
+    노면상태?: string;
+  }
+  
+  export interface PredictResult {
+    버전: string;
+    variant: string;
+    예측등급: string; // CRITICAL | HIGH | ...
+    위험도: number;
+    등급확률: Record<string, number>; // 법규위반 Top3
+  }
 
 export async function predictRisk(
   body: PredictRequest,
@@ -31,3 +31,4 @@ export async function predictRisk(
   }
   return json.data as PredictResult;
 }
+
