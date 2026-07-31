@@ -1,5 +1,5 @@
-import type { AiSummaryData } from '../../types/dashboard';
-import { DISTRICT_RISK_MOCK } from '../../components/dashboard/MapCard';
+import type { AiSummaryData } from '../../shared/types/dashboard';
+import { DISTRICT_RISK_MOCK } from '../../shared/components/dashboard/MapCard';
 
 const BASE_FACTORS = [
   { name: '야간 시인성', contribution: 34 },

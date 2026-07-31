@@ -6,7 +6,7 @@ import {
   LandingNav,
   MetricSection,
   RoleIntroSection,
-} from '../../components/landing';
+} from './index';
 
 export function LandingPage() {
   return (

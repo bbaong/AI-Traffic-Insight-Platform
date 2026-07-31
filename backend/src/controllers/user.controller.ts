@@ -159,29 +159,15 @@ export const getDepartments = async (req: Request, res: Response) => {
   }
 };
 
-//비밀번호 변경
-export const changePassword = async (req: Request, res: Response) => {
+//비밀번호 재확인 (변경 없음)
+export const verifyPassword = async (req: Request, res: Response) => {
   try {
-    const { user_id, current_password, new_password } = req.body;
+    const { user_id, password } = req.body;
 
-    if (user_id == null || !current_password || !new_password) {
+    if (user_id == null || !password) {
       return res.status(400).json({
         success: false,
-        message: 'user_id, current_password, new_password는 필수입니다.',
-      });
-    }
-
-    if (typeof new_password !== 'string' || new_password.length < 8) {
-      return res.status(400).json({
-        success: false,
-        message: '새 비밀번호는 8자 이상이어야 합니다.',
-      });
-    }
-
-    if (current_password === new_password) {
-      return res.status(400).json({
-        success: false,
-        message: '새 비밀번호는 현재 비밀번호와 달라야 합니다.',
+        message: 'user_id, password는 필수입니다.',
       });
     }
 
@@ -196,14 +182,65 @@ export const changePassword = async (req: Request, res: Response) => {
       });
     }
 
-    const isPasswordValid = await bcrypt.compare(
-      current_password,
-      user.password_hash,
-    );
+    const isPasswordValid = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: '현재 비밀번호가 일치하지 않습니다.',
+        message: '비밀번호가 일치하지 않습니다.',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: '비밀번호 확인 완료',
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: '비밀번호 확인 실패',
+    });
+  }
+};
+
+//비밀번호 변경
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const { user_id, new_password } = req.body;
+
+    if (user_id == null || !new_password) {
+      return res.status(400).json({
+        success: false,
+        message: 'user_id, new_password는 필수입니다.',
+      });
+    }
+
+    if (typeof new_password !== 'string' || new_password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: '새 비밀번호는 8자 이상이어야 합니다.',
+      });
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { user_id: BigInt(user_id) },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '사용자를 찾을 수 없습니다.',
+      });
+    }
+
+    const isSameAsCurrent = await bcrypt.compare(
+      new_password,
+      user.password_hash,
+    );
+    if (isSameAsCurrent) {
+      return res.status(400).json({
+        success: false,
+        message: '새 비밀번호는 현재 비밀번호와 달라야 합니다.',
       });
     }
 

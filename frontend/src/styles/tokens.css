@@ -17,6 +17,8 @@
   --color-body: #4a5a6e; /* 본문 */
   --color-muted: #5a6b80; /* 보조 */
   --color-hint: #7a8899; /* 라벨·캡션 */
+  --color-faint: #a9b4c2; /* 힌트·플레이스홀더 */
+  --color-divider: #f5f7f9; /* 리스트 행 구분선 */
   --color-footer: #8894a3;
   --color-footer-copy: #a6b1bf;
   --color-cta-sub: #94a8bd;
