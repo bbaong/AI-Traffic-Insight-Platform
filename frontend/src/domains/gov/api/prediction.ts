@@ -63,3 +63,22 @@ export function countToVolumeLevel(
   if (count >= q(0.25)) return 'MODERATE';
   return 'LOW';
 }
+
+/**
+ * 중대율(%) 상대 분위 → 지도 색.
+ * 절대 임계(22/28/35)는 구별이 잘 안 되어, 이번 예측 분포 기준으로 구간을 좁혀 칠한다.
+ */
+export function severeRateToMapLevel(
+  ratePct: number,
+  allRates: number[],
+): 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' {
+  const sorted = [...allRates].sort((a, b) => a - b);
+  if (sorted.length === 0) return 'MODERATE';
+  const q = (p: number) =>
+    sorted[Math.min(sorted.length - 1, Math.floor(p * (sorted.length - 1)))] ??
+    sorted[0];
+  if (ratePct >= q(0.75)) return 'CRITICAL';
+  if (ratePct >= q(0.5)) return 'HIGH';
+  if (ratePct >= q(0.25)) return 'MODERATE';
+  return 'LOW';
+}

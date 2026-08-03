@@ -14,11 +14,13 @@ import type {
   RiskLevel,
 } from '../../../shared/types/dashboard';
 import {
-  countToVolumeLevel,
   getPredictedCount,
   predictGov,
+  severeRateToMapLevel,
   type GovPredictResult,
 } from '../api/prediction';
+import { RISK_COLORS } from '../../../shared/components/dashboard/MapCard';
+import { govDashboardMock } from '../../../mocks/data/govDashboard.mock';
 import styles from '../../../shared/components/dashboard/GovDashboardPage.module.css';
 
 function getAccidentCount(row: GovPredictResult): number {
@@ -51,30 +53,34 @@ function toAiSummary(row: GovPredictResult): AiSummaryData {
   const severity = row.예측사고경중_퍼센트 ?? {};
   const factors = Object.entries(severity).map(([name, pct]) => ({
     name,
-    contribution: Math.round((pct / 100) * total),
+    contribution: Number(pct.toFixed(1)),
   }));
 
   return {
     riskLevel: toRiskLevel(row.중대사고등급),
     title: `대구광역시 ${row.지역}`,
-    scoreLabel: '우선점검 점수',
+    scoreLabel: '우선점검 점수(중대율 %)',
     score: priorityScore(row),
     factors,
-    recommendation: `예측기간 ${formatPeriodLabel(row.예측분기)} · 예상 사고 ${total}건`,
+    recommendation: `예측기간 ${formatPeriodLabel(row.예측분기)} · 참고 예상사고 ${total}건`,
     profileSummary: [
       formatPeriodLabel(row.기준분기),
       formatPeriodLabel(row.예측분기),
     ]
       .filter((s) => s !== '-')
       .join(' → '),
-    factorUnit: '건',
+    factorUnit: '%',
   };
 }
 
 export function GovDashboardPage() {
   const selectedCode = useDistrictStore((s) => s.selectedCode);
+  const selectedName =
+    DAEGU_DISTRICTS.find((d) => d.code === selectedCode)?.name ?? null;
 
-  const [priorityRegions, setPriorityRegions] = useState<PriorityRegionRow[]>([]);
+  const [priorityRegions, setPriorityRegions] = useState<PriorityRegionRow[]>(
+    [],
+  );
   const [riskByCode, setRiskByCode] = useState<Record<string, RiskLevel>>({});
   const [aiSummary, setAiSummary] = useState<AiSummaryData | null>(null);
   const [districtSevereBars, setDistrictSevereBars] = useState<
@@ -99,7 +105,8 @@ export function GovDashboardPage() {
         setError(null);
 
         const regionName =
-          DAEGU_DISTRICTS.find((x) => x.code === selectedCode)?.name ?? undefined;
+          DAEGU_DISTRICTS.find((x) => x.code === selectedCode)?.name ??
+          undefined;
 
         const [all, one] = await Promise.all([
           predictGov({ freq: 'Q' }),
@@ -111,41 +118,38 @@ export function GovDashboardPage() {
         if (cancelled) return;
 
         const rows = [...(Array.isArray(all) ? all : [all])];
-
-        setPriorityRegions(
-          [...rows]
-            .sort((a, b) => priorityScore(b) - priorityScore(a))
-            .slice(0, 3)
-            .map((row, i) => ({
-              rank: i + 1,
-              regionName: `대구광역시 ${row.지역}`,
-              score: priorityScore(row),
-              riskLevel: toRiskLevel(row.중대사고등급),
-            })),
+        const bySevere = [...rows].sort(
+          (a, b) => priorityScore(b) - priorityScore(a),
         );
 
-        const counts = rows.map((row) => getPredictedCount(row));
+        setPriorityRegions(
+          bySevere.slice(0, 3).map((row, i) => ({
+            rank: i + 1,
+            regionName: `대구광역시 ${row.지역}`,
+            score: priorityScore(row),
+            accidentCount: getAccidentCount(row),
+            riskLevel: toRiskLevel(row.중대사고등급),
+          })),
+        );
+
+        const rates = rows.map((r) => r.예측중대사고율_퍼센트);
         const nextRisk: Record<string, RiskLevel> = {};
         for (const row of rows) {
           const code = DAEGU_DISTRICTS.find((d) => d.name === row.지역)?.code;
           if (code) {
-            nextRisk[code] = countToVolumeLevel(
-              getPredictedCount(row),
-              counts,
+            nextRisk[code] = severeRateToMapLevel(
+              row.예측중대사고율_퍼센트,
+              rates,
             );
           }
         }
         setRiskByCode(nextRisk);
 
         setDistrictSevereBars(
-          [...rows]
-            .sort(
-              (a, b) => b.예측중대사고율_퍼센트 - a.예측중대사고율_퍼센트,
-            )
-            .map((row) => ({
-              label: row.지역,
-              value: row.예측중대사고율_퍼센트,
-            })),
+          bySevere.map((row) => ({
+            label: row.지역,
+            value: row.예측중대사고율_퍼센트,
+          })),
         );
 
         if (one && !Array.isArray(one)) {
@@ -169,51 +173,65 @@ export function GovDashboardPage() {
   return (
     <DashboardShell
       topSlot={
-        <DashboardCard title="우선점검 시군구 순위">
+        <DashboardCard title="안전대책 우선점검 시군구">
           {error ? <p>{error}</p> : null}
           {loading ? <p>분석 중…</p> : null}
           {priorityRegions.length === 0 ? (
             <p>{loading ? '분석 중…' : '데이터가 없습니다.'}</p>
           ) : (
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th>순위</th>
-                  <th>시군구</th>
-                  <th>우선점검 점수</th>
-                  <th>등급</th>
-                </tr>
-              </thead>
-              <tbody>
-                {priorityRegions.map((row) => {
-                  const risk = getRiskMeta(row.riskLevel);
-                  return (
-                    <tr key={row.regionName}>
-                      <td>{row.rank}</td>
-                      <td>{row.regionName}</td>
-                      <td>{row.score}</td>
-                      <td>
-                        <span
-                          className={styles.risk}
-                          style={{ color: risk.colorVar }}
-                          aria-label={`${risk.label} 위험도`}
-                        >
-                          <span aria-hidden="true">{risk.icon}</span>
-                          {risk.label}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>순위</th>
+                    <th>시군구</th>
+                    <th>중대율(%)</th>
+                    <th>참고 건수</th>
+                    <th>등급</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {priorityRegions.map((row) => {
+                    const risk = getRiskMeta(row.riskLevel);
+                    return (
+                      <tr key={row.regionName}>
+                        <td>{row.rank}</td>
+                        <td>{row.regionName}</td>
+                        <td>{row.score.toFixed(1)}</td>
+                        <td>{row.accidentCount}</td>
+                        <td>
+                          <span
+                            className={styles.risk}
+                            style={{ color: risk.colorVar }}
+                            aria-label={`${risk.label} 위험도`}
+                          >
+                            <span aria-hidden="true">{risk.icon}</span>
+                            {risk.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <p className={styles.priorityHint}>
+                중대율(%)은 예측 사고 중 중상·사망으로 이어질 비율입니다.
+                시설 개선·예산 배분의 우선 기준으로 사용합니다.
+              </p>
+            </>
           )}
         </DashboardCard>
       }
       mapSlot={
         <MapCard
-          title="시군구 예측 사고 건수"
+          title="시군구 중대사고 위험 · 우선점검"
           riskByCode={riskByCode}
+          legend={[
+            { label: '중대율 상위 25%', color: RISK_COLORS.CRITICAL },
+            { label: '상위 25–50%', color: RISK_COLORS.HIGH },
+            { label: '하위 25–50%', color: RISK_COLORS.MODERATE },
+            { label: '중대율 하위 25%', color: RISK_COLORS.LOW },
+          ]}
         />
       }
       aiSummarySlot={
@@ -230,33 +248,41 @@ export function GovDashboardPage() {
         )
       }
       sideBottomSlot={
-        <DashboardCard title="시군구별 중대율(%)">
+        <DashboardCard title="시군구별 중대율(%) · 투자 우선 비교">
+          <p className={styles.chartHint}>
+            중대율은 예측 사고 중 중상·사망 비율(%)입니다. 시설 개선·예산
+            배분의 우선 기준으로 쓰며, 사고 건수는 참고 지표입니다.
+          </p>
           <div
             className={styles.chart}
             role="img"
             aria-label="시군구별 중대율"
           >
-            {districtSevereBars.map((item) => (
-              <div key={item.label} className={styles.barCol}>
-                <span className={styles.barValue}>{item.value.toFixed(1)}%</span>
+            {districtSevereBars.map((item) => {
+              const selected = selectedName === item.label;
+              return (
                 <div
-                  className={styles.bar}
-                  style={{
-                    height: `${((item.value - yMin) / (yMax - yMin || 1)) * 100}%`,
-                  }}
-                  title={`${item.label}: ${item.value.toFixed(1)}%`}
-                />
-                <span className={styles.barLabel}>{item.label}</span>
-              </div>
-            ))}
+                  key={item.label}
+                  className={`${styles.barCol} ${selected ? styles.barColSelected : ''}`}
+                >
+                  <span className={styles.barValue}>
+                    {item.value.toFixed(1)}%
+                  </span>
+                  <div
+                    className={`${styles.bar} ${selected ? styles.barSelected : ''}`}
+                    style={{
+                      height: `${((item.value - yMin) / (yMax - yMin || 1)) * 100}%`,
+                    }}
+                    title={`${item.label}: ${item.value.toFixed(1)}%`}
+                  />
+                  <span className={styles.barLabel}>{item.label}</span>
+                </div>
+              );
+            })}
           </div>
-          <p className={styles.chartHint}>
-            중대율은 예측 사고 중 중상·사망으로 이어질 비율(%)입니다.
-            높을수록 해당 시군구의 사고 심각도 위험이 큽니다.
-          </p>
         </DashboardCard>
       }
-      kpis={[]}
+      kpis={govDashboardMock.kpis}
     />
   );
 }

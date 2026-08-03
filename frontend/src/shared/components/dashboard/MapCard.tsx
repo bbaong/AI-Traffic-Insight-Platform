@@ -32,12 +32,21 @@ export const DISTRICT_RISK_MOCK: Record<string, RiskLevel> = {
   gunwi: 'LOW',
 };
 
-const LEGEND = [
-  { label: '매우높음', color: RISK_COLORS.CRITICAL },
-  { label: '높음', color: RISK_COLORS.HIGH },
-  { label: '보통', color: RISK_COLORS.MODERATE },
-  { label: '낮음', color: RISK_COLORS.LOW },
+const DEFAULT_LEGEND = [
+  { label: '≥35% 매우높음', color: RISK_COLORS.CRITICAL },
+  { label: '≥28% 높음', color: RISK_COLORS.HIGH },
+  { label: '≥22% 보통', color: RISK_COLORS.MODERATE },
+  { label: '<22% 낮음', color: RISK_COLORS.LOW },
 ] as const;
+
+export type MapLegendItem = { label: string; color: string };
+
+export interface MapCardProps {
+  title: string;
+  riskByCode?: Record<string, RiskLevel>;
+  legend?: readonly MapLegendItem[];
+  onDistrictSelect?: (district: DistrictBoundary) => void;
+}
 
 const ACCENT = '#21ADC4';
 
@@ -61,12 +70,6 @@ const SELECTED_STROKE = {
   strokeOpacity: 1,
   fillOpacity: 0.8,
 } as const;
-
-export interface MapCardProps {
-  title: string;
-  riskByCode?: Record<string, RiskLevel>;
-  onDistrictSelect?: (district: DistrictBoundary) => void;
-}
 
 interface KakaoPolygon {
   setMap: (map: unknown | null) => void;
@@ -108,6 +111,7 @@ function styleFor(
 export function MapCard({
   title,
   riskByCode = DISTRICT_RISK_MOCK,
+  legend = DEFAULT_LEGEND,
   onDistrictSelect,
 }: MapCardProps) {
   const { status, retry } = useKakaoLoader();
@@ -377,7 +381,7 @@ export function MapCard({
         ) : null}
 
         <ul className={styles.legend} aria-label="위험도 범례">
-          {LEGEND.map((item) => (
+          {legend.map((item) => (
             <li key={item.label} className={styles.legendItem}>
               <span
                 className={styles.swatch}

@@ -71,6 +71,17 @@
   background: var(--color-amber);
 }
 
+.barSelected {
+  background: var(--color-teal);
+  outline: 2px solid var(--color-ink);
+  outline-offset: 1px;
+}
+
+.barColSelected .barLabel {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-medium);
+}
+
 .barLabel {
   font-size: 10px;
   color: var(--color-hint);
@@ -145,4 +156,12 @@
 .emptyHint strong {
   color: var(--color-body);
   font-weight: var(--font-weight-medium);
+}
+
+.priorityHint {
+  margin: 8px 0 0;
+  text-align: right;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-hint);
 }
