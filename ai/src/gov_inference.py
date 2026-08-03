@@ -1,4 +1,4 @@
-"""GovGuard AI v1.0.2 추론 — 지역별 다음 분기 사고율·EB 중대사고율 (+반기 보조)."""
+"""GovGuard AI v1.0.3 추론 — 지도·대응용 예상 사고건수 (+점유율·EB 중대 보조)."""
 
 from __future__ import annotations
 
@@ -10,8 +10,8 @@ from typing import Any
 
 from src import MODEL_DIR
 
-MODEL_PATH = MODEL_DIR / "gov_model_v1.0.2.pkl"
-SCRIPT_PATH = Path(__file__).resolve().parent.parent / "scripts" / "gov_v1_0_2.py"
+MODEL_PATH = MODEL_DIR / "gov_model_v1.0.3.pkl"
+SCRIPT_PATH = Path(__file__).resolve().parent.parent / "scripts" / "gov_v1_0_3.py"
 
 
 @lru_cache(maxsize=1)
@@ -23,7 +23,7 @@ def load_model() -> dict[str, Any]:
 
 
 def _gov_mod():
-    spec = importlib.util.spec_from_file_location("gov_v1_0_2", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location("gov_v1_0_3", SCRIPT_PATH)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(mod)
@@ -37,10 +37,10 @@ def predict_gov_rates(
     freq: str = "Q",
     as_of: str | None = None,
 ) -> list[dict] | dict:
-    """다음 기간 사고 점유율 + EB 중대사고율 (+ 분기 시 경중 구성).
+    """다음 기간 예상 사고건수(메인) + 점유율 + EB 중대(보조).
 
-    freq='Q'(기본): 분기 점유율·중대·경중
-    freq='H': 반기 중대율 순위 보조
+    freq='Q'(기본): 분기 — 건수 내림차순
+    freq='H': 반기 중대율 보조 레이어
     """
     mod = _gov_mod()
     package = load_model()

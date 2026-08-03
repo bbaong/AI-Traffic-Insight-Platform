@@ -17,12 +17,14 @@ export interface GovPredictResult {
   예측분기?: string;
   기준반기?: string;
   예측반기?: string;
+  예측사고건수?: number;
   예측사고율_퍼센트?: number;
   예측중대사고율_퍼센트: number;
   중대사고등급: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' | string;
   예측사고경중_퍼센트?: Record<string, number>;
   추정_다음분기사고건수?: number;
   추정_다음분기중대사고건수?: number;
+  추정_점유율기반사고건수?: number;   // 선택
 }
 
 export async function predictGov(
@@ -42,4 +44,22 @@ export async function predictGov(
     throw new Error(json.message ?? '지자체 예측 실패');
   }
   return json.data;
+}
+
+export function getPredictedCount(row: GovPredictResult): number {
+  return row.예측사고건수 ?? row.추정_다음분기사고건수 ?? 0;
+}
+
+/** 전 지역 건수 기준 분위 → 지도 색용 */
+export function countToVolumeLevel(
+  count: number,
+  allCounts: number[],
+): 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW' {
+  const sorted = [...allCounts].sort((a, b) => a - b);
+  const q = (p: number) =>
+    sorted[Math.min(sorted.length - 1, Math.floor(p * (sorted.length - 1)))] ?? 0;
+  if (count >= q(0.75)) return 'CRITICAL';
+  if (count >= q(0.5)) return 'HIGH';
+  if (count >= q(0.25)) return 'MODERATE';
+  return 'LOW';
 }

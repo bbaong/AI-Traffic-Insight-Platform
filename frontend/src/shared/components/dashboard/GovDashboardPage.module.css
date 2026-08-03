@@ -26,6 +26,13 @@
   font-weight: var(--font-weight-medium);
 }
 
+.chartHint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-hint);
+}
+
 .chart {
   display: flex;
   align-items: flex-end;

@@ -7,8 +7,9 @@
 > **v1.0.2:** 중대·경중에 **EB 스무딩(α=40)** + **반기 중대율 보조 모델**  
 > (실험: `docs/gov_severe_experiments.md`)
 
-현재 `src/gov_inference.py`는 **v1.0.2**을 로드합니다.  
-v1.0.0 / v1.0.1 pkl은 보존됩니다.
+현재 `src/gov_inference.py`는 **v1.0.3**(지도·건수 중심)을 로드합니다.  
+v1.0.0 / v1.0.1 pkl은 보존됩니다.  
+> **후속:** 건수 가중·사고건수 회귀는 **v1.0.3** (`docs/gov_v1_0_3_feature_spec.md`).
 
 ---
 
