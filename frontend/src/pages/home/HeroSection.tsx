@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import heroBg from '../../assets/images/hero-traffic-bg.png';
 import { ROUTES } from '../../shared/constants/routes';
+import { useAuthStore } from '../../stores/authStore';
 import { landingHighlight } from '../../mocks/data/govDashboard.mock';
 import { factorBarWidth, getRiskLevelMeta } from './riskDisplay';
 import buttonStyles from './landingButtons.module.css';
@@ -10,6 +11,14 @@ import { useFadeInClassName } from './useFadeInClassName';
 export function HeroSection() {
   const { ref, className } = useFadeInClassName();
   const risk = getRiskLevelMeta(landingHighlight.riskLevel);
+  const user = useAuthStore((s) => s.user);
+
+  const dashboardPath =
+    user?.role === 'ROLE_A'
+      ? ROUTES.DASHBOARD_GOV
+      : user?.role === 'ROLE_B'
+        ? ROUTES.DASHBOARD_INS
+        : null;
 
   return (
     <section
@@ -38,18 +47,21 @@ export function HeroSection() {
             점수만이 아니라, 왜 그런지까지.
           </p>
           <div className={styles.actions}>
-            <Link
-              to={ROUTES.SIGNUP}
-              className={`${buttonStyles.button} ${buttonStyles.primary}`}
-            >
-              회원가입
-            </Link>
-            <Link
-              to={ROUTES.LOGIN}
-              className={`${buttonStyles.button} ${buttonStyles.outline}`}
-            >
-              로그인
-            </Link>
+            {user && dashboardPath ? (
+              <Link
+                to={dashboardPath}
+                className={`${buttonStyles.button} ${buttonStyles.primary}`}
+              >
+                내 대시보드 보기
+              </Link>
+            ) : (
+              <Link
+                to={ROUTES.LOGIN}
+                className={`${buttonStyles.button} ${buttonStyles.primary}`}
+              >
+                서비스 시작하기
+              </Link>
+            )}
           </div>
         </div>
 

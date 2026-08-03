@@ -18,13 +18,12 @@
 }
 
 .logoMark {
-  width: 22px;   /* Landing 22 / Auth 17 / Sidebar 18 — 화면마다 유지해도 됨 */
-  height: 22px;
+  width: 42px;
+  height: 28px;
   border-radius: 4px;
-  object-fit: contain; /* 비율 유지, 길쭉해지지 않게 */
+  object-fit: contain;
   display: block;
   flex-shrink: 0;
-  /* background / logoAmber 삭제 */
 }
 
 /* .logoAmber {

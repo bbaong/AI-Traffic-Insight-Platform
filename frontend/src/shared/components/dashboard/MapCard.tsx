@@ -15,7 +15,7 @@ import styles from './MapCard.module.css';
 export const RISK_COLORS: Record<RiskLevel, string> = {
   LOW: '#2E7D32',
   MODERATE: '#D89B00',
-  HIGH: '#D97706',
+  HIGH: '#F77C34',
   CRITICAL: '#C62828',
 };
 
@@ -39,7 +39,7 @@ const LEGEND = [
   { label: '● 낮음(<20)', color: RISK_COLORS.LOW },
 ] as const;
 
-const ACCENT = '#0E7C86';
+const ACCENT = '#21ADC4';
 
 const BASE_STROKE = {
   strokeWeight: 1,

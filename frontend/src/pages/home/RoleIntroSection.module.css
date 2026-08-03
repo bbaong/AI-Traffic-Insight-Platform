@@ -26,15 +26,20 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+  align-items: stretch;
 }
 
 .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 28px 26px;
   background: var(--color-surface);
   border: 0.5px solid var(--color-border);
   border-radius: 0;
+  box-sizing: border-box;
 }
 
 .label {
@@ -59,10 +64,12 @@
 }
 
 .body {
-  margin: 0 0 16px;
+  margin: 0;
   font-size: 15px;
   line-height: 1.65;
   color: var(--color-body);
+  /* 두 카드 본문 영역을 2줄 높이로 맞춤 */
+  min-height: calc(1.65em * 2);
 }
 
 .tags {
@@ -71,7 +78,8 @@
   gap: 8px;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 16px 0 0;
+  margin-top: auto;
 }
 
 .tag {
@@ -97,5 +105,13 @@
 
   .title {
     font-size: 20px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .body {
+    min-height: 0;
   }
 }

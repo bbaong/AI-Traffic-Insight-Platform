@@ -25,16 +25,12 @@
 }
 
 .logoMark {
-  width: 18px;
-  height: 18px;
+  width: 36px;
+  height: 24px;
   border-radius: 4px;
-  background: #ffffff;
-  border: 2px solid #ffffff;
+  object-fit: contain;
+  display: block;
   flex-shrink: 0;
-}
-
-.logoAmber {
-  background: var(--color-amber);
 }
 
 .brandName {

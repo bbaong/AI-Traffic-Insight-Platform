@@ -1,17 +1,17 @@
 :root {
   /* Brand / semantic */
   --color-navy: #0f1b2d; /* CTA 배경, 헤드라인 */
-  --color-teal: #0e7c86; /* Primary, 지자체 */
-  --color-teal-bg: #e8f3f4; /* 지자체 틴트 */
-  --color-teal-text: #0a5b63; /* 틴트 위 텍스트 */
-  --color-amber: #d97706; /* 보험사 */
-  --color-amber-bg: #fbf3e7; /* 보험사 틴트 */
-  --color-amber-text: #a15c00; /* 앰버 라벨 (랜딩) */
-  --color-amber-tint-text: #8a4e05; /* 틴트 위 텍스트 */
-  --color-amber-tag-bg: #fbf0e0;
-  --color-amber-tag-text: #8a4e05;
-  --color-teal-tag-bg: #e8f3f4;
-  --color-teal-tag-text: #0a5b63;
+  --color-teal: #21adc4; /* Primary, 지자체 · 로고 톤 */
+  --color-teal-bg: #e6f6f9; /* 지자체 틴트 */
+  --color-teal-text: #168090; /* 틴트 위 텍스트 */
+  --color-amber: #f77c34; /* 보험사 */
+  --color-amber-bg: #fef1e8; /* 보험사 틴트 */
+  --color-amber-text: #c45a18; /* 앰버 라벨 (랜딩) */
+  --color-amber-tint-text: #b3541a; /* 틴트 위 텍스트 */
+  --color-amber-tag-bg: #fef1e8;
+  --color-amber-tag-text: #b3541a;
+  --color-teal-tag-bg: #e6f6f9;
+  --color-teal-tag-text: #168090;
   --color-red: #b3261e; /* Critical */
   --color-ink: #0f1b2d; /* 본문 강조 */
   --color-body: #4a5a6e; /* 본문 */
@@ -38,14 +38,14 @@
   --color-danger: #b3261e;
   --color-danger-bg: #fcecec;
   --color-danger-border: #e24b4a;
-  --color-success: #0e7c86;
+  --color-success: #21adc4;
   --color-disabled: #c5ced8;
   --color-disabled-text: #8894a3;
   --color-map-placeholder: #eef2f5;
 
   /* 위험도 (색+텍스트+아이콘 3중 표기) */
   --risk-critical: #b3261e;
-  --risk-high: #d97706;
+  --risk-high: #f77c34;
   --risk-moderate: #ca8a04;
   --risk-low: #2e7d32;
 

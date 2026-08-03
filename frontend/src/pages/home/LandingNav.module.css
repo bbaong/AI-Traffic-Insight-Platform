@@ -28,9 +28,11 @@
 }
 
 .logoMark {
-  width: 22px;
-  height: 22px;
+  width: 42px;
+  height: 28px;
   border-radius: var(--radius-logo);
+  object-fit: contain;
+  display: block;
   flex-shrink: 0;
 }
 
