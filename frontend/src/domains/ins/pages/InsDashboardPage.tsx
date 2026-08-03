@@ -113,6 +113,7 @@ export function InsDashboardPage() {
         ]
           .filter(Boolean)
           .join(' · '),
+        factorUnit: '%',
       });
 
       // 프로필 지역 → 지도 선택 동기화
@@ -201,7 +202,7 @@ export function InsDashboardPage() {
             >
               {cohortByAge.map((item) => (
                 <div key={item.label} className={styles.barCol}>
-                  <span className={styles.barValue}>{item.value}</span>
+                  <span className={styles.barValue}>{item.value}%</span>
                   <div
                     className={`${styles.bar} ${styles.barAmber}`}
                     style={{
@@ -209,7 +210,7 @@ export function InsDashboardPage() {
                         ((item.value - yMin) / (yMax - yMin || 1)) * 100
                       }%`,
                     }}
-                    title={`${item.label}: ${item.value}`}
+                    title={`${item.label}: ${item.value}%`}
                   />
                   <span className={styles.barLabel}>{item.label}</span>
                 </div>

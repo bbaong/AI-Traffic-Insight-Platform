@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-InsureGuard AI v1.0.2
+InsureGuard AI v1.0.3
 보험 인수·요율 참고용 교통사고 위험 예측 모델
 
 입력(4): 성별, 연령대, 차종, 지역
-교차 피처 + 경중 불균형 보정 가중치 → 위험점수 / 법규위반 Top3 / 사고경중 비율
+교차 피처 + 경중·빈도 보정 가중치 → 위험점수 / 법규위반 Top3 / 사고경중 비율
 
-※ 빈도 반영은 v1.0.3 (`scripts/ins_v1_0_3.py`) 참고.
+v1.0.2 대비: 위험점수 타깃에 사고 빈도(프로파일 건수 순위) 30% 반영
 """
 
 from __future__ import annotations
@@ -40,10 +40,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = ROOT / "data" / "raw" / "사고분석_2016~2025_원본합본.csv"
 MODEL_DIR = ROOT / "models"
-FIG_DIR = ROOT / "docs" / "figures" / "insureguard_v1_0_2"
+FIG_DIR = ROOT / "docs" / "figures" / "insureguard_v1_0_3"
 
 MODEL_NAME = "InsureGuard AI"
-MODEL_VERSION = "1.0.2"
+MODEL_VERSION = "1.0.3"
 MODEL_FILENAME = f"ins_model_v{MODEL_VERSION}.pkl"
 
 INPUT_FEATURES = [
@@ -81,9 +81,12 @@ VICTIM_INJURY_WEIGHTS = {
 # 인원수 EPDO
 CASUALTY_WEIGHTS = {"사망자수": 48.0, "중상자수": 12.0, "경상자수": 3.0}
 
-# 타깃 합성 비율: 심각도(EPDO) vs 중대사고율 (빈도 미반영 — v1.0.2)
+# 타깃 합성: (심각도·중대율) 순위와 (빈도) 순위를 각각 0~100으로 만든 뒤 블렌드
+# SEVERITY_BLEND / GROUP_BLEND — 심각도 내부 비율
+# FREQ_BLEND — 최종 점수에서 빈도가 차지하는 비중
 SEVERITY_BLEND = 0.72
 GROUP_BLEND = 0.28
+FREQ_BLEND = 0.30
 
 
 # ---------------------------------------------------------------------------
@@ -158,10 +161,9 @@ def compute_risk_target(df: pd.DataFrame) -> pd.DataFrame:
     """
     개별 사고 EPDO가 아니라 '동일 프로파일의 기대 위험'을 타깃으로 둔다.
 
-    입력(성별·연령·차종·지역)만으로는 개별 사고 경중을 맞출 수 없고,
-    보험 인수 점수는 프로파일 기대위험이 맞다.
-    경상 쏠림은 (1) 강한 EPDO 가중 (2) 중대사고율 블렌드 (3) 희소 그룹
-    Empirical Bayes 스무딩으로 보정한다.
+    1) 스무딩 EPDO + 중대사고율 → 심각도 순위(0~100)
+    2) 프로파일 사고 건수(log) → 빈도 순위(0~100)
+    3) (1-FREQ_BLEND)*심각도 + FREQ_BLEND*빈도 → 최종 위험점수
     """
     out = df.copy()
     out["피해자상해가중치"] = (
@@ -193,17 +195,24 @@ def compute_risk_target(df: pd.DataFrame) -> pd.DataFrame:
     smooth_epdo = (sum_epdo + prior_strength * global_epdo) / (n + prior_strength)
     smooth_sev = (sum_sev + prior_strength * global_severe) / (n + prior_strength)
 
-    sev_component = np.log1p(smooth_epdo)
-    profile_score = SEVERITY_BLEND * sev_component + GROUP_BLEND * (smooth_sev * 10.0)
-    uniq = (
-        pd.DataFrame({"key": key, "score": profile_score})
-        .drop_duplicates("key")
-        .set_index("key")["score"]
+    sev_raw = SEVERITY_BLEND * np.log1p(smooth_epdo) + GROUP_BLEND * (
+        smooth_sev * 10.0
     )
-    ranks = uniq.rank(method="average", pct=True)
-    out["위험점수"] = key.map(ranks).astype(float) * 100.0
+    uniq = (
+        pd.DataFrame({"key": key, "sev_raw": sev_raw, "n": n})
+        .drop_duplicates("key")
+        .set_index("key")
+    )
+    sev_score = uniq["sev_raw"].rank(method="average", pct=True) * 100.0
+    freq_score = uniq["n"].map(np.log1p).rank(method="average", pct=True) * 100.0
+    final_score = (1.0 - FREQ_BLEND) * sev_score + FREQ_BLEND * freq_score
+
+    out["위험점수"] = key.map(final_score).astype(float)
     out["smooth_epdo"] = smooth_epdo
     out["smooth_severe_rate"] = smooth_sev
+    out["profile_n"] = n
+    out["severity_score"] = key.map(sev_score).astype(float)
+    out["freq_score"] = key.map(freq_score).astype(float)
     return out
 
 
@@ -453,6 +462,7 @@ def train_models(df: pd.DataFrame) -> dict:
             "casualty": CASUALTY_WEIGHTS,
             "severity_blend": SEVERITY_BLEND,
             "group_blend": GROUP_BLEND,
+            "freq_blend": FREQ_BLEND,
         },
         "metrics": {
             "r2": float(r2),

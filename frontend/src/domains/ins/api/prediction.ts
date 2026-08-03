@@ -20,7 +20,7 @@ export interface PredictRequest {
 export async function predictRisk(
   body: PredictRequest,
 ): Promise<PredictResult> {
-  const res = await fetch(`${API_BASE}/api/prediction/predict`, {
+  const res = await fetch(`${API_BASE}/api/prediction/predict-ins`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

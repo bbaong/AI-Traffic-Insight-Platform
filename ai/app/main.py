@@ -4,13 +4,19 @@ from __future__ import annotations
 
 from fastapi import FastAPI, HTTPException
 
-from app.schemas import HealthResponse, PredictRequest, PredictResponse
+from app.schemas import (
+    GovPredictRequest,
+    HealthResponse,
+    PredictRequest,
+    PredictResponse,
+)
 from src.inference import predict_from_input
+from src.gov_inference import predict_gov_rates
 
 app = FastAPI(
     title="AI Traffic Insight - Risk Prediction API",
-    description="교통사고 위험도(100점) 예측 서빙 API",
-    version="1.0.0",
+    description="InsureGuard + GovGuard 예측 서빙 API",
+    version="1.0.3",
 )
 
 
@@ -27,11 +33,23 @@ def predict(body: PredictRequest) -> PredictResponse:
             연령대=body.연령대,
             성별=body.성별,
             차종=body.차종,
-            주야=body.주야,
-            노면상태=body.노면상태,
         )
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return PredictResponse(**result)
+
+
+@app.post("/predict/gov")
+def predict_gov(body: GovPredictRequest):
+    try:
+        return predict_gov_rates(
+            지역=body.지역,
+            as_of=body.as_of,
+            freq=body.freq,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc

@@ -54,7 +54,10 @@ export function AiSummaryCard({ data, accent = 'teal' }: AiSummaryCardProps) {
                 }}
               />
             </div>
-            <span className={styles.pct}>{factor.contribution}%</span>
+            <span className={styles.pct}>
+              {factor.contribution}
+              {data.factorUnit ?? '%'}
+            </span>
           </li>
         ))}
       </ul>

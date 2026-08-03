@@ -1,4 +1,4 @@
-"""추론 — traffic_accident_model.pkl (구 best_risk_* 대체)."""
+"""추론 — InsureGuard AI v1.0.3 (ins_model_v1.0.3.pkl)."""
 
 from __future__ import annotations
 
@@ -9,10 +9,11 @@ from functools import lru_cache
 from typing import Any
 
 import numpy as np
+import pandas as pd
 
 from src import MODEL_DIR
 
-MODEL_PATH = MODEL_DIR / "traffic_accident_model.pkl"
+MODEL_PATH = MODEL_DIR / "ins_model_v1.0.3.pkl"
 
 
 @lru_cache(maxsize=1)
@@ -26,11 +27,30 @@ def load_model() -> dict[str, Any]:
 def risk_level_from_score(score: float) -> str:
     if score >= 75:
         return "CRITICAL"
-    if score >= 40:
+    if score >= 50:
         return "HIGH"
-    if score >= 20:
+    if score >= 30:
         return "MODERATE"
     return "LOW"
+
+
+def _encode_input_row(
+    data_input: dict[str, str], package: dict[str, Any]
+) -> pd.DataFrame:
+    row = {k: data_input[k] for k in package["input_features"]}
+    for a, b, name in package["cross_specs"]:
+        row[name] = f"{row[a]}|{row[b]}"
+    frame = pd.DataFrame([row])
+
+    encoders = package["label_encoders"]
+    cols: dict[str, list[float]] = {}
+    for col in package["features"]:
+        le = encoders[col]
+        val = str(frame[col].iloc[0])
+        if val not in set(le.classes_):
+            val = str(le.classes_[0])
+        cols[col] = [float(le.transform([val])[0])]
+    return pd.DataFrame(cols)[package["features"]]
 
 
 def predict_from_input(
@@ -38,51 +58,50 @@ def predict_from_input(
     연령대: str,
     성별: str,
     차종: str,
-    주야: str = "주간",
-    노면상태: str = "건조",
     **_ignored: Any,
 ) -> dict:
-    """구군은 모델의 '지역'으로 매핑. variant는 무시."""
+    """입력 4개: 지역(구군), 연령대, 성별, 차종."""
     package = load_model()
     data_input = {
-        "가해운전자 연령대": 연령대,
         "가해운전자 성별": 성별,
+        "가해운전자 연령대": 연령대,
         "가해운전자 차종": 차종,
         "지역": 구군,
-        "주야": 주야,
-        "노면상태": 노면상태,
     }
+    X = _encode_input_row(data_input, package)
 
-    encoders = package["label_encoders"]
-    encoded: list[float] = []
-    for col in package["features"]:
-        val = data_input[col]
-        le = encoders[col]
-        if val not in le.classes_:
-            val = str(le.classes_[0])
-        encoded.append(float(le.transform([val])[0]))
-    input_arr = np.array([encoded])
+    risk = float(package["regressor"].predict(X)[0])
+    risk = float(np.clip(risk, 0.0, 100.0))
 
-    risk = float(package["regressor"].predict(input_arr)[0])
-    risk = max(0.0, min(100.0, risk))
-
-    violation_encoder = encoders["법규위반"]
-    probs = package["classifier"].predict_proba(input_arr)[0]
+    vio_enc = package["label_encoders"]["법규위반"]
+    vio_clf = package.get("violation_classifier") or package["classifier"]
+    vio_probs = vio_clf.predict_proba(X)[0]
     ranked = sorted(
-        zip(violation_encoder.classes_, probs),
+        zip(vio_enc.classes_, vio_probs),
         key=lambda x: x[1],
         reverse=True,
     )
-    top3 = {
-        str(name): round(float(p), 4) for name, p in ranked[:3]
+    top3 = {str(name): round(float(p), 4) for name, p in ranked[:3]}
+
+    sev_enc = package["label_encoders"]["사고내용"]
+    sev_clf = package["severity_classifier"]
+    sev_probs = sev_clf.predict_proba(X)[0]
+    severity = {
+        str(name): round(float(p), 4)
+        for name, p in zip(sev_enc.classes_, sev_probs)
     }
-    # FE 호환: 등급확률 자리에 Top3 확률, 예측등급에 CRITICAL 등
+    order = ["사망사고", "중상사고", "경상사고", "부상신고사고"]
+    severity = {k: severity[k] for k in order if k in severity} | {
+        k: v for k, v in severity.items() if k not in order
+    }
+
     return {
-        "버전": "traffic_accident_model",
-        "variant": "default",
+        "버전": f"{package.get('name', 'InsureGuard AI')} v{package.get('version', '1.0.3')}",
+        "variant": "ins_v1.0.3",
         "예측등급": risk_level_from_score(risk),
         "위험도": round(risk, 1),
         "등급확률": top3,
+        "사고경중비율": severity,
     }
 
 
@@ -92,8 +111,6 @@ def main() -> None:
     parser.add_argument("--연령대", default="51-60세")
     parser.add_argument("--성별", default="남")
     parser.add_argument("--차종", default="승용")
-    parser.add_argument("--주야", default="주간")
-    parser.add_argument("--노면상태", default="건조")
     args = parser.parse_args()
     print(json.dumps(predict_from_input(**vars(args)), ensure_ascii=False, indent=2))
 

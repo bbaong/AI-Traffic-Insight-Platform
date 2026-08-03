@@ -28,6 +28,8 @@ export interface AiSummaryData {
   recommendation: string;
   /** 배지 옆 고객 프로필 한 줄 요약 (예: 달서구 · 51-60세 · 남 · 승용 · 주간) */
   profileSummary?: string;
+  /** factor 숫자 단위. 기본 '%' (INS), GOV는 '건' */
+  factorUnit?: string;
 }
 
 export interface PriorityRegionRow {

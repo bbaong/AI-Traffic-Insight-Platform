@@ -1,0 +1,166 @@
+{
+  "model": "InsureGuard AI",
+  "version": "1.0.3",
+  "test_years": [
+    2024,
+    2025
+  ],
+  "year_counts": {
+    "2016": 12301,
+    "2017": 12264,
+    "2018": 12496,
+    "2019": 13798,
+    "2020": 12253,
+    "2021": 11525,
+    "2022": 10523,
+    "2023": 10299,
+    "2024": 9672,
+    "2025": 9748
+  },
+  "results": [
+    {
+      "r2": 0.9668251012287922,
+      "rmse": 3.6240840001541925,
+      "mae": 2.4298059268109022,
+      "n_train": 91903,
+      "n_test": 22976,
+      "y_transform": "identity",
+      "y_col": "위험점수",
+      "violation_accuracy": 0.5455692896935933,
+      "violation_eval_rows": 22976,
+      "severity_accuracy": 0.6803621169916435,
+      "severity_eval_rows": 22976,
+      "name": "ref_random_full_target",
+      "description": "현재 방식: 전체 데이터 프로파일 타깃 + random 80/20"
+    },
+    {
+      "r2": 0.968076226834935,
+      "rmse": 3.547745803592493,
+      "mae": 2.141967989333226,
+      "n_train": 95459,
+      "n_test": 19420,
+      "y_transform": "identity",
+      "y_col": "위험점수",
+      "violation_accuracy": 0.5406797116374872,
+      "violation_eval_rows": 19420,
+      "severity_accuracy": 0.7116889804325438,
+      "severity_eval_rows": 19420,
+      "name": "A_time_full_target",
+      "description": "Time split train∉[2024, 2025] / test∈[2024, 2025]; 타깃은 전체 기간 프로파일 통계(약한 누수)",
+      "train_years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ],
+      "test_years": [
+        2024,
+        2025
+      ]
+    },
+    {
+      "r2": 0.9693011798745637,
+      "rmse": 3.6647442025621846,
+      "mae": 2.3962746131913186,
+      "n_train": 95459,
+      "n_test": 19420,
+      "y_transform": "identity",
+      "y_col": "위험점수",
+      "violation_accuracy": 0.5406797116374872,
+      "violation_eval_rows": 19420,
+      "severity_accuracy": 0.7116889804325438,
+      "severity_eval_rows": 19420,
+      "name": "B_time_trainonly_target",
+      "description": "Time split + 프로파일 통계를 train만 집계 후 test 매핑 (test∈[2024, 2025])",
+      "train_years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ],
+      "test_years": [
+        2024,
+        2025
+      ],
+      "profile_meta": {
+        "train_profiles": 849,
+        "test_rows": 19420,
+        "test_unseen_profile_rows": 53,
+        "fallback_score": 50.06
+      }
+    },
+    {
+      "r2": 0.9907129969896747,
+      "rmse": 1.9972229049862817,
+      "mae": 1.3020019131390683,
+      "n_train": 91903,
+      "n_test": 22976,
+      "y_transform": "identity",
+      "y_col": "위험점수",
+      "violation_accuracy": 0.5455692896935933,
+      "violation_eval_rows": 22976,
+      "severity_accuracy": 0.6803621169916435,
+      "severity_eval_rows": 22976,
+      "name": "B_random_trainonly_target",
+      "description": "Random 80/20 + 프로파일 통계 train-only (누수 제거)",
+      "profile_meta": {
+        "train_profiles": 866,
+        "test_rows": 22976,
+        "test_unseen_profile_rows": 25,
+        "fallback_score": 50.06
+      }
+    },
+    {
+      "r2": -0.3274469388310419,
+      "rmse": 0.8021176992166585,
+      "mae": 0.6933357792047737,
+      "n_train": 95459,
+      "n_test": 19420,
+      "y_transform": "log1p",
+      "y_col": "epdo",
+      "violation_accuracy": 0.5406797116374872,
+      "violation_eval_rows": 19420,
+      "severity_accuracy": 0.7116889804325438,
+      "severity_eval_rows": 19420,
+      "name": "C_time_individual_epdo",
+      "description": "Time split; y=log1p(행단위 EPDO); test∈[2024, 2025]",
+      "train_years": [
+        2016,
+        2017,
+        2018,
+        2019,
+        2020,
+        2021,
+        2022,
+        2023
+      ],
+      "test_years": [
+        2024,
+        2025
+      ]
+    },
+    {
+      "r2": -0.18528888379785036,
+      "rmse": 0.7961001698796644,
+      "mae": 0.6859354414877449,
+      "n_train": 91903,
+      "n_test": 22976,
+      "y_transform": "log1p",
+      "y_col": "epdo",
+      "violation_accuracy": 0.5455692896935933,
+      "violation_eval_rows": 22976,
+      "severity_accuracy": 0.6803621169916435,
+      "severity_eval_rows": 22976,
+      "name": "C_random_individual_epdo",
+      "description": "Random 80/20; y=log1p(행단위 EPDO)"
+    }
+  ]
+}
