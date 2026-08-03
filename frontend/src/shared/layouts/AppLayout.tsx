@@ -18,9 +18,11 @@ export function AppLayout() {
   const title =
     location.pathname === ROUTES.MYPAGE
       ? '마이페이지'
-      : user.role === 'ROLE_A'
-        ? '지자체 대시보드'
-        : '보험사 대시보드';
+      : location.pathname === ROUTES.DASHBOARD_INS
+        ? '프로필 위험 분석'
+        : user.role === 'ROLE_A'
+          ? '지자체 대시보드'
+          : '보험사 대시보드';
 
   return (
     <div
