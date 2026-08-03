@@ -66,8 +66,6 @@ export function InsDashboardPage() {
         구군: profile.region,
         성별: profile.gender,
         차종: profile.vehicle,
-        주야: profile.time,
-        노면상태: profile.surface ?? '건조',
       };
   
       // 연령대별 병렬 예측 (유사 조건 비교)
@@ -112,8 +110,6 @@ export function InsDashboardPage() {
           profile.age,
           profile.gender,
           profile.vehicle,
-          profile.time,
-          profile.surface,
         ]
           .filter(Boolean)
           .join(' · '),
