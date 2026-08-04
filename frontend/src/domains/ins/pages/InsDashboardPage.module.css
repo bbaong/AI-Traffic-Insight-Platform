@@ -475,12 +475,13 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 25%, transparent);
 }
 
-/* 검토 전·후 동일 높이 고정 (5특약 자리 예약) */
+/* 검토 전·후 동일 높이 고정 (5특약 2줄 설명 자리 예약) */
 .tokkPanel {
   flex: 0 0 auto;
-  height: 320px;
+  height: 420px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -504,7 +505,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -513,8 +514,8 @@
   display: flex;
   gap: 8px;
   flex: 1;
-  min-height: 0;
-  padding: 8px 10px;
+  min-height: 68px;
+  padding: 10px 12px;
   border: 0.5px solid var(--color-border-light);
   border-radius: 8px;
   box-sizing: border-box;
@@ -535,7 +536,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   justify-content: center;
 }
 
@@ -554,22 +555,25 @@
 
 .tokkTag {
   flex-shrink: 0;
-  padding: 2px 7px;
+  padding: 3px 8px;
   border-radius: 999px;
-  border: 0.5px solid;
-  font-size: 10.5px;
-  font-weight: 500;
+  border: 1px solid;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .tokkDesc {
   margin: 0;
-  font-size: 11.5px;
-  line-height: 1.35;
+  font-size: 12px;
+  line-height: 1.45;
   color: var(--color-body);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  /* 2줄이 잘리지 않도록 최소 높이 확보 */
+  min-height: calc(1.45em * 2);
 }
 
 /* 메모·저장도 전·후 동일 고정 크기 */
