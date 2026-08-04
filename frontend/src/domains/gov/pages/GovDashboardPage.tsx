@@ -53,9 +53,8 @@ function toAiSummary(row: GovPredictResult): AiSummaryData {
   const severity = row.예측사고경중_퍼센트 ?? {};
   const factors = Object.entries(severity).map(([name, pct]) => ({
     name,
-    contribution: Number(pct.toFixed(1)),
+    contribution: Math.round((pct / 100) * total), // % → 건
   }));
-
   return {
     riskLevel: toRiskLevel(row.중대사고등급),
     title: `대구광역시 ${row.지역}`,
@@ -69,18 +68,16 @@ function toAiSummary(row: GovPredictResult): AiSummaryData {
     ]
       .filter((s) => s !== '-')
       .join(' → '),
-    factorUnit: '%',
+    factorUnit: '건',
   };
 }
 
 export function GovDashboardPage() {
   const selectedCode = useDistrictStore((s) => s.selectedCode);
+  const setSelectedCode = useDistrictStore((s) => s.setSelectedCode);
   const selectedName =
     DAEGU_DISTRICTS.find((d) => d.code === selectedCode)?.name ?? null;
 
-  const [priorityRegions, setPriorityRegions] = useState<PriorityRegionRow[]>(
-    [],
-  );
   const [riskByCode, setRiskByCode] = useState<Record<string, RiskLevel>>({});
   const [aiSummary, setAiSummary] = useState<AiSummaryData | null>(null);
   const [districtSevereBars, setDistrictSevereBars] = useState<
@@ -88,6 +85,11 @@ export function GovDashboardPage() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [allRows, setAllRows] = useState<GovPredictResult[]>([]);
+  const [priorityRegions, setPriorityRegions] = useState<PriorityRegionRow[]>(
+    [],
+  );
+  // ... 기존 riskByCode, aiSummary, districtSevereBars, loading, error 유지
 
   const severeValues = districtSevereBars.map((b) => b.value);
   const dataMin = severeValues.length ? Math.min(...severeValues) : 0;
@@ -96,31 +98,24 @@ export function GovDashboardPage() {
   const yMin = Math.max(0, dataMin - pad);
   const yMax = dataMax + pad;
 
+  // 전체 시군구 — 페이지 진입 시 1회
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    async function loadAll() {
       try {
         setLoading(true);
         setError(null);
 
-        const regionName =
-          DAEGU_DISTRICTS.find((x) => x.code === selectedCode)?.name ??
-          undefined;
-
-        const [all, one] = await Promise.all([
-          predictGov({ freq: 'Q' }),
-          regionName
-            ? predictGov({ 지역: regionName, freq: 'Q' })
-            : Promise.resolve(null),
-        ]);
-
+        const all = await predictGov({ freq: 'Q' });
         if (cancelled) return;
 
         const rows = [...(Array.isArray(all) ? all : [all])];
         const bySevere = [...rows].sort(
           (a, b) => priorityScore(b) - priorityScore(a),
         );
+
+        setAllRows(rows);
 
         setPriorityRegions(
           bySevere.slice(0, 3).map((row, i) => ({
@@ -151,10 +146,6 @@ export function GovDashboardPage() {
             value: row.예측중대사고율_퍼센트,
           })),
         );
-
-        if (one && !Array.isArray(one)) {
-          setAiSummary(toAiSummary(one));
-        }
       } catch (e) {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : '예측 실패');
@@ -164,62 +155,74 @@ export function GovDashboardPage() {
       }
     }
 
-    void load();
+    void loadAll();
     return () => {
       cancelled = true;
     };
-  }, [selectedCode]);
+  }, []); // ← selectedCode 제거
+
+  useEffect(() => {
+    if (!allRows.length || !selectedName) {
+      setAiSummary(null);
+      return;
+    }
+    const row = allRows.find((r) => r.지역 === selectedName);
+    setAiSummary(row ? toAiSummary(row) : null);
+  }, [selectedCode, selectedName, allRows]);
 
   return (
     <DashboardShell
       topSlot={
         <DashboardCard title="안전대책 우선점검 시군구">
-          {error ? <p>{error}</p> : null}
-          {loading ? <p>분석 중…</p> : null}
-          {priorityRegions.length === 0 ? (
-            <p>{loading ? '분석 중…' : '데이터가 없습니다.'}</p>
-          ) : (
-            <>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>순위</th>
-                    <th>시군구</th>
-                    <th>중대율(%)</th>
-                    <th>참고 건수</th>
-                    <th>등급</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {priorityRegions.map((row) => {
-                    const risk = getRiskMeta(row.riskLevel);
-                    return (
-                      <tr key={row.regionName}>
-                        <td>{row.rank}</td>
-                        <td>{row.regionName}</td>
-                        <td>{row.score.toFixed(1)}</td>
-                        <td>{row.accidentCount}</td>
-                        <td>
-                          <span
-                            className={styles.risk}
-                            style={{ color: risk.colorVar }}
-                            aria-label={`${risk.label} 위험도`}
-                          >
-                            <span aria-hidden="true">{risk.icon}</span>
-                            {risk.label}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              <p className={styles.priorityHint}>
-                중대율(%)은 예측 사고 중 중상·사망으로 이어질 비율입니다.
-                시설 개선·예산 배분의 우선 기준으로 사용합니다.
+          <div className={styles.priorityPanel}>
+            {error ? <p className={styles.loadingHint}>{error}</p> : null}
+            {priorityRegions.length === 0 ? (
+              <p className={styles.loadingHint} aria-busy={loading}>
+                {loading ? '분석 중…' : '데이터가 없습니다.'}
               </p>
-            </>
-          )}
+            ) : (
+              <>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>순위</th>
+                      <th>시군구</th>
+                      <th>중대율(%)</th>
+                      <th>예상 사고 건수</th>
+                      <th>등급</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {priorityRegions.map((row) => {
+                      const risk = getRiskMeta(row.riskLevel);
+                      return (
+                        <tr key={row.regionName}>
+                          <td>{row.rank}</td>
+                          <td>{row.regionName}</td>
+                          <td>{row.score.toFixed(1)}</td>
+                          <td>{row.accidentCount}</td>
+                          <td>
+                            <span
+                              className={styles.risk}
+                              style={{ color: risk.colorVar }}
+                              aria-label={`${risk.label} 위험도`}
+                            >
+                              <span aria-hidden="true">{risk.icon}</span>
+                              {risk.label}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <p className={styles.priorityHint}>
+                  중대율(%)은 예측 사고 중 중상·사망으로 이어질 비율입니다.
+                  시설 개선·예산 배분의 우선 기준으로 사용합니다.
+                </p>
+              </>
+            )}
+          </div>
         </DashboardCard>
       }
       mapSlot={
@@ -253,30 +256,31 @@ export function GovDashboardPage() {
             중대율은 예측 사고 중 중상·사망 비율(%)입니다. 시설 개선·예산
             배분의 우선 기준으로 쓰며, 사고 건수는 참고 지표입니다.
           </p>
-          <div
-            className={styles.chart}
-            role="img"
-            aria-label="시군구별 중대율"
-          >
+          <div className={styles.chart} role="group" aria-label="시군구별 중대율">
             {districtSevereBars.map((item) => {
               const selected = selectedName === item.label;
               return (
-                <div
+                <button
+                  type="button"
                   key={item.label}
                   className={`${styles.barCol} ${selected ? styles.barColSelected : ''}`}
+                  onClick={() => {
+                    const code =
+                      DAEGU_DISTRICTS.find((d) => d.name === item.label)?.code ?? null;
+                    setSelectedCode(code);
+                  }}
+                  aria-pressed={selected}
+                  aria-label={`${item.label} 선택, 중대율 ${item.value.toFixed(1)}%`}
                 >
-                  <span className={styles.barValue}>
-                    {item.value.toFixed(1)}%
-                  </span>
+                  <span className={styles.barValue}>{item.value.toFixed(1)}%</span>
                   <div
                     className={`${styles.bar} ${selected ? styles.barSelected : ''}`}
                     style={{
                       height: `${((item.value - yMin) / (yMax - yMin || 1)) * 100}%`,
                     }}
-                    title={`${item.label}: ${item.value.toFixed(1)}%`}
                   />
                   <span className={styles.barLabel}>{item.label}</span>
-                </div>
+                </button>
               );
             })}
           </div>
