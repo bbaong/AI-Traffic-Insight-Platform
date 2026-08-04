@@ -61,10 +61,15 @@ export async function saveConsultation(input: any) {
   const riders = evaluateDiscountRiders(checklist ?? {});
 
   return prisma.$transaction(async (tx) => {
-    const district = await tx.districts.findFirst({
+    let district = await tx.districts.findFirst({
       where: { district_name: profile.region },
     });
-    if (!district) throw new Error(`지역을 찾을 수 없습니다: ${profile.region}`);
+    // districts 시드가 비어 있어도 상담 저장이 되도록 upsert
+    if (!district) {
+      district = await tx.districts.create({
+        data: { district_name: profile.region },
+      });
+    }
 
     // 3) 고객 upsert (phone unique)
     const existing = await tx.customers.findUnique({

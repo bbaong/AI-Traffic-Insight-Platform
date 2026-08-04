@@ -23,6 +23,7 @@ import {
   toRiskGrade,
 } from '../utils/riskMeta';
 import { Toast } from '../../../shared/components/ui/Toast';
+import { useAuthStore } from '../../../stores/authStore';
 import styles from './InsDashboardPage.module.css';
 
 const MEMO_MAX = 500;
@@ -51,6 +52,7 @@ function initialProfile(): ProfileInput {
 }
 
 export function InsDashboardPage() {
+  const user = useAuthStore((s) => s.user);
   const [customer, setCustomer] = useState<CustomerInfo>({
     name: '',
     phone: '',
@@ -117,17 +119,21 @@ export function InsDashboardPage() {
   }
 
   async function handleSave() {
+    if (!user?.userId) {
+      setSaveError('로그인이 필요합니다.');
+      return;
+    }
     setSaveLoading(true);
     setSaveError(null);
     try {
       await saveConsultation({
         customer,
         profile,
-        prediction,
         checklist,
         memo,
+        userId: user.userId,
+        prediction,
         tokkResults,
-        savedAt: new Date().toISOString(),
       });
       setToastVisible(true);
     } catch (e) {
@@ -684,8 +690,8 @@ export function InsDashboardPage() {
                   </button>
                 </div>
                 <p className={styles.saveHint}>
-                  고객·프로필·위험분석·체크리스트·특약·메모를 한 번에
-                  저장합니다. (현재 목업)
+                  고객·프로필·체크리스트·메모를 저장합니다. 위험점수와 특약은
+                  서버에서 다시 계산해 DB에 반영합니다.
                 </p>
               </div>
             </div>
