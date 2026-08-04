@@ -9,6 +9,7 @@
 [Frontend]
   POST /api/prediction/predict-ins  →  보험 대시보드
   POST /api/prediction/predict-gov  →  지자체 대시보드
+  GET  /api/prediction/predict-gov-hotspots → 공식 다발지역 원
         │
         ▼
 [Backend]  (기본 http://localhost:5000)
@@ -18,6 +19,7 @@
 [AI]  uvicorn app.main:app  (http://localhost:8000)
   POST /predict      →  InsureGuard v1.0.3
   POST /predict/gov  →  GovGuard v1.0.4
+  GET  /hotspots     →  대구 공식 사고다발 TOP3 (캐시)
   GET  /health
 ```
 
@@ -38,13 +40,16 @@ ai/
 ├── src/
 │   ├── inference.py     # InsureGuard 로드·추론 (v1.0.3)
 │   ├── gov_inference.py # GovGuard 로드·추론 (v1.0.4)
+│   ├── hotspots.py      # 공식 다발지역 REST + 파일 캐시
 │   └── preprocess.py    # 인구 join 등 (선택)
-├── scripts/             # 버전별 학습·실험 스크립트
+├── scripts/             # 현재 학습·검증·실험
+│   └── archive/         # 이전 버전 스크립트
 ├── models/              # *.pkl (Git 제외, 학습 후 생성)
 ├── data/
 │   ├── raw/             # 원천 CSV (Git 제외)
 │   └── processed/       # 전처리 결과
-├── docs/                # 피처 명세·검증 결과·그래프 (목차: docs/README.md)
+├── docs/                # 현재 명세·검증 (목차: docs/README.md)
+│   └── archive/         # 이전 명세·실험 기록
 └── requirements.txt
 ```
 
@@ -66,10 +71,15 @@ pip install -r requirements.txt
 
 ### 원천 데이터
 
-`data/raw/`에 배치 (Git 미포함):
+`data/raw/`에 배치 (Git 미포함) — **학습·재학습용**:
 
 - `사고분석_2016~2025_원본합본.csv` — Insure / Gov 학습 공용
 - (선택) `대구_구군_연령별_주민등록인구_2020_2025.csv` — 인구 전처리용
+
+**GovGuard 서빙**에는 CSV가 필요 없습니다. 필요 파일:
+
+- `models/gov_model_v1.0.4.pkl`
+- `scripts/gov_v1_0_4.py` (자급자족 — `gov_v1_0_3.py` 런타임 의존 없음)
 
 ### 모델 학습 (pkl 생성)
 
@@ -105,7 +115,7 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 | 입력 (4) | 구군, 연령대, 성별, 차종 |
 | 출력 | 위험도(0~100), 등급, 법규위반 Top3, 사고경중 비율 |
 | v1.0.3 | 프로파일 **심각도 + 빈도** 블렌드 |
-| v1.0.2 | 심각도만 (`scripts/ins_v1_0_2.py`, 보존) |
+| v1.0.2 | 심각도만 (`scripts/archive/ins_v1_0_2.py`) |
 
 ### GovGuard (지자체) — API `POST /predict/gov`
 
@@ -127,6 +137,8 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 | GET | `/health` | 헬스체크 |
 | POST | `/predict` | InsureGuard 위험도 |
 | POST | `/predict/gov` | GovGuard 지역 예측 |
+| POST | `/predict/gov/history` | GovGuard 분기 history |
+| GET | `/hotspots` | 대구 공식 사고다발 TOP3 (지도 원) |
 
 ### `POST /predict` 요청
 
@@ -175,12 +187,36 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 
 분기 응답에 포함되는 주요 필드: `예측사고건수`, `예측사고율_퍼센트`, `예측중대사고율_퍼센트`, `중대사고등급`, `예측사고경중_퍼센트` 등.
 
+### `GET /hotspots` (공식 다발지역)
+
+공공데이터「지자체별 교통사고 다발지역」을 서버에서 조회·캐시합니다.  
+키: `ai/.env` 의 `DATA_GO_KR_SERVICE_KEY` (프론트에 키를 두지 않음).
+
+```bash
+# AI 직접
+curl "http://localhost:8000/hotspots?year=2024"
+
+# Backend 경유
+curl "http://localhost:5000/api/prediction/predict-gov-hotspots?year=2024"
+```
+
+| 쿼리 | 설명 |
+|------|------|
+| `year` | 연도. 없으면 캐시·최신 후보 순 |
+| `refresh` | `true`면 캐시 무시 |
+| `include_polygon` | `true`면 `geom_json` 포함 |
+
+응답 `points[]`: `lat`, `lon`, `name`, `count`, `fatal`, `severe`, `지역` …  
+캐시 파일: `data/cache/hotspots/` (Git 제외, TTL 기본 24시간).
+
 ### Backend 경유 (프론트)
 
 | Frontend | Backend | AI |
 |----------|---------|-----|
 | `POST …/api/prediction/predict-ins` | `predictIns` | `POST /predict` |
 | `POST …/api/prediction/predict-gov` | `predictGov` | `POST /predict/gov` |
+| `GET  …/api/prediction/predict-gov-hotspots` | `predictGovHotspots` | `GET /hotspots` |
+| Frontend 지도 원 | `GovDashboardPage` → `MapCard` `hotspots` | `kakao.maps.Circle` |
 
 ---
 
@@ -196,8 +232,8 @@ python -c "from src.gov_inference import predict_gov_rates; print(predict_gov_ra
 # 보험 엄격 검증 A~C
 python scripts/validate_ins_v1_0_3.py
 
-# 지자체 중대율 EB/반기 실험
-python scripts/gov_severe_experiments.py
+# 지자체 중대율 EB/반기 실험 (보관 스크립트)
+python scripts/archive/gov_severe_experiments.py
 ```
 
 Docker:

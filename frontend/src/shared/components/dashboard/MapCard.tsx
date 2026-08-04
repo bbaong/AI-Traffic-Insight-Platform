@@ -41,14 +41,28 @@ const DEFAULT_LEGEND = [
 
 export type MapLegendItem = { label: string; color: string };
 
+/** 공식 사고다발 원 (카카오 Circle) */
+export type MapHotspot = {
+  lat: number;
+  lon: number;
+  count: number;
+  name?: string;
+  region?: string | null;
+};
+
 export interface MapCardProps {
   title: string;
   riskByCode?: Record<string, RiskLevel>;
   legend?: readonly MapLegendItem[];
+  /** 공식 사고다발 TOP3 등 — lat/lon 원 */
+  hotspots?: MapHotspot[];
+  hotspotYear?: number | null;
   onDistrictSelect?: (district: DistrictBoundary) => void;
 }
 
 const ACCENT = '#21ADC4';
+const HOTSPOT_STROKE = '#9B1C1C';
+const HOTSPOT_FILL = '#C62828';
 
 const BASE_STROKE = {
   strokeWeight: 1,
@@ -76,10 +90,19 @@ interface KakaoPolygon {
   setOptions: (opts: Record<string, unknown>) => void;
 }
 
+interface KakaoCircle {
+  setMap: (map: unknown | null) => void;
+}
+
 interface DistrictLayer {
   district: DistrictBoundary;
   risk: RiskLevel;
   polygons: KakaoPolygon[];
+}
+
+function hotspotRadiusMeters(count: number): number {
+  // TOP3 건수(대개 수~수십) → 지도에서 보이는 원 크기
+  return Math.max(70, Math.min(420, Math.round(count * 28 + 40)));
 }
 
 function ringCentroid(ring: { lat: number; lng: number }[]) {
@@ -107,11 +130,13 @@ function styleFor(
   return { ...BASE_STROKE, fillColor, zIndex: 1 };
 }
 
-/** GOV·INS 공용 카카오맵 · 구·군 Choropleth */
+/** GOV·INS 공용 카카오맵 · 구·군 Choropleth + 공식 다발 원 */
 export function MapCard({
   title,
   riskByCode = DISTRICT_RISK_MOCK,
   legend = DEFAULT_LEGEND,
+  hotspots = [],
+  hotspotYear = null,
   onDistrictSelect,
 }: MapCardProps) {
   const { status, retry } = useKakaoLoader();
@@ -127,16 +152,74 @@ export function MapCard({
   } | null>(null);
   const layersRef = useRef<DistrictLayer[]>([]);
   const outlineRef = useRef<KakaoPolygon[]>([]);
+  const circlesRef = useRef<KakaoCircle[]>([]);
+  const hotspotOverlayRef = useRef<{
+    setMap: (map: unknown | null) => void;
+  } | null>(null);
   const overlayRef = useRef<{ setMap: (map: unknown | null) => void } | null>(
     null,
   );
   const hoveredRef = useRef<string | null>(null);
   const selectedRef = useRef<string | null>(null);
   const riskRef = useRef(riskByCode);
+  const hotspotsRef = useRef(hotspots);
   const selectCbRef = useRef(onDistrictSelect);
   riskRef.current = riskByCode;
+  hotspotsRef.current = hotspots;
   selectCbRef.current = onDistrictSelect;
   selectedRef.current = selectedCode;
+
+  const clearHotspotOverlay = () => {
+    if (hotspotOverlayRef.current) {
+      hotspotOverlayRef.current.setMap(null);
+      hotspotOverlayRef.current = null;
+    }
+  };
+
+  const clearCircles = () => {
+    for (const c of circlesRef.current) c.setMap(null);
+    circlesRef.current = [];
+    clearHotspotOverlay();
+  };
+
+  const drawHotspots = (map: unknown, points: MapHotspot[]) => {
+    clearCircles();
+    if (!map || !window.kakao?.maps) return;
+
+    for (const p of points) {
+      if (!Number.isFinite(p.lat) || !Number.isFinite(p.lon)) continue;
+      const center = new window.kakao.maps.LatLng(p.lat, p.lon);
+      const circle = new window.kakao.maps.Circle({
+        center,
+        radius: hotspotRadiusMeters(p.count),
+        strokeWeight: 1.5,
+        strokeColor: HOTSPOT_STROKE,
+        strokeOpacity: 0.95,
+        strokeStyle: 'solid',
+        fillColor: HOTSPOT_FILL,
+        fillOpacity: 0.32,
+        zIndex: 6,
+      });
+      circle.setMap(map);
+      circlesRef.current.push(circle);
+
+      const label = `${p.name ?? '사고다발지점'} · ${p.count}건`;
+      window.kakao.maps.event.addListener(circle, 'mouseover', () => {
+        clearHotspotOverlay();
+        const overlay = new window.kakao.maps.CustomOverlay({
+          content: `<div style="padding:5px 9px;background:#fff;border:1px solid ${HOTSPOT_STROKE};border-radius:4px;font-size:12px;font-weight:600;color:#1a1a1a;white-space:nowrap;pointer-events:none;box-shadow:0 1px 4px rgba(0,0,0,.14)">${label}</div>`,
+          position: center,
+          yAnchor: 1.5,
+          zIndex: 12,
+        });
+        overlay.setMap(map);
+        hotspotOverlayRef.current = overlay;
+      });
+      window.kakao.maps.event.addListener(circle, 'mouseout', () => {
+        clearHotspotOverlay();
+      });
+    }
+  };
 
   const applyStyles = (hovered: string | null, selected: string | null) => {
     for (const layer of layersRef.current) {
@@ -188,6 +271,7 @@ export function MapCard({
         for (const poly of layer.polygons) poly.setMap(null);
       }
       for (const poly of outlineRef.current) poly.setMap(null);
+      clearCircles();
       hideLabel();
       layersRef.current = [];
       outlineRef.current = [];
@@ -281,6 +365,8 @@ export function MapCard({
       }
       outlineRef.current = outlines;
 
+      drawHotspots(map, hotspotsRef.current);
+
       window.setTimeout(() => {
         map.relayout?.();
         if (!bounds.isEmpty?.()) {
@@ -297,6 +383,7 @@ export function MapCard({
         for (const poly of layer.polygons) poly.setMap(null);
       }
       for (const poly of outlineRef.current) poly.setMap(null);
+      clearCircles();
       layersRef.current = [];
       outlineRef.current = [];
       hideLabel();
@@ -311,6 +398,13 @@ export function MapCard({
     }
     applyStyles(hoveredRef.current, selectedRef.current);
   }, [riskByCode]);
+
+  useEffect(() => {
+    hotspotsRef.current = hotspots;
+    const map = mapRef.current;
+    if (!map || status !== 'loaded') return;
+    drawHotspots(map, hotspots);
+  }, [hotspots, status]);
 
   useEffect(() => {
     selectedRef.current = selectedCode;
@@ -383,7 +477,7 @@ export function MapCard({
           ref={containerRef}
           className={styles.mapContainer}
           style={{ display: status === 'loaded' ? 'block' : 'none' }}
-          aria-label="카카오맵 · 대구 구·군 위험도"
+          aria-label="카카오맵 · 대구 구·군 위험도 및 사고다발"
         />
 
         {selectedCode ? (
@@ -405,6 +499,17 @@ export function MapCard({
               <span>{item.label}</span>
             </li>
           ))}
+          <li className={styles.legendItem}>
+            <span
+              className={styles.swatchCircle}
+              style={{ borderColor: HOTSPOT_STROKE, background: HOTSPOT_FILL }}
+              aria-hidden="true"
+            />
+            <span>
+              공식 다발
+              {hotspotYear != null ? ` (${hotspotYear})` : ''}
+            </span>
+          </li>
         </ul>
       </div>
     </DashboardCard>

@@ -5,7 +5,7 @@
 회귀 성능 **R² ≈ 0.985**가 나온 이유를 설명합니다.
 
 > **이전 버전:** 심각도만 사용하는 **v1.0.2**  
-> (`scripts/ins_v1_0_2.py`, `docs/ins_v1_0_2_feature_spec.md`)  
+> (`scripts/archive/ins_v1_0_2.py`, `docs/archive/ins_v1_0_2_feature_spec.md`)  
 > **v1.0.3 변경점:** 위험점수에 사고 **빈도**(프로파일 건수 순위) 30% 반영.
 
 > **핵심 한 줄:**  
@@ -311,5 +311,5 @@ graph TD
 | `models/ins_model_v1.0.3.pkl` | v1.0.3 패키지 저장본 |
 | `src/inference.py` | FastAPI 추론 (기본 v1.0.3) |
 | `docs/figures/insureguard_v1_0_3/` | 성별·연령·차종 분기 그래프 |
-| `docs/ins_v1_0_2_feature_spec.md` | v1.0.2 (심각도만) 명세서 |
-| `docs/feature_specification.md` | v1(6피처) 명세서 |
+| `docs/archive/ins_v1_0_2_feature_spec.md` | v1.0.2 (심각도만) 명세서 |
+| `docs/archive/feature_specification.md` | v1(6피처) 명세서 |

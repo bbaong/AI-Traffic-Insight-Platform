@@ -1,14 +1,9 @@
 ﻿# -*- coding: utf-8 -*-
 """
-GovGuard AI v1.0.2
-지자체용 지역별 다음 분기 사고율 + 중대사고(경중) 예측
+GovGuard AI v1.0.3 — 보관·재현용
 
-v1.0.1 대비:
-- 중대사고율·경중 비율에 Empirical Bayes(EB) 스무딩 타깃/피처 적용
-- 반기(H1/H2) 중대율 보조 모델 포함 (순위용)
-
-- 학습 데이터: data/raw/사고분석_2016~2025_원본합본.csv
-- 사용자 인구통계 입력 없음
+현재 서빙/학습 단위는 scripts/gov_v1_0_4.py 입니다.
+이 파일은 v1.0.3(건수 회귀 메인) 재현·실험 비교용으로 남깁니다.
 """
 
 from __future__ import annotations
@@ -26,14 +21,15 @@ from sklearn.preprocessing import LabelEncoder
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]  # scripts/archive -> ai
 DATA_PATH = ROOT / "data" / "raw" / "사고분석_2016~2025_원본합본.csv"
 MODEL_DIR = ROOT / "models"
-FIG_DIR = ROOT / "docs" / "figures" / "gov_v1_0_2"
+FIG_DIR = ROOT / "docs" / "figures" / "gov_v1_0_3"
 
 MODEL_NAME = "GovGuard AI"
-MODEL_VERSION = "1.0.2"
+MODEL_VERSION = "1.0.3"
 MODEL_FILENAME = f"gov_model_v{MODEL_VERSION}.pkl"
+COUNT_WEIGHT_POWER = 1.0  # w = n^power (1.0=건수, 0.5=sqrt)
 
 SEVERITY_ORDER = ["사망사고", "중상사고", "경상사고", "부상신고사고"]
 EB_ALPHA = 40.0
@@ -279,6 +275,7 @@ def encode_region(panel: pd.DataFrame, le: LabelEncoder | None = None):
 def prepare_work(panel: pd.DataFrame) -> pd.DataFrame:
     need = FEATURE_COLS + [
         "next_사고율",
+        "next_사고건수",
         "next_중대사고율",
         "지역",
         "연도분기",
@@ -308,16 +305,59 @@ def time_split_mask(
     return ~is_test, is_test
 
 
-def _metrics(y_true, y_pred) -> dict:
-    return {
-        "r2": float(r2_score(y_true, y_pred)),
-        "rmse": float(root_mean_squared_error(y_true, y_pred)),
-        "mae": float(mean_absolute_error(y_true, y_pred)),
-        "mae_percent_points": float(mean_absolute_error(y_true, y_pred) * 100),
+def _count_weights(counts: np.ndarray) -> np.ndarray:
+    w = np.asarray(counts, dtype=float).clip(min=1.0) ** COUNT_WEIGHT_POWER
+    return w / w.mean()
+
+
+def _metrics(y_true, y_pred, *, sample_weight=None, as_percent: bool = False) -> dict:
+    y_true = np.asarray(y_true, dtype=float)
+    y_pred = np.asarray(y_pred, dtype=float)
+    sw = sample_weight
+    out = {
+        "r2": float(r2_score(y_true, y_pred, sample_weight=sw)),
+        "rmse": float(root_mean_squared_error(y_true, y_pred, sample_weight=sw)),
+        "mae": float(mean_absolute_error(y_true, y_pred, sample_weight=sw)),
     }
+    if as_percent:
+        out["mae_percent_points"] = out["mae"] * 100
+    return out
 
 
-def _fit_regressor(X_tr, y_tr, X_te, y_te, name: str) -> tuple:
+def _top_k_hit_rate(
+    work: pd.DataFrame,
+    te_mask: pd.Series,
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    *,
+    k: int = 3,
+    period_col: str = "next_연도분기",
+) -> float:
+    """기간별 true/pred Top-k 지역 집합 Jaccard 평균."""
+    te = work.loc[te_mask].copy()
+    te = te.assign(_y=y_true, _p=y_pred)
+    scores = []
+    for _, g in te.groupby(period_col):
+        if len(g) < k:
+            continue
+        true_top = set(g.nlargest(k, "_y")["지역"].astype(str))
+        pred_top = set(g.nlargest(k, "_p")["지역"].astype(str))
+        scores.append(len(true_top & pred_top) / k)
+    return float(np.mean(scores)) if scores else float("nan")
+
+
+def _fit_regressor(
+    X_tr,
+    y_tr,
+    X_te,
+    y_te,
+    name: str,
+    *,
+    sample_weight=None,
+    clip: tuple[float, float] | None = (0.0, 1.0),
+    as_percent: bool = True,
+    eval_weight=None,
+) -> tuple:
     model = HistGradientBoostingRegressor(
         max_depth=6,
         learning_rate=0.08,
@@ -326,20 +366,40 @@ def _fit_regressor(X_tr, y_tr, X_te, y_te, name: str) -> tuple:
         l2_regularization=0.1,
         random_state=42,
     )
-    model.fit(X_tr, y_tr)
-    pred = np.clip(model.predict(X_te), 0.0, 1.0)
-    metrics = _metrics(y_te, pred)
+    model.fit(X_tr, y_tr, sample_weight=sample_weight)
+    pred = model.predict(X_te)
+    if clip is not None:
+        lo, hi = clip
+        pred = np.clip(pred, lo, hi)
+    metrics = _metrics(y_te, pred, sample_weight=None, as_percent=as_percent)
+    w_metrics = None
+    if eval_weight is not None:
+        w_metrics = _metrics(y_te, pred, sample_weight=eval_weight, as_percent=as_percent)
+        metrics["weighted"] = w_metrics
+    extra = ""
+    if as_percent and "mae_percent_points" in metrics:
+        extra = f" ({metrics['mae_percent_points']:.2f}%p)"
     print(
         f"   [{name}] R²={metrics['r2']:.4f}  RMSE={metrics['rmse']:.4f}  "
-        f"MAE={metrics['mae']:.4f} ({metrics['mae_percent_points']:.2f}%p)"
+        f"MAE={metrics['mae']:.4f}{extra}"
     )
+    if w_metrics is not None:
+        wextra = (
+            f" ({w_metrics['mae_percent_points']:.2f}%p)"
+            if as_percent and "mae_percent_points" in w_metrics
+            else ""
+        )
+        print(
+            f"           weighted R²={w_metrics['r2']:.4f}  "
+            f"MAE={w_metrics['mae']:.4f}{wextra}"
+        )
     return model, metrics, pred
 
 
 def train_models(df: pd.DataFrame | None = None) -> dict:
     raw = df if df is not None else load_raw()
 
-    # --- 분기 (기본 서빙) ---
+    # --- 분기 (지도·대응 메인) ---
     panel = build_region_quarter_panel(raw)
     panel = add_lag_features(panel)
     panel, region_le = encode_region(panel)
@@ -353,31 +413,67 @@ def train_models(df: pd.DataFrame | None = None) -> dict:
 
     X_tr = work.loc[tr_mask, FEATURE_COLS]
     X_te = work.loc[te_mask, FEATURE_COLS]
+    w_tr = _count_weights(work.loc[tr_mask, "next_사고건수"].to_numpy())
+    w_te = _count_weights(work.loc[te_mask, "next_사고건수"].to_numpy())
 
-    print("\n모델 학습 (분기 Q, EB 중대/경중)...")
+    print("\n모델 학습 (분기 Q - 건수 가중 점유율 + 건수 회귀)...")
     print(f"   regions={list(region_le.classes_)}")
     print(f"   n_train={len(X_tr):,}  n_test={len(X_te):,}")
+    print(f"   sample_weight = next_사고건수^{COUNT_WEIGHT_POWER} (mean-normalized)")
 
-    rate_reg, rate_m, _ = _fit_regressor(
+    rate_reg, rate_m, rate_pred = _fit_regressor(
         X_tr,
         work.loc[tr_mask, "next_사고율"].to_numpy(),
         X_te,
         work.loc[te_mask, "next_사고율"].to_numpy(),
-        "Share Rate",
+        "Share Rate (count-weighted)",
+        sample_weight=w_tr,
+        eval_weight=w_te,
+        clip=(0.0, 1.0),
+        as_percent=True,
     )
+    rate_m["top3_hit_rate"] = _top_k_hit_rate(
+        work,
+        te_mask,
+        work.loc[te_mask, "next_사고율"].to_numpy(),
+        rate_pred,
+        k=3,
+    )
+    print(f"   [Share Top-3 hit] {rate_m['top3_hit_rate']:.3f}")
+
+    y_count_tr = work.loc[tr_mask, "next_사고건수"].to_numpy(dtype=float)
+    y_count_te = work.loc[te_mask, "next_사고건수"].to_numpy(dtype=float)
+    count_reg, count_m, count_pred = _fit_regressor(
+        X_tr,
+        y_count_tr,
+        X_te,
+        y_count_te,
+        "Accident Count",
+        sample_weight=w_tr,
+        eval_weight=w_te,
+        clip=(0.0, 1e9),
+        as_percent=False,
+    )
+    count_m["top3_hit_rate"] = _top_k_hit_rate(
+        work, te_mask, y_count_te, count_pred, k=3
+    )
+    print(f"   [Count Top-3 hit] {count_m['top3_hit_rate']:.3f}")
+
     severe_reg, severe_m, severe_pred = _fit_regressor(
         X_tr,
         work.loc[tr_mask, "next_중대사고율"].to_numpy(),
         X_te,
         work.loc[te_mask, "next_중대사고율"].to_numpy(),
-        "Severe Rate (EB)",
+        "Severe Rate (EB, aux)",
+        clip=(0.0, 1.0),
+        as_percent=True,
     )
     severe_vs_raw = _metrics(
         work.loc[te_mask, "next_중대사고율_raw"].to_numpy(), severe_pred
     )
     print(
         f"   [Severe vs raw] R²={severe_vs_raw['r2']:.4f}  "
-        f"MAE={severe_vs_raw['mae_percent_points']:.2f}%p"
+        f"MAE={severe_vs_raw['mae'] * 100:.2f}%p"
     )
 
     severity_regs: dict[str, object] = {}
@@ -389,12 +485,14 @@ def train_models(df: pd.DataFrame | None = None) -> dict:
             work.loc[tr_mask, ycol].to_numpy(),
             X_te,
             work.loc[te_mask, ycol].to_numpy(),
-            f"Sev {col} (EB)",
+            f"Sev {col} (EB, aux)",
+            clip=(0.0, 1.0),
+            as_percent=True,
         )
         severity_regs[col] = m
         severity_metrics[col] = met
 
-    # --- 반기 (순위 보조) ---
+    # --- 반기 (중대 순위 보조) ---
     h_panel = build_region_halfyear_panel(raw)
     h_panel = add_lag_features_half(h_panel)
     h_panel, _ = encode_region(h_panel, region_le)
@@ -407,7 +505,7 @@ def train_models(df: pd.DataFrame | None = None) -> dict:
 
     Xh_tr = h_work.loc[h_tr, HALF_FEATURE_COLS]
     Xh_te = h_work.loc[h_te, HALF_FEATURE_COLS]
-    print(f"\n모델 학습 (반기 H, EB 중대)...")
+    print(f"\n모델 학습 (반기 H, EB 중대 보조)...")
     print(f"   n_train={len(Xh_tr):,}  n_test={len(Xh_te):,}")
     severe_h_reg, severe_h_m, severe_h_pred = _fit_regressor(
         Xh_tr,
@@ -415,13 +513,15 @@ def train_models(df: pd.DataFrame | None = None) -> dict:
         Xh_te,
         h_work.loc[h_te, "next_중대사고율"].to_numpy(),
         "Severe Rate H (EB)",
+        clip=(0.0, 1.0),
+        as_percent=True,
     )
     severe_h_vs_raw = _metrics(
         h_work.loc[h_te, "next_중대사고율_raw"].to_numpy(), severe_h_pred
     )
     print(
         f"   [Severe H vs raw] R²={severe_h_vs_raw['r2']:.4f}  "
-        f"MAE={severe_h_vs_raw['mae_percent_points']:.2f}%p"
+        f"MAE={severe_h_vs_raw['mae'] * 100:.2f}%p"
     )
 
     panel_cols = [
@@ -462,12 +562,15 @@ def train_models(df: pd.DataFrame | None = None) -> dict:
     return {
         "name": MODEL_NAME,
         "version": MODEL_VERSION,
-        "task": "region_next_period_share_and_severity_eb",
+        "task": "region_next_quarter_volume_for_map_staffing",
+        "primary_metric": "predicted_accident_count",
         "eb_alpha": EB_ALPHA,
+        "count_weight_power": COUNT_WEIGHT_POWER,
         "rate_definition": "region_count / city_total_same_quarter",
-        "severe_definition": "EB((death+serious)/region_count), alpha=40",
+        "severe_definition": "EB((death+serious)/region_count), alpha=40 (auxiliary)",
         "regressor": rate_reg,
         "rate_regressor": rate_reg,
+        "count_regressor": count_reg,
         "severe_regressor": severe_reg,
         "severe_regressor_half": severe_h_reg,
         "severity_regressors": severity_regs,
@@ -488,6 +591,7 @@ def train_models(df: pd.DataFrame | None = None) -> dict:
         },
         "metrics": {
             "share_rate": rate_m,
+            "accident_count": count_m,
             "severe_rate": severe_m,
             "severe_rate_vs_raw": severe_vs_raw,
             "severe_rate_half": severe_h_m,
@@ -625,7 +729,7 @@ def predict_next_quarter(
     지역: str | None = None,
     as_of_연도분기: str | None = None,
 ) -> list[dict] | dict:
-    """기본 추론: 다음 분기 점유율 + EB 중대/경중."""
+    """기본 추론: 다음 분기 예상 건수(메인) + 점유율 + EB 중대(보조)."""
     panel = package["latest_panel"].copy()
     if as_of_연도분기 is None:
         as_of_연도분기 = str(panel["연도분기"].iloc[panel["period_id"].argmax()])
@@ -639,6 +743,7 @@ def predict_next_quarter(
     _, _, nlabel, _ = _next_period(year, quarter)
 
     rate_reg = package.get("rate_regressor") or package["regressor"]
+    count_reg = package.get("count_regressor")
     severe_reg = package["severe_regressor"]
     sev_regs = package["severity_regressors"]
     le = package["region_encoder"]
@@ -665,7 +770,11 @@ def predict_next_quarter(
         sev_shares = {k: v / ssum for k, v in sev_shares.items()}
 
         city_total = float(cur["전체건수"])
-        pred_count = int(round(share * city_total))
+        share_count = int(round(share * city_total))
+        if count_reg is not None:
+            pred_count = int(round(float(np.clip(count_reg.predict(X)[0], 0.0, None))))
+        else:
+            pred_count = share_count
         pred_severe_count = int(round(pred_count * severe))
         raw_ref = float(cur.get("중대사고율_raw", cur["중대사고율"]))
 
@@ -677,8 +786,13 @@ def predict_next_quarter(
                 "지역": region,
                 "기준분기": as_of_연도분기,
                 "예측분기": nlabel,
+                # 메인 (지도·대응)
+                "예측사고건수": pred_count,
                 "예측사고율": round(share, 4),
                 "예측사고율_퍼센트": round(share * 100, 2),
+                "추정_다음분기사고건수": pred_count,
+                "추정_점유율기반사고건수": share_count,
+                # 보조 (중대 레이어)
                 "예측중대사고율": round(severe, 4),
                 "예측중대사고율_퍼센트": round(severe * 100, 2),
                 "중대사고등급": severe_level(severe),
@@ -688,14 +802,13 @@ def predict_next_quarter(
                 "예측사고경중_퍼센트": {
                     k: round(v * 100, 2) for k, v in sev_shares.items()
                 },
+                "추정_다음분기중대사고건수": pred_severe_count,
                 "참고_기준분기사고건수": int(cur["사고건수"]),
                 "참고_기준분기사고율_퍼센트": round(float(cur["사고율"]) * 100, 2),
                 "참고_기준분기중대사고율_퍼센트": round(
                     float(cur["중대사고율"]) * 100, 2
                 ),
                 "참고_기준분기중대사고율_raw_퍼센트": round(raw_ref * 100, 2),
-                "추정_다음분기사고건수": pred_count,
-                "추정_다음분기중대사고건수": pred_severe_count,
             }
         )
 
@@ -703,9 +816,63 @@ def predict_next_quarter(
         if not rows:
             raise ValueError(f"예측 불가: 지역={지역}, as_of={as_of_연도분기}")
         return rows[0]
-    rows.sort(key=lambda r: r["예측중대사고율"], reverse=True)
+    rows.sort(key=lambda r: r["예측사고건수"], reverse=True)
     return rows
 
+def predict_quarter_history(
+    package: dict,
+    지역: str,
+    n_history: int = 3,
+    as_of_연도분기: str | None = None,
+) -> dict:
+    """직전 n_history분기 실적 + 다음 분기 예측 (누적막대용 경중 포함)."""
+    panel = package["latest_panel"].copy()
+    rh = panel[panel["지역"] == 지역].sort_values("period_id")
+    if rh.empty:
+        raise ValueError(f"지역 없음: {지역}")
+
+    if as_of_연도분기 is None:
+        as_of_연도분기 = str(rh["연도분기"].iloc[-1])
+    rh = rh[rh["period_id"] <= rh.loc[rh["연도분기"] == as_of_연도분기, "period_id"].iloc[0]]
+    past = rh.tail(n_history)
+
+    history = []
+    for _, cur in past.iterrows():
+        history.append({
+            "분기": str(cur["연도분기"]),
+            "사고건수": int(cur["사고건수"]),
+            "중대사고율_퍼센트": round(float(cur["중대사고율"]) * 100, 2),
+            "경중_건수": {col: int(cur[col]) for col in SEVERITY_ORDER},
+            "경중_퍼센트": {
+                col: round(float(cur[f"{col}_비율"]) * 100, 2)
+                for col in SEVERITY_ORDER
+            },
+            "kind": "actual",
+        })
+
+    forecast_row = predict_next_quarter(
+        package, 지역=지역, as_of_연도분기=as_of_연도분기
+    )
+    # forecast_row는 dict (지역 지정 시)
+    pred_count = int(forecast_row["예측사고건수"])
+    sev_pct = forecast_row["예측사고경중_퍼센트"]
+    forecast = {
+        "분기": forecast_row["예측분기"],
+        "사고건수": pred_count,
+        "중대사고율_퍼센트": forecast_row["예측중대사고율_퍼센트"],
+        "경중_건수": {
+            k: int(round(pred_count * (v / 100.0)))
+            for k, v in sev_pct.items()
+        },
+        "경중_퍼센트": sev_pct,
+        "kind": "forecast",
+        "기준분기": forecast_row["기준분기"],
+    }
+    return {
+        "지역": 지역,
+        "history": history,
+        "forecast": forecast,
+    }
 
 def predict_next_half(
     package: dict,
@@ -804,8 +971,27 @@ def plot_region_severe(panel: pd.DataFrame, outfile: Path) -> None:
     fig, ax = plt.subplots(figsize=(12, 5.5))
     for col in pivot.columns:
         ax.plot(pivot.index, pivot[col] * 100, marker="o", markersize=2, label=col)
-    ax.set_title("지역별 분기 중대사고율 EB(%) — α=40")
+    ax.set_title("지역별 분기 중대사고율 EB(%) — 보조 레이어")
     ax.set_ylabel("중대사고율 EB (%)")
+    ax.legend(ncol=3, fontsize=8)
+    plt.xticks(rotation=45, ha="right", fontsize=7)
+    fig.tight_layout()
+    fig.savefig(outfile, dpi=140, bbox_inches="tight")
+    plt.close()
+
+
+def plot_region_counts(panel: pd.DataFrame, outfile: Path) -> None:
+    _setup_font()
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
+    pivot = panel.pivot_table(
+        index="연도분기", columns="지역", values="사고건수", aggfunc="first"
+    )
+    pivot = pivot.reindex(sorted(pivot.index, key=lambda s: (int(s[:4]), int(s[-1]))))
+    fig, ax = plt.subplots(figsize=(12, 5.5))
+    for col in pivot.columns:
+        ax.plot(pivot.index, pivot[col], marker="o", markersize=2, label=col)
+    ax.set_title("지역별 분기 사고건수 — 지도·대응 인력용 볼륨")
+    ax.set_ylabel("사고건수")
     ax.legend(ncol=3, fontsize=8)
     plt.xticks(rotation=45, ha="right", fontsize=7)
     fig.tight_layout()
@@ -819,35 +1005,35 @@ def main() -> None:
     print(f"1. raw rows: {len(raw):,}")
     panel = build_region_quarter_panel(raw)
     print(f"   panel rows: {len(panel):,}")
+    plot_region_counts(panel, FIG_DIR / "region_quarter_accident_count.png")
     plot_region_severe(panel, FIG_DIR / "region_quarter_severe_rate.png")
-    print(f"2. graph: {FIG_DIR / 'region_quarter_severe_rate.png'}")
+    print(f"2. graphs: {FIG_DIR}")
 
     package = train_models(raw)
     path = save_package(package)
     print(f"3. saved: {path}")
     print(f"   metrics.share={package['metrics']['share_rate']}")
-    print(f"   metrics.severe(EB)={package['metrics']['severe_rate']}")
+    print(f"   metrics.count={package['metrics']['accident_count']}")
+    print(f"   metrics.severe(EB aux)={package['metrics']['severe_rate']}")
     print(f"   metrics.severe_vs_raw={package['metrics']['severe_rate_vs_raw']}")
-    print(f"   metrics.severe_H(EB)={package['metrics']['severe_rate_half']}")
-    print(f"   metrics.severe_H_vs_raw={package['metrics']['severe_rate_half_vs_raw']}")
 
-    print("\n4. 분기 추론 (중대사고율 높은 순)...")
+    print("\n4. 분기 추론 (예상 건수 높은 순 — 지도·대응용)...")
     preds = predict_next_quarter(package)
     assert isinstance(preds, list)
     print(
-        f"{'지역':<8} {'점유%':>7} {'중대EB%':>8} {'등급':<10} "
-        f"{'사망%':>6} {'중상%':>6} {'경상%':>6}"
+        f"{'지역':<8} {'예상건수':>8} {'점유%':>7} {'중대건수':>8} "
+        f"{'중대EB%':>8} {'등급':<10}"
     )
-    print("-" * 66)
+    print("-" * 62)
     for r in preds:
-        s = r["예측사고경중_퍼센트"]
         print(
-            f"{r['지역']:<8} {r['예측사고율_퍼센트']:>7.2f} "
-            f"{r['예측중대사고율_퍼센트']:>8.2f} {r['중대사고등급']:<10} "
-            f"{s['사망사고']:>6.1f} {s['중상사고']:>6.1f} {s['경상사고']:>6.1f}"
+            f"{r['지역']:<8} {r['예측사고건수']:>8} "
+            f"{r['예측사고율_퍼센트']:>7.2f} "
+            f"{r['추정_다음분기중대사고건수']:>8} "
+            f"{r['예측중대사고율_퍼센트']:>8.2f} {r['중대사고등급']:<10}"
         )
 
-    print("\n5. 반기 추론 (순위용)...")
+    print("\n5. 반기 중대 보조 (레이어2)...")
     hpreds = predict_next_half(package)
     assert isinstance(hpreds, list)
     print(f"{'지역':<8} {'중대EB%':>8} {'등급':<10}")

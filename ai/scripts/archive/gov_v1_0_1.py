@@ -26,7 +26,7 @@ from sklearn.preprocessing import LabelEncoder
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]  # scripts/archive -> ai
 DATA_PATH = ROOT / "data" / "raw" / "사고분석_2016~2025_원본합본.csv"
 MODEL_DIR = ROOT / "models"
 FIG_DIR = ROOT / "docs" / "figures" / "gov_v1_0_1"

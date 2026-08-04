@@ -31,7 +31,7 @@ from sklearn.metrics import mean_absolute_error, r2_score
 warnings.filterwarnings("ignore", category=UserWarning)
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT_V103 = ROOT / "scripts" / "gov_v1_0_3.py"
+SCRIPT_V103 = ROOT / "scripts" / "archive" / "gov_v1_0_3.py"
 OUT_JSON = ROOT / "docs" / "gov_v1_0_4_b1_vs_b2.json"
 OUT_MD = ROOT / "docs" / "gov_v1_0_4_b1_vs_b2.md"
 FIG_DIR = ROOT / "docs" / "figures" / "gov_v1_0_4_compare"
@@ -44,6 +44,7 @@ CASE_REGIONS = ["군위군", "중구", "달성군", "달서구", "수성구"]
 
 
 def _load_v103():
+    """실험 베이스라인용 — 서빙 경로와 무관. v1.0.3 재현 스크립트만 로드."""
     spec = importlib.util.spec_from_file_location("gov_v1_0_3", SCRIPT_V103)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None

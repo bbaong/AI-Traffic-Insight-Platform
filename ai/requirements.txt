@@ -3,7 +3,7 @@
 # 실행: ai/README.md
 
 # --- 서빙 런타임 (uvicorn app.main:app) ---
-# GovGuard v1.0.4는 scripts/gov_v1_0_4 → gov_v1_0_3 를 동적 로드하므로
+# GovGuard v1.0.4는 scripts/gov_v1_0_4.py 단일 파일이며
 # scikit-learn·matplotlib 이 서빙에도 필요합니다.
 pandas>=2.0.0
 numpy>=1.24.0
@@ -12,6 +12,8 @@ matplotlib>=3.7.0
 fastapi>=0.110.0
 uvicorn[standard]>=0.27.0
 pydantic>=2.0.0
+httpx>=0.27.0
+python-dotenv>=1.0.0
 
 # --- 학습·실험·노트북·벤치 (선택이나 스크립트에서 사용) ---
 seaborn>=0.13.0

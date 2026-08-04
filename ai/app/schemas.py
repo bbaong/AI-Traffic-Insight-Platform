@@ -56,5 +56,35 @@ class GovHistoryResponse(BaseModel):
     history: List[GovHistoryPoint]
     forecast: GovHistoryPoint
 
+
+class HotspotPoint(BaseModel):
+    lat: float
+    lon: float
+    name: str
+    region_label: str = ""
+    지역: Optional[str] = None
+    count: int = 0
+    casualties: int = 0
+    fatal: int = 0
+    severe: int = 0
+    slight: int = 0
+    injury_report: int = 0
+    spot_code: str = ""
+    afos_id: str = ""
+    year: int
+    source: str = ""
+    geom_json: Optional[Any] = None
+
+
+class HotspotResponse(BaseModel):
+    year: int
+    sido: str
+    source: str
+    fetched_at: str
+    count: int
+    points: List[HotspotPoint]
+    partial_errors: List[str] = Field(default_factory=list)
+
+
 # 응답 필드가 많아 느슨하게 둠 (dict 또는 list)
 GovPredictResponse = Union[Dict[str, Any], List[Dict[str, Any]]]

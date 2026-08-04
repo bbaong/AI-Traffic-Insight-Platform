@@ -2,24 +2,29 @@
 
 from __future__ import annotations
 
-from fastapi import FastAPI, HTTPException
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from dotenv import load_dotenv
+from fastapi import FastAPI, HTTPException, Query
 
 from app.schemas import (
     GovHistoryRequest,
-    GovHistoryResponse,
     GovPredictRequest,
     HealthResponse,
+    HotspotResponse,
     PredictRequest,
     PredictResponse,
 )
-from contextlib import asynccontextmanager
-
-from src.inference import predict_from_input, load_model as load_ins_model
 from src.gov_inference import (
-    predict_gov_rates,
-    predict_gov_history,
     load_model as load_gov_model,
+    predict_gov_history,
+    predict_gov_rates,
 )
+from src.hotspots import fetch_daegu_hotspots_auto_year
+from src.inference import load_model as load_ins_model, predict_from_input
+
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -88,3 +93,27 @@ def predict_gov_history_api(body: GovHistoryRequest):
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@app.get("/hotspots", response_model=HotspotResponse)
+def gov_hotspots(
+    year: int | None = Query(None, description="조회 연도. 없으면 최신 가능 연도"),
+    refresh: bool = Query(False, description="캐시 무시하고 공공 API 재조회"),
+    include_polygon: bool = Query(False, description="geom_json 포함 여부"),
+):
+    """대구 구·군별 공식 사고다발 TOP3 (지도 원용).
+
+    서버 파일 캐시(기본 24h). ServiceKey는 DATA_GO_KR_SERVICE_KEY.
+    """
+    try:
+        return fetch_daegu_hotspots_auto_year(
+            year=year,
+            include_polygon=include_polygon,
+            force_refresh=refresh,
+        )
+    except RuntimeError as exc:
+        msg = str(exc)
+        status = 503 if "SERVICE_KEY" in msg or "환경변수" in msg else 502
+        raise HTTPException(status_code=status, detail=msg) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc

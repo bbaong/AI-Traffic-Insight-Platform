@@ -11,11 +11,13 @@ import {
   getPredictedCount,
   predictGov,
   predictGovHistory,
+  predictGovHotspots,
   severeRateToMapLevel,
   type GovHistoryResponse,
+  type GovHotspotPoint,
   type GovPredictResult,
 } from '../api/prediction';
-import { RISK_COLORS } from '../../../shared/components/dashboard/MapCard';
+import { RISK_COLORS, type MapHotspot } from '../../../shared/components/dashboard/MapCard';
 import { SeverityStackedCard } from '../components/SeverityStackedCard';
 import styles from '../../../shared/components/dashboard/GovDashboardPage.module.css';
 import { useState, useEffect, useRef } from 'react';
@@ -71,7 +73,20 @@ function toAiSummary(row: GovPredictResult): AiSummaryData {
   };
 }
 const GOV_PRED_CACHE_KEY = 'gov:predictGov:Q';
+const GOV_HOTSPOT_CACHE_KEY = 'gov:hotspots';
 const historySessionKey = (region: string) => `gov:history:${region}:4`;
+
+function toMapHotspots(points: GovHotspotPoint[]): MapHotspot[] {
+  return points
+    .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon))
+    .map((p) => ({
+      lat: p.lat,
+      lon: p.lon,
+      count: p.count ?? 0,
+      name: p.name,
+      region: p.지역,
+    }));
+}
 
 function readSessionJson<T>(key: string): T | null {
   try {
@@ -107,6 +122,9 @@ export function GovDashboardPage() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const historyCacheRef = useRef<Record<string, GovHistoryResponse>>({});
+
+  const [hotspots, setHotspots] = useState<MapHotspot[]>([]);
+  const [hotspotYear, setHotspotYear] = useState<number | null>(null);
 
   function applyPredictRows(rows: GovPredictResult[]) {
     const bySevere = [...rows].sort(
@@ -168,6 +186,43 @@ export function GovDashboardPage() {
       }
     }
     void loadAll();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 공식 사고다발 TOP3 — 지도 원
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadHotspots() {
+      const cached = readSessionJson<{
+        year: number;
+        points: GovHotspotPoint[];
+      }>(GOV_HOTSPOT_CACHE_KEY);
+      if (cached?.points?.length) {
+        setHotspots(toMapHotspots(cached.points));
+        setHotspotYear(cached.year);
+      }
+
+      try {
+        const data = await predictGovHotspots();
+        if (cancelled) return;
+        writeSessionJson(GOV_HOTSPOT_CACHE_KEY, {
+          year: data.year,
+          points: data.points,
+        });
+        setHotspots(toMapHotspots(data.points ?? []));
+        setHotspotYear(data.year);
+      } catch (e) {
+        // 예측 지도는 유지; 다발 원만 없는 상태로 둔다
+        if (!cancelled && !cached?.points?.length) {
+          console.warn('[GovDashboard] hotspots', e);
+        }
+      }
+    }
+
+    void loadHotspots();
     return () => {
       cancelled = true;
     };
@@ -249,6 +304,8 @@ export function GovDashboardPage() {
         <MapCard
           title="시군구 중대사고 위험 · 우선점검"
           riskByCode={riskByCode}
+          hotspots={hotspots}
+          hotspotYear={hotspotYear}
           legend={[
             { label: '중대율 상위 25%', color: RISK_COLORS.CRITICAL },
             { label: '상위 25–50%', color: RISK_COLORS.HIGH },

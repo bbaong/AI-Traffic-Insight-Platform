@@ -15,7 +15,7 @@ from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.metrics import mean_squared_error, accuracy_score
 
 # traffic_accident_model/ (scripts/ 상위)
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]  # scripts/archive -> ai
 DATA_DIR = ROOT / "data"
 MODEL_DIR = ROOT / "model"
 

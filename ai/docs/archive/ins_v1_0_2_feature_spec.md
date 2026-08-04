@@ -1,8 +1,8 @@
-> 📦 **보관** — 이전 버전입니다. 현재 서빙: [ins_v1_0_3_feature_spec.md](ins_v1_0_3_feature_spec.md) · [목차](README.md)
+> 📦 **보관** — 이전 버전입니다. 현재 서빙: [ins_v1_0_3_feature_spec.md](ins_v1_0_3_feature_spec.md) · [목차](../README.md)
 
 # InsureGuard AI v1.0.2 — 피처 명세서 & R² 해석 가이드
 
-본 문서는 `scripts/ins_v1_0_2.py`로 학습된 **InsureGuard AI v1.0.2**
+본 문서는 `scripts/archive/ins_v1_0_2.py`로 학습된 **InsureGuard AI v1.0.2**
 (`models/ins_model_v1.0.2.pkl`)의 입력·타깃 정의와 R² 해석을 설명합니다.
 
 > **후속 버전:** 사고 **빈도**를 위험점수에 반영한 변경은 **v1.0.3**  
@@ -84,7 +84,7 @@ R²는 **프로파일 스코어카드 재현도**이지, 개별 사고 예측 �
 
 | 파일 | 역할 |
 |------|------|
-| `scripts/ins_v1_0_2.py` | v1.0.2 학습·추론 |
+| `scripts/archive/ins_v1_0_2.py` | v1.0.2 학습·추론 |
 | `models/ins_model_v1.0.2.pkl` | v1.0.2 패키지 |
 | `docs/ins_v1_0_3_feature_spec.md` | **빈도 반영** 후속 버전 |
-| `docs/feature_specification.md` | v1(6피처) 명세서 |
+| `docs/archive/feature_specification.md` | v1(6피처) 명세서 |

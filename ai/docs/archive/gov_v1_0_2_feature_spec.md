@@ -1,17 +1,16 @@
-﻿> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_3_feature_spec.md](gov_v1_0_3_feature_spec.md) · [목차](README.md)
+﻿> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_4_feature_spec.md](../gov_v1_0_4_feature_spec.md) · [목차](../README.md)
 
 # GovGuard AI v1.0.2 — 피처 명세서
 
-본 문서는 `scripts/gov_v1_0_2.py` / `models/gov_model_v1.0.2.pkl` 을 설명합니다.
+본 문서는 `scripts/archive/gov_v1_0_2.py` / `models/gov_model_v1.0.2.pkl` 을 설명합니다.
 
 > **v1.0.0:** 지역별 다음 분기 **사고 점유율**  
 > **v1.0.1:** + raw **중대사고율**·경중 구성  
 > **v1.0.2:** 중대·경중에 **EB 스무딩(α=40)** + **반기 중대율 보조 모델**  
-> (실험: `docs/gov_severe_experiments.md`)
+> (실험: `docs/archive/gov_severe_experiments.md`)
 
-현재 `src/gov_inference.py`는 **v1.0.3**(지도·건수 중심)을 로드합니다.  
-v1.0.0 / v1.0.1 pkl은 보존됩니다.  
-> **후속:** 건수 가중·사고건수 회귀는 **v1.0.3** (`docs/gov_v1_0_3_feature_spec.md`).
+현재 API 서빙은 **v1.0.4**입니다.  
+> **후속:** 건수 가중·사고건수 회귀는 **v1.0.3** (`docs/archive/gov_v1_0_3_feature_spec.md`).
 
 ---
 
@@ -117,9 +116,9 @@ predict_gov_rates(freq="H")         # 반기 순위
 
 | 파일 | 역할 |
 |------|------|
-| `scripts/gov_v1_0_2.py` | 학습·추론 |
+| `scripts/archive/gov_v1_0_2.py` | 학습·추론 |
 | `models/gov_model_v1.0.2.pkl` | 패키지 |
 | `src/gov_inference.py` | 서빙 헬퍼 |
 | `docs/figures/gov_v1_0_2/` | EB 중대율 추이 |
-| `docs/gov_severe_experiments.md` | EB/반기 실험 |
-| `scripts/gov_v1_0_1.py` | 이전(raw 중대) |
+| `docs/archive/gov_severe_experiments.md` | EB/반기 실험 |
+| `scripts/archive/gov_v1_0_1.py` | 이전(raw 중대) |

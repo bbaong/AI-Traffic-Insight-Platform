@@ -127,6 +127,57 @@ export const predictGovHistory = async (req: Request, res: Response) => {
   }
 };
 
+/** 대구 공식 사고다발 TOP3 (지도 원) — AI 캐시 프록시 */
+export const predictGovHotspots = async (req: Request, res: Response) => {
+  try {
+    const year = req.query.year ?? req.body?.year;
+    const refresh = req.query.refresh ?? req.body?.refresh;
+    const includePolygon =
+      req.query.include_polygon ?? req.body?.include_polygon;
+
+    const qs = new URLSearchParams();
+    if (year != null && year !== '') qs.set('year', String(year));
+    if (refresh === true || refresh === '1' || refresh === 'true') {
+      qs.set('refresh', 'true');
+    }
+    if (
+      includePolygon === true ||
+      includePolygon === '1' ||
+      includePolygon === 'true'
+    ) {
+      qs.set('include_polygon', 'true');
+    }
+
+    const url =
+      qs.toString().length > 0
+        ? `${AI_BASE}/hotspots?${qs}`
+        : `${AI_BASE}/hotspots`;
+
+    const aiRes = await fetch(url, { method: 'GET' });
+
+    if (!aiRes.ok) {
+      const detail = await aiRes.text();
+      const status =
+        aiRes.status === 503 || aiRes.status === 400 ? aiRes.status : 502;
+      return res.status(status).json({
+        success: false,
+        message: 'AI 서버(다발지역) 조회 실패',
+        error: detail,
+      });
+    }
+
+    const data = await aiRes.json();
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: '다발지역 요청 실패',
+      error: String(error),
+    });
+  }
+};
+
 export const getPrediction = async (_req: Request, res: Response) => {
   return res.status(501).json({
     success: false,

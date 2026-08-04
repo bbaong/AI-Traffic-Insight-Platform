@@ -1,16 +1,16 @@
-> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_3_feature_spec.md](gov_v1_0_3_feature_spec.md) · [목차](README.md)
+> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_4_feature_spec.md](../gov_v1_0_4_feature_spec.md) · [목차](../README.md)
 
 # GovGuard AI v1.0.1 — 피처 명세서
 
-본 문서는 `scripts/gov_v1_0_1.py` / `models/gov_model_v1.0.1.pkl` 을 설명합니다.
+본 문서는 `scripts/archive/gov_v1_0_1.py` / `models/gov_model_v1.0.1.pkl` 을 설명합니다.
 
 > **v1.0.0:** 지역별 다음 분기 **사고 점유율**만 예측  
 > **v1.0.1:** + 다음 분기 **중대사고율**(중상+사망 비중) 및 **경중 구성** 예측  
 > → 지자체 화면의 “어디서 큰 사고 비중이 커질지 / 사고경중”에 대응
 
-> **후속:** EB 스무딩·반기 보조는 **v1.0.2**, 지도·건수 중심은 **v1.0.3**.  
-> 현재 서빙 헬퍼(`src/gov_inference.py`)는 **v1.0.3**을 사용합니다.  
-> v1.0.0 / v1.0.1 pkl은 그대로 보존됩니다.
+> **후속:** EB 스무딩·반기 보조는 **v1.0.2**, 지도·건수 중심은 **v1.0.3**→**v1.0.4**.  
+> 현재 API 서빙은 **v1.0.4**입니다.
+
 
 ---
 
@@ -83,8 +83,8 @@ predict_gov_rates(지역="중구")
 
 | 파일 | 역할 |
 |------|------|
-| `scripts/gov_v1_0_1.py` | 학습·추론 |
+| `scripts/archive/gov_v1_0_1.py` | 학습·추론 |
 | `models/gov_model_v1.0.1.pkl` | 패키지 |
 | `src/gov_inference.py` | 서빙 헬퍼 |
 | `docs/figures/gov_v1_0_1/` | 중대사고율 추이 그래프 |
-| `scripts/gov_v1_0_0.py` | 이전 버전(점유율만) |
+| `scripts/archive/gov_v1_0_0.py` | 이전 버전(점유율만) |

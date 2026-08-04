@@ -109,6 +109,49 @@ export async function predictGovHistory(
   return json.data as GovHistoryResponse;
 }
 
+/** 공식 사고다발 TOP3 (지도 원) */
+export interface GovHotspotPoint {
+  lat: number;
+  lon: number;
+  name: string;
+  region_label?: string;
+  지역?: string | null;
+  count: number;
+  casualties?: number;
+  fatal?: number;
+  severe?: number;
+  year: number;
+  source?: string;
+}
+
+export interface GovHotspotResponse {
+  year: number;
+  sido: string;
+  source: string;
+  fetched_at: string;
+  count: number;
+  points: GovHotspotPoint[];
+  partial_errors?: string[];
+}
+
+export async function predictGovHotspots(options?: {
+  year?: number;
+  refresh?: boolean;
+}): Promise<GovHotspotResponse> {
+  const qs = new URLSearchParams();
+  if (options?.year != null) qs.set('year', String(options.year));
+  if (options?.refresh) qs.set('refresh', 'true');
+  const suffix = qs.toString() ? `?${qs}` : '';
+  const res = await fetch(
+    `${API_BASE}/api/prediction/predict-gov-hotspots${suffix}`,
+  );
+  const json = await res.json();
+  if (!res.ok || !json.success) {
+    throw new Error(json.message ?? json.error ?? '다발지역 조회 실패');
+  }
+  return json.data as GovHotspotResponse;
+}
+
 export function getPredictedCount(row: GovPredictResult): number {
   return row.예측사고건수 ?? row.추정_다음분기사고건수 ?? 0;
 }

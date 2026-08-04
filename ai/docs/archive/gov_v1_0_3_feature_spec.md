@@ -1,15 +1,13 @@
-> 📦 **보관(이전 서빙)** — 현재 서빙은 [gov_v1_0_4_feature_spec.md](gov_v1_0_4_feature_spec.md) · [목차](README.md)
+> 📦 **보관(이전 서빙)** — 현재 서빙은 [gov_v1_0_4_feature_spec.md](../gov_v1_0_4_feature_spec.md) · [목차](../README.md)
 
 # GovGuard AI v1.0.3 — 피처 명세서
 
-본 문서는 `scripts/gov_v1_0_3.py` / `models/gov_model_v1.0.3.pkl` 을 설명합니다.
+본 문서는 `scripts/archive/gov_v1_0_3.py` / `models/gov_model_v1.0.3.pkl` 을 설명합니다.
+재현·실험 비교용이며, API 서빙은 **v1.0.4** (`scripts/gov_v1_0_4.py`)입니다.
 
 > **목적:** 지도·대응 인력 — **어디 사고가 많은가**  
 > **v1.0.2:** EB 중대·반기 보조  
 > **v1.0.3:** 건수 가중 점유율 + **사고건수 직접 회귀** (메인 지표)
-
-현재 `src/gov_inference.py`는 **v1.0.3**을 로드합니다.  
-v1.0.0–v1.0.2 pkl은 보존됩니다.
 
 ---
 
@@ -70,7 +68,7 @@ v1.0.0–v1.0.2 pkl은 보존됩니다.
 ## 3. 실행
 
 ```bash
-python scripts/gov_v1_0_3.py
+python scripts/archive/gov_v1_0_3.py
 ```
 
 ```python
@@ -87,8 +85,8 @@ predict_gov_rates(freq="H")         # 중대 보조
 
 | 파일 | 역할 |
 |------|------|
-| `scripts/gov_v1_0_3.py` | 학습·추론 |
+| `scripts/archive/gov_v1_0_3.py` | 학습·추론 |
 | `models/gov_model_v1.0.3.pkl` | 패키지 |
 | `src/gov_inference.py` | 서빙 헬퍼 |
 | `docs/figures/gov_v1_0_3/` | 건수·중대 추이 |
-| `docs/gov_v1_0_2_feature_spec.md` | 이전(EB 중심) |
+| `docs/archive/gov_v1_0_2_feature_spec.md` | 이전(EB 중심) |

@@ -98,6 +98,15 @@
   flex-shrink: 0;
 }
 
+.swatchCircle {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
 .selectionHint {
   position: absolute;
   left: 10px;

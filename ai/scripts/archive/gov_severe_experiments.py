@@ -4,7 +4,7 @@ GovGuard — 중대사고율 개선 실험
 1) EB 스무딩 타깃
 2) 반기(H1/H2) 집계
 
-결과: docs/gov_severe_experiments.md / .json
+결과: docs/archive/gov_severe_experiments.md / .json
 """
 
 from __future__ import annotations
@@ -22,10 +22,10 @@ from sklearn.preprocessing import LabelEncoder
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]  # scripts/archive -> ai
 DATA_PATH = ROOT / "data" / "raw" / "사고분석_2016~2025_원본합본.csv"
-OUT_JSON = ROOT / "docs" / "gov_severe_experiments.json"
-OUT_MD = ROOT / "docs" / "gov_severe_experiments.md"
+OUT_JSON = ROOT / "docs" / "archive" / "gov_severe_experiments.json"
+OUT_MD = ROOT / "docs" / "archive" / "gov_severe_experiments.md"
 FIG_DIR = ROOT / "docs" / "figures" / "gov_severe_experiments"
 
 SEVERITY_ORDER = ["사망사고", "중상사고", "경상사고", "부상신고사고"]

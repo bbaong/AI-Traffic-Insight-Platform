@@ -1,14 +1,14 @@
-> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_3_feature_spec.md](gov_v1_0_3_feature_spec.md) · [목차](README.md)
+> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_4_feature_spec.md](../gov_v1_0_4_feature_spec.md) · [목차](../README.md)
 
 # GovGuard AI v1.0.0 — 피처 명세서
 
-본 문서는 `scripts/gov_v1_0_0.py`로 학습된 **GovGuard AI v1.0.0**
+본 문서는 `scripts/archive/gov_v1_0_0.py`로 학습된 **GovGuard AI v1.0.0**
 (`models/gov_model_v1.0.0.pkl`)을 설명합니다.
 
 > InsureGuard(보험)와 같은 패키지 양식이며, **지자체**용입니다.  
 > 버전은 `gov_1.0.0`부터 시작합니다.  
-> **후속:** EB·반기는 **v1.0.2**, 지도·건수 중심은 **v1.0.3**.  
-> 현재 `src/gov_inference.py`는 **v1.0.3**을 로드합니다.
+> **후속:** EB·반기는 **v1.0.2**, 지도·건수 중심은 **v1.0.3**→**v1.0.4**.  
+> 현재 API 서빙은 **v1.0.4**입니다.
 
 ---
 
@@ -104,7 +104,7 @@ predict_gov_rates(지역="달서구", as_of_연도분기="2025Q2")
 
 | 파일 | 역할 |
 |------|------|
-| `scripts/gov_v1_0_0.py` | 학습·추론·그래프 |
+| `scripts/archive/gov_v1_0_0.py` | 학습·추론·그래프 |
 | `models/gov_model_v1.0.0.pkl` | 패키지 저장본 |
 | `src/gov_inference.py` | 서빙용 로드/예측 헬퍼 |
 | `docs/figures/gov_v1_0_0/` | 지역별 분기 사고율 그래프 |

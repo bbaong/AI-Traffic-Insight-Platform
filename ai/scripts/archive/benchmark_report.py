@@ -21,7 +21,7 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]  # scripts/archive -> ai
 sys.path.insert(0, str(ROOT))
 
 from src.inference import predict_risk_score  # noqa: E402
