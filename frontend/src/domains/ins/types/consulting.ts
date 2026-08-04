@@ -37,14 +37,18 @@ export interface ProfileInput {
 export interface ConsultationPayload {
   customer: CustomerInfo;
   profile: ProfileInput;
-  prediction: InsPredictData | null;
   checklist: ChecklistAnswers;
   memo: string;
-  tokkResults: TokkResult[];
-  savedAt: string;
+  /** 상담원 user_id — 백엔드 필수 */
+  userId: number;
+  /** 화면 스냅샷용. 서버는 AI·특약을 재계산하므로 저장 API에는 보내지 않음 */
+  prediction?: InsPredictData | null;
+  tokkResults?: TokkResult[];
 }
 
 export interface SaveConsultationResult {
   ok: true;
   id: string;
+  customerId?: string;
+  profileId?: string;
 }
