@@ -1,4 +1,7 @@
-# 📘 traffic_accident_model.pkl 테스트 및 사용 가이드
+> ⚠️ **보관 문서** — 레거시 `traffic_accident_model.pkl` / `new_model` 기준입니다. 현재 서빙 모델과 무관합니다.  
+> 설치·추론: [../README.md](../README.md) · 문서 목차: [README.md](README.md)
+
+# traffic_accident_model.pkl 테스트 및 사용 가이드
 
 본 문서는 `new_model.py`를 통해 생성된 학습 모델 패키지 파일(`traffic_accident_model.pkl`)을 로드하여 실제 개발 환경이나 테스트 환경에서 활용하는 방법을 설명합니다.
 

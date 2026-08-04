@@ -44,9 +44,11 @@ ai/
 ├── data/
 │   ├── raw/             # 원천 CSV (Git 제외)
 │   └── processed/       # 전처리 결과
-├── docs/                # 피처 명세·검증 결과·그래프
+├── docs/                # 피처 명세·검증 결과·그래프 (목차: docs/README.md)
 └── requirements.txt
 ```
+
+문서 목차·현재/보관 구분은 [`docs/README.md`](docs/README.md)를 보세요.
 
 ---
 

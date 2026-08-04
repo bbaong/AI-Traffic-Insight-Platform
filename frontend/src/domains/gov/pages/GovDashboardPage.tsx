@@ -89,8 +89,7 @@ export function GovDashboardPage() {
   const [priorityRegions, setPriorityRegions] = useState<PriorityRegionRow[]>(
     [],
   );
-  // ... 기존 riskByCode, aiSummary, districtSevereBars, loading, error 유지
-
+  
   const severeValues = districtSevereBars.map((b) => b.value);
   const dataMin = severeValues.length ? Math.min(...severeValues) : 0;
   const dataMax = severeValues.length ? Math.max(...severeValues) : 1;

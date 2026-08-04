@@ -194,20 +194,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* min-height: 120px;  ← 패널이 맡으므로 제거해도 됨 */
-  padding: 16px;
-  text-align: center;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-hint);
-}
-
-.loadingHint {
-  margin: 0;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   min-height: 120px;
   padding: 16px;
   text-align: center;

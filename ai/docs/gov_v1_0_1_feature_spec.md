@@ -1,3 +1,5 @@
+> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_3_feature_spec.md](gov_v1_0_3_feature_spec.md) · [목차](README.md)
+
 # GovGuard AI v1.0.1 — 피처 명세서
 
 본 문서는 `scripts/gov_v1_0_1.py` / `models/gov_model_v1.0.1.pkl` 을 설명합니다.

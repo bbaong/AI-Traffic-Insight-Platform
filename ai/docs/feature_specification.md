@@ -1,3 +1,6 @@
+> ⚠️ **보관 문서** — 현재 API 서빙(InsureGuard / GovGuard **v1.0.3**)과 무관합니다.  
+> 최신 명세: [ins_v1_0_3_feature_spec.md](ins_v1_0_3_feature_spec.md), [gov_v1_0_3_feature_spec.md](gov_v1_0_3_feature_spec.md) · 목차: [README.md](README.md)
+
 # 교통사고 예측 모델 피처 명세서 (Feature Specification)
 
 본 문서는 대구광역시 교통사고 분석 데이터를 기반으로 학습된 **사고 위험도 예측 모델(Regressor)** 및 **주요 사고 원인 분류 모델(Classifier)**의 입력 피처와 타겟 변수 세부 스펙을 기술합니다.
