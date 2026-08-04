@@ -1,8 +1,8 @@
 import type { TokkResult } from '../types/consulting';
 
 /**
- * 맞춤 특약 검토 목업 결과.
- * TODO: 실제 API 연동 시 이 파일은 제거하거나 fixtures로만 유지
+ * @deprecated 특약 검토는 POST /api/discount-riders/evaluate 실연동으로 교체됨.
+ * fixtures / 로컬 테스트용으로만 유지.
  */
 export const MOCK_TOKK_RESULT: TokkResult[] = [
   {

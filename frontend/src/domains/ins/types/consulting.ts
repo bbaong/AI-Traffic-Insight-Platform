@@ -1,6 +1,6 @@
 import type { InsPredictData } from './prediction';
 
-export type TokkStatus = 'RECOMMEND' | 'CHECK' | 'EXCLUDE';
+export type TokkStatus = 'RECOMMEND' | 'CHECK' | 'EXCLUDE' | 'EXISTING';
 
 export interface TokkResult {
   id: string;
