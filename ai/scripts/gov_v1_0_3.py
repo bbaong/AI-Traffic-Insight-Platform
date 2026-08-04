@@ -825,6 +825,60 @@ def predict_next_quarter(
     rows.sort(key=lambda r: r["예측사고건수"], reverse=True)
     return rows
 
+def predict_quarter_history(
+    package: dict,
+    지역: str,
+    n_history: int = 3,
+    as_of_연도분기: str | None = None,
+) -> dict:
+    """직전 n_history분기 실적 + 다음 분기 예측 (누적막대용 경중 포함)."""
+    panel = package["latest_panel"].copy()
+    rh = panel[panel["지역"] == 지역].sort_values("period_id")
+    if rh.empty:
+        raise ValueError(f"지역 없음: {지역}")
+
+    if as_of_연도분기 is None:
+        as_of_연도분기 = str(rh["연도분기"].iloc[-1])
+    rh = rh[rh["period_id"] <= rh.loc[rh["연도분기"] == as_of_연도분기, "period_id"].iloc[0]]
+    past = rh.tail(n_history)
+
+    history = []
+    for _, cur in past.iterrows():
+        history.append({
+            "분기": str(cur["연도분기"]),
+            "사고건수": int(cur["사고건수"]),
+            "중대사고율_퍼센트": round(float(cur["중대사고율"]) * 100, 2),
+            "경중_건수": {col: int(cur[col]) for col in SEVERITY_ORDER},
+            "경중_퍼센트": {
+                col: round(float(cur[f"{col}_비율"]) * 100, 2)
+                for col in SEVERITY_ORDER
+            },
+            "kind": "actual",
+        })
+
+    forecast_row = predict_next_quarter(
+        package, 지역=지역, as_of_연도분기=as_of_연도분기
+    )
+    # forecast_row는 dict (지역 지정 시)
+    pred_count = int(forecast_row["예측사고건수"])
+    sev_pct = forecast_row["예측사고경중_퍼센트"]
+    forecast = {
+        "분기": forecast_row["예측분기"],
+        "사고건수": pred_count,
+        "중대사고율_퍼센트": forecast_row["예측중대사고율_퍼센트"],
+        "경중_건수": {
+            k: int(round(pred_count * (v / 100.0)))
+            for k, v in sev_pct.items()
+        },
+        "경중_퍼센트": sev_pct,
+        "kind": "forecast",
+        "기준분기": forecast_row["기준분기"],
+    }
+    return {
+        "지역": 지역,
+        "history": history,
+        "forecast": forecast,
+    }
 
 def predict_next_half(
     package: dict,

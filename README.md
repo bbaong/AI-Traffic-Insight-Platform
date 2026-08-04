@@ -67,7 +67,7 @@ npm run dev
 | `POST /api/prediction/predict-ins` | `POST /predict` (InsureGuard) |
 | `POST /api/prediction/predict-gov` | `POST /predict/gov` (GovGuard) |
 
-현재 서빙 모델은 **v1.0.3**입니다. 피처 명세·실험 문서는 [ai/docs/README.md](ai/docs/README.md)를 보세요.
+현재 서빙 모델은 보험 **InsureGuard v1.0.3**, 지자체 **GovGuard v1.0.4**입니다. 피처 명세·실험 문서는 [ai/docs/README.md](ai/docs/README.md)를 보세요.
 
 ---
 

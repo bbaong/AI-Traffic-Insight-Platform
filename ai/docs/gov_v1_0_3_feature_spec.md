@@ -1,3 +1,5 @@
+> 📦 **보관(이전 서빙)** — 현재 서빙은 [gov_v1_0_4_feature_spec.md](gov_v1_0_4_feature_spec.md) · [목차](README.md)
+
 # GovGuard AI v1.0.3 — 피처 명세서
 
 본 문서는 `scripts/gov_v1_0_3.py` / `models/gov_model_v1.0.3.pkl` 을 설명합니다.

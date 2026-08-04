@@ -10,7 +10,7 @@
 | 계열 | 모델 | 피처 명세 | 학습 스크립트 |
 |------|------|-----------|---------------|
 | InsureGuard (보험) | `models/ins_model_v1.0.3.pkl` | [ins_v1_0_3_feature_spec.md](ins_v1_0_3_feature_spec.md) | `scripts/ins_v1_0_3.py` |
-| GovGuard (지자체) | `models/gov_model_v1.0.3.pkl` | [gov_v1_0_3_feature_spec.md](gov_v1_0_3_feature_spec.md) | `scripts/gov_v1_0_3.py` |
+| GovGuard (지자체) | `models/gov_model_v1.0.4.pkl` | [gov_v1_0_4_feature_spec.md](gov_v1_0_4_feature_spec.md) | `scripts/gov_v1_0_4.py` |
 
 ---
 
@@ -22,6 +22,9 @@
 | [validation_v1_0_3_results.json](validation_v1_0_3_results.json) | 검증 수치 |
 | [gov_severe_experiments.md](gov_severe_experiments.md) | 지자체 중대율 EB/반기 실험 |
 | [gov_severe_experiments.json](gov_severe_experiments.json) | 실험 수치 |
+| [gov_v1_0_4_b1_vs_b2.md](gov_v1_0_4_b1_vs_b2.md) | B1(share) vs B2(log건수) + A캡 비교 |
+| [gov_v1_0_4_b1_vs_b2.json](gov_v1_0_4_b1_vs_b2.json) | 비교 수치 |
+| `figures/gov_v1_0_4_compare/` | 군위 등 케이스 차트 |
 | `figures/` | 버전·실험별 차트 PNG |
 
 ---
@@ -36,6 +39,7 @@ API가 쓰지 않는 과거 명세입니다. 버전 비교·이력용으로만 �
 | [gov_v1_0_0_feature_spec.md](gov_v1_0_0_feature_spec.md) | 지자체 v1.0.0 |
 | [gov_v1_0_1_feature_spec.md](gov_v1_0_1_feature_spec.md) | 지자체 v1.0.1 |
 | [gov_v1_0_2_feature_spec.md](gov_v1_0_2_feature_spec.md) | 지자체 v1.0.2 |
+| [gov_v1_0_3_feature_spec.md](gov_v1_0_3_feature_spec.md) | 지자체 v1.0.3 (건수 회귀 메인) |
 
 ---
 

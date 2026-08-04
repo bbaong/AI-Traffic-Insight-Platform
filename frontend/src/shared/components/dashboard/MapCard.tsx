@@ -315,6 +315,20 @@ export function MapCard({
   useEffect(() => {
     selectedRef.current = selectedCode;
     applyStyles(hoveredRef.current, selectedCode);
+  
+    const map = mapRef.current;
+    if (!map || !selectedCode || !window.kakao?.maps) return;
+  
+    const district = DAEGU_DISTRICTS.find((d) => d.code === selectedCode);
+    if (!district) return;
+  
+    const bounds = new window.kakao.maps.LatLngBounds();
+    for (const ring of district.paths) {
+      for (const p of ring) {
+        bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng));
+      }
+    }
+    map.setBounds(bounds, 40, 40, 40, 40);
   }, [selectedCode]);
 
   return (
