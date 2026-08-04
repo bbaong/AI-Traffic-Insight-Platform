@@ -43,6 +43,22 @@ model accident_records {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model checklist_items {
+  item_id                        Int                              @id @default(autoincrement()) @db.UnsignedInt
+  item_key                       String                           @unique(map: "item_key") @db.VarChar(50)
+  item_label                     String                           @db.VarChar(150)
+  input_type                     checklist_items_input_type
+  options                        String?                          @db.LongText
+  allow_unknown                  Boolean                          @default(true)
+  parent_item_key                String?                          @db.VarChar(50)
+  trigger_value                  String?                          @db.VarChar(50)
+  is_rider_judgment              Boolean                          @default(true)
+  display_order                  Int                              @default(0) @db.UnsignedTinyInt
+  is_active                      Boolean                          @default(true)
+  consultation_checklist_answers consultation_checklist_answers[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model cohort_benchmark_stats {
   benchmark_id    BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
   scope           String                           @default("전국") @db.VarChar(20)
@@ -55,6 +71,57 @@ model cohort_benchmark_stats {
   updated_at      DateTime                         @default(now()) @db.DateTime(0)
 
   @@index([dimension, dimension_value], map: "idx_benchmark_dim")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model consultation_checklist_answers {
+  answer_id       BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  consultation_id BigInt          @db.UnsignedBigInt
+  item_id         Int             @db.UnsignedInt
+  answer_value    String          @db.VarChar(100)
+  answered_at     DateTime        @default(now()) @db.DateTime(0)
+  consultations   consultations   @relation(fields: [consultation_id], references: [consultation_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_checkans_consultation")
+  checklist_items checklist_items @relation(fields: [item_id], references: [item_id], onUpdate: Restrict, map: "fk_checkans_item")
+
+  @@unique([consultation_id, item_id], map: "uq_checkans_consultation_item")
+  @@index([item_id], map: "fk_checkans_item")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model consultation_discount_riders {
+  result_id              BigInt                             @id @default(autoincrement()) @db.UnsignedBigInt
+  consultation_id        BigInt                             @db.UnsignedBigInt
+  rider_key              String                             @db.VarChar(50)
+  badge                  consultation_discount_riders_badge
+  reason_text            String                             @db.VarChar(255)
+  additional_check_text  String?                            @db.VarChar(255)
+  is_manually_overridden Boolean                            @default(false)
+  created_at             DateTime                           @default(now()) @db.DateTime(0)
+  consultations          consultations                      @relation(fields: [consultation_id], references: [consultation_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_discountrider_consultation")
+
+  @@index([consultation_id], map: "idx_discountrider_consultation")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model consultations {
+  consultation_id                BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
+  customer_id                    BigInt                           @db.UnsignedBigInt
+  user_id                        BigInt                           @db.UnsignedBigInt
+  profile_id                     BigInt?                          @db.UnsignedBigInt
+  memo                           String?                          @db.Text
+  status                         consultations_status             @default(IN_PROGRESS)
+  consulted_at                   DateTime                         @default(now()) @db.DateTime(0)
+  updated_at                     DateTime                         @default(now()) @db.DateTime(0)
+  consultation_checklist_answers consultation_checklist_answers[]
+  consultation_discount_riders   consultation_discount_riders[]
+  customers                      customers                        @relation(fields: [customer_id], references: [customer_id], onUpdate: Restrict, map: "fk_consultation_customer")
+  customer_risk_profiles         customer_risk_profiles?          @relation(fields: [profile_id], references: [profile_id], onUpdate: Restrict, map: "fk_consultation_profile")
+  users                          users                            @relation(fields: [user_id], references: [user_id], onUpdate: Restrict, map: "fk_consultation_user")
+
+  @@index([profile_id], map: "fk_consultation_profile")
+  @@index([user_id], map: "fk_consultation_user")
+  @@index([customer_id], map: "idx_consultation_customer")
+  @@index([consulted_at], map: "idx_consultation_date")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -90,6 +157,21 @@ model customer_risk_profiles {
   @@index([district_id], map: "fk_profile_district")
   @@index([analyzed_at], map: "idx_profile_analyzed")
   @@index([user_id], map: "idx_profile_user")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model customers {
+  customer_id   BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
+  name          String          @db.VarChar(50)
+  phone_number  String          @unique(map: "phone_number") @db.VarChar(20)
+  registered_by BigInt          @db.UnsignedBigInt
+  created_at    DateTime        @default(now()) @db.DateTime(0)
+  updated_at    DateTime        @default(now()) @db.DateTime(0)
+  consultations consultations[]
+  users         users           @relation(fields: [registered_by], references: [user_id], onUpdate: Restrict, map: "fk_customer_registered_by")
+
+  @@index([registered_by], map: "fk_customer_registered_by")
+  @@index([name], map: "idx_customer_name")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -217,88 +299,6 @@ model users {
   @@index([department_id], map: "fk_users_department")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model checklist_items {
-  item_id                        Int                              @id @default(autoincrement()) @db.UnsignedInt
-  item_key                       String                           @unique(map: "item_key") @db.VarChar(50)
-  item_label                     String                           @db.VarChar(150)
-  input_type                     checklist_items_input_type
-  options                        String?                          @db.LongText
-  allow_unknown                  Boolean                          @default(true)
-  parent_item_key                String?                          @db.VarChar(50)
-  trigger_value                  String?                          @db.VarChar(50)
-  is_rider_judgment              Boolean                          @default(true)
-  display_order                  Int                              @default(0) @db.UnsignedTinyInt
-  is_active                      Boolean                          @default(true)
-  consultation_checklist_answers consultation_checklist_answers[]
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model consultation_checklist_answers {
-  answer_id       BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
-  consultation_id BigInt          @db.UnsignedBigInt
-  item_id         Int             @db.UnsignedInt
-  answer_value    String          @db.VarChar(100)
-  answered_at     DateTime        @default(now()) @db.DateTime(0)
-  consultations   consultations   @relation(fields: [consultation_id], references: [consultation_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_checkans_consultation")
-  checklist_items checklist_items @relation(fields: [item_id], references: [item_id], onUpdate: Restrict, map: "fk_checkans_item")
-
-  @@unique([consultation_id, item_id], map: "uq_checkans_consultation_item")
-  @@index([item_id], map: "fk_checkans_item")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model consultation_discount_riders {
-  result_id              BigInt                             @id @default(autoincrement()) @db.UnsignedBigInt
-  consultation_id        BigInt                             @db.UnsignedBigInt
-  rider_key              String                             @db.VarChar(50)
-  badge                  consultation_discount_riders_badge
-  reason_text            String                             @db.VarChar(255)
-  additional_check_text  String?                            @db.VarChar(255)
-  is_manually_overridden Boolean                            @default(false)
-  created_at             DateTime                           @default(now()) @db.DateTime(0)
-  consultations          consultations                      @relation(fields: [consultation_id], references: [consultation_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_discountrider_consultation")
-
-  @@index([consultation_id], map: "idx_discountrider_consultation")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model consultations {
-  consultation_id                BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
-  customer_id                    BigInt                           @db.UnsignedBigInt
-  user_id                        BigInt                           @db.UnsignedBigInt
-  profile_id                     BigInt?                          @db.UnsignedBigInt
-  memo                           String?                          @db.Text
-  status                         consultations_status             @default(진행중)
-  consulted_at                   DateTime                         @default(now()) @db.DateTime(0)
-  updated_at                     DateTime                         @default(now()) @db.DateTime(0)
-  consultation_checklist_answers consultation_checklist_answers[]
-  consultation_discount_riders   consultation_discount_riders[]
-  customers                      customers                        @relation(fields: [customer_id], references: [customer_id], onUpdate: Restrict, map: "fk_consultation_customer")
-  customer_risk_profiles         customer_risk_profiles?          @relation(fields: [profile_id], references: [profile_id], onUpdate: Restrict, map: "fk_consultation_profile")
-  users                          users                            @relation(fields: [user_id], references: [user_id], onUpdate: Restrict, map: "fk_consultation_user")
-
-  @@index([profile_id], map: "fk_consultation_profile")
-  @@index([user_id], map: "fk_consultation_user")
-  @@index([customer_id], map: "idx_consultation_customer")
-  @@index([consulted_at], map: "idx_consultation_date")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model customers {
-  customer_id   BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
-  name          String          @db.VarChar(50)
-  phone_number  String          @unique(map: "phone_number") @db.VarChar(20)
-  registered_by BigInt          @db.UnsignedBigInt
-  created_at    DateTime        @default(now()) @db.DateTime(0)
-  updated_at    DateTime        @default(now()) @db.DateTime(0)
-  consultations consultations[]
-  users         users           @relation(fields: [registered_by], references: [user_id], onUpdate: Restrict, map: "fk_customer_registered_by")
-
-  @@index([registered_by], map: "fk_customer_registered_by")
-  @@index([name], map: "idx_customer_name")
-}
-
 enum risk_factor_contributions_target_type {
   DISTRICT_SCORE
   CUSTOMER_PROFILE
@@ -319,9 +319,22 @@ enum reports_target_type {
   CUSTOMER_PROFILE
 }
 
+enum consultation_discount_riders_badge {
+  REVIEW_RECOMMENDED
+  FURTHER_CHECK_REQUIRED
+  CURRENTLY_EXCLUDED
+  EXISTING_MEMBER_VERIFIED
+}
+
 enum accident_records_time_of_day {
   DAY
   NIGHT
+}
+
+enum checklist_items_input_type {
+  NUMBER
+  SINGLE_CHOICE
+  MULTI_SELECT
 }
 
 enum accident_condition_stats_dimension {
@@ -336,6 +349,11 @@ enum accident_condition_stats_dimension {
 enum users_role {
   ROLE_A
   ROLE_B
+}
+
+enum consultations_status {
+  IN_PROGRESS
+  COMPLETED
 }
 
 enum district_risk_scores_risk_grade {
@@ -367,22 +385,4 @@ enum customer_risk_profiles_risk_grade {
   Moderate
   High
   Critical
-}
-
-enum consultation_discount_riders_badge {
-  // 검토권장
-  // 추가확인필요
-  // 현재제외
-  // 기존가입확인
-}
-
-enum checklist_items_input_type {
-  NUMBER
-  SINGLE_CHOICE
-  MULTI_SELECT
-}
-
-enum consultations_status {
-  // 진행중
-  // 완료
 }
