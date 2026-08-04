@@ -8,6 +8,8 @@ export const ROUTES = {
   DASHBOARD_INS: '/dashboard/insurance',
   MYPAGE: '/mypage',
   SETTINGS: '/common/settings',
+  REPORTS: '/common/reports',
+  CUSTOMERS: '/common/customers',
 } as const;
 
 export type AppRoute = (typeof ROUTES)[keyof typeof ROUTES];

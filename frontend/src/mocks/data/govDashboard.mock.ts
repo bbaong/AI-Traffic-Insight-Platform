@@ -73,18 +73,21 @@ export const govDashboardMock: GovDashboardData = {
       regionName: '대구광역시 수성구',
       score: 92.4,
       riskLevel: 'CRITICAL',
+      accidentCount: 186,
     },
     {
       rank: 2,
       regionName: '대구광역시 달서구',
       score: 78.1,
       riskLevel: 'HIGH',
+      accidentCount: 142,
     },
     {
       rank: 3,
       regionName: '대구광역시 북구',
       score: 64.5,
       riskLevel: 'HIGH',
+      accidentCount: 118,
     },
   ],
   accidentByHour: [

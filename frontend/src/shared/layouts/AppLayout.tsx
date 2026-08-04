@@ -19,7 +19,7 @@ export function AppLayout() {
     location.pathname === ROUTES.MYPAGE
       ? '마이페이지'
       : location.pathname === ROUTES.DASHBOARD_INS
-        ? '프로필 위험 분석'
+        ? '보험 상담 대시보드'
         : user.role === 'ROLE_A'
           ? '지자체 대시보드'
           : '보험사 대시보드';
