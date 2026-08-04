@@ -17,16 +17,16 @@
         ▼
 [AI]  uvicorn app.main:app  (http://localhost:8000)
   POST /predict      →  InsureGuard v1.0.3
-  POST /predict/gov  →  GovGuard v1.0.3
+  POST /predict/gov  →  GovGuard v1.0.4
   GET  /health
 ```
 
 | 역할 | 현재 서빙 모델 | 학습 스크립트 | 명세 |
 |------|----------------|---------------|------|
 | 보험 | `models/ins_model_v1.0.3.pkl` | `scripts/ins_v1_0_3.py` | `docs/ins_v1_0_3_feature_spec.md` |
-| 지자체 | `models/gov_model_v1.0.3.pkl` | `scripts/gov_v1_0_3.py` | `docs/gov_v1_0_3_feature_spec.md` |
+| 지자체 | `models/gov_model_v1.0.4.pkl` | `scripts/gov_v1_0_4.py` | `docs/gov_v1_0_4_feature_spec.md` |
 
-이전 버전 pkl(`ins_model_v1.0.2.pkl`, `gov_model_v1.0.0`~`1.0.2`)은 보존·비교용입니다.
+이전 버전 pkl(`ins_model_v1.0.2.pkl`, `gov_model_v1.0.0`~`1.0.3`)은 보존·비교용입니다.
 
 ---
 
@@ -37,16 +37,18 @@ ai/
 ├── app/                 # FastAPI (main.py, schemas.py)
 ├── src/
 │   ├── inference.py     # InsureGuard 로드·추론 (v1.0.3)
-│   ├── gov_inference.py # GovGuard 로드·추론 (v1.0.3)
+│   ├── gov_inference.py # GovGuard 로드·추론 (v1.0.4)
 │   └── preprocess.py    # 인구 join 등 (선택)
 ├── scripts/             # 버전별 학습·실험 스크립트
 ├── models/              # *.pkl (Git 제외, 학습 후 생성)
 ├── data/
 │   ├── raw/             # 원천 CSV (Git 제외)
 │   └── processed/       # 전처리 결과
-├── docs/                # 피처 명세·검증 결과·그래프
+├── docs/                # 피처 명세·검증 결과·그래프 (목차: docs/README.md)
 └── requirements.txt
 ```
+
+문서 목차·현재/보관 구분은 [`docs/README.md`](docs/README.md)를 보세요.
 
 ---
 
@@ -75,8 +77,8 @@ pip install -r requirements.txt
 # 보험 (심각도 70% + 빈도 30%) → models/ins_model_v1.0.3.pkl
 python scripts/ins_v1_0_3.py
 
-# 지자체 (예상 사고건수 메인) → models/gov_model_v1.0.3.pkl
-python scripts/gov_v1_0_3.py
+# 지자체 (share×시전체 + last×2 캡) → models/gov_model_v1.0.4.pkl
+python scripts/gov_v1_0_4.py
 ```
 
 `models/*.pkl`이 없으면 API가 **503**을 반환합니다.

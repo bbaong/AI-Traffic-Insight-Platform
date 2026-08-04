@@ -42,7 +42,7 @@ export function AiSummaryCard({ data, accent = 'teal' }: AiSummaryCardProps) {
         </div>
       </div>
 
-      <ul className={styles.factors} aria-label="주요 위험 요인">
+      <ul className={styles.factors} aria-label="사고유형 구성">
         {data.factors.map((factor) => (
           <li key={factor.name} className={styles.factor}>
             <span className={styles.factorName}>{factor.name}</span>

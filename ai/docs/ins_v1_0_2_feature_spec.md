@@ -1,3 +1,5 @@
+> 📦 **보관** — 이전 버전입니다. 현재 서빙: [ins_v1_0_3_feature_spec.md](ins_v1_0_3_feature_spec.md) · [목차](README.md)
+
 # InsureGuard AI v1.0.2 — 피처 명세서 & R² 해석 가이드
 
 본 문서는 `scripts/ins_v1_0_2.py`로 학습된 **InsureGuard AI v1.0.2**
