@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   DAEGU_DISTRICTS,
   DAEGU_OUTLINE_PATHS,
@@ -173,6 +173,10 @@ export function MapCard({
   selectCbRef.current = onDistrictSelect;
   selectedRef.current = selectedCode;
 
+  const [onlySelectedHotspots, setOnlySelectedHotspots] = useState(false);
+  const onlySelectedRef = useRef(onlySelectedHotspots);
+  onlySelectedRef.current = onlySelectedHotspots;
+
   const clearHotspotOverlay = () => {
     if (hotspotOverlayRef.current) {
       hotspotOverlayRef.current.setMap(null);
@@ -229,11 +233,43 @@ export function MapCard({
     getLevel: () => number;
   } | null) => {
     if (!map || !window.kakao?.maps) return;
-    if (map.getLevel() <= HOTSPOT_MAX_LEVEL) {
-      drawHotspots(map, hotspotsRef.current);
-    } else {
-      clearCircles();
+  
+    const all = hotspotsRef.current;
+    const selected = selectedRef.current;
+    const filterSelected = onlySelectedRef.current;
+    const levelOk = map.getLevel() <= HOTSPOT_MAX_LEVEL;
+  
+    const selectedPoints = () => {
+      if (!selected) return [] as typeof all;
+      const name = DAEGU_DISTRICTS.find((d) => d.code === selected)?.name;
+      return name
+        ? all.filter((p) => p.region === name || p.name?.includes(name))
+        : [];
+    };
+  
+    // 체크: 선택 구만
+    if (filterSelected) {
+      if (!selected) {
+        clearCircles();
+        return;
+      }
+      drawHotspots(map, selectedPoints());
+      return;
     }
+  
+    // 체크 해제 + 확대: 전체
+    if (levelOk) {
+      drawHotspots(map, all);
+      return;
+    }
+  
+    // 체크 해제 + 구 선택(확대 전): 선택 구 다발은 유지
+    if (selected) {
+      drawHotspots(map, selectedPoints());
+      return;
+    }
+  
+    clearCircles();
   };
 
   const applyStyles = (hovered: string | null, selected: string | null) => {
@@ -426,6 +462,17 @@ export function MapCard({
   }, [hotspots, status]);
 
   useEffect(() => {
+    onlySelectedRef.current = onlySelectedHotspots;
+    const map = mapRef.current;
+    if (!map || status !== 'loaded') return;
+    syncHotspotsVisibility(map);
+  }, [onlySelectedHotspots, status]);
+  
+  useEffect(() => {
+    if (!selectedCode) setOnlySelectedHotspots(false);
+  }, [selectedCode]);
+
+  useEffect(() => {
     selectedRef.current = selectedCode;
     applyStyles(hoveredRef.current, selectedCode);
 
@@ -527,12 +574,20 @@ export function MapCard({
               aria-hidden="true"
             />
             <span>
-              공식 다발
-              {hotspotYear != null ? ` (${hotspotYear})` : ''} · 확대 시
+              사고 다발 지역
             </span>
           </li>
         </ul>
       </div>
+      <label className={styles.hotspotFilter}>
+        <input
+          type="checkbox"
+          checked={onlySelectedHotspots}
+          disabled={!selectedCode}
+          onChange={(e) => setOnlySelectedHotspots(e.target.checked)}
+        />
+        선택한 구·군의 사고 다발 지역만 표시{hotspotYear != null ? ` (${hotspotYear})` : ''}
+      </label>
     </DashboardCard>
   );
 }

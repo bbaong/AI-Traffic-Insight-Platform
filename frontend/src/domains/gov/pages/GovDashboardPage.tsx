@@ -74,7 +74,15 @@ function toAiSummary(row: GovPredictResult): AiSummaryData {
 }
 const GOV_PRED_CACHE_KEY = 'gov:predictGov:Q';
 const GOV_HOTSPOT_CACHE_KEY = 'gov:hotspots';
+/** 프론트: 이 시간 안이면 Backend/AI 다발 API를 다시 치지 않음 */
+const GOV_HOTSPOT_CLIENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const historySessionKey = (region: string) => `gov:history:${region}:4`;
+
+type HotspotSessionCache = {
+  year: number;
+  points: GovHotspotPoint[];
+  fetched_at: number;
+};
 
 function toMapHotspots(points: GovHotspotPoint[]): MapHotspot[] {
   return points
@@ -86,6 +94,11 @@ function toMapHotspots(points: GovHotspotPoint[]): MapHotspot[] {
       name: p.name,
       region: p.지역,
     }));
+}
+
+function isHotspotCacheFresh(cache: HotspotSessionCache | null): boolean {
+  if (!cache?.points?.length || !cache.fetched_at) return false;
+  return Date.now() - cache.fetched_at < GOV_HOTSPOT_CLIENT_TTL_MS;
 }
 
 function readSessionJson<T>(key: string): T | null {
@@ -191,18 +204,18 @@ export function GovDashboardPage() {
     };
   }, []);
 
-  // 공식 사고다발 TOP3 — 지도 원
+  // 공식 사고다발 TOP3 — 지도 원 (세션 TTL 안이면 API 스킵)
   useEffect(() => {
     let cancelled = false;
 
     async function loadHotspots() {
-      const cached = readSessionJson<{
-        year: number;
-        points: GovHotspotPoint[];
-      }>(GOV_HOTSPOT_CACHE_KEY);
+      const cached = readSessionJson<HotspotSessionCache>(GOV_HOTSPOT_CACHE_KEY);
       if (cached?.points?.length) {
         setHotspots(toMapHotspots(cached.points));
         setHotspotYear(cached.year);
+      }
+      if (isHotspotCacheFresh(cached)) {
+        return;
       }
 
       try {
@@ -211,11 +224,11 @@ export function GovDashboardPage() {
         writeSessionJson(GOV_HOTSPOT_CACHE_KEY, {
           year: data.year,
           points: data.points,
-        });
+          fetched_at: Date.now(),
+        } satisfies HotspotSessionCache);
         setHotspots(toMapHotspots(data.points ?? []));
         setHotspotYear(data.year);
       } catch (e) {
-        // 예측 지도는 유지; 다발 원만 없는 상태로 둔다
         if (!cancelled && !cached?.points?.length) {
           console.warn('[GovDashboard] hotspots', e);
         }

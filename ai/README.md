@@ -208,7 +208,9 @@ curl "http://localhost:5000/api/prediction/predict-gov-hotspots?year=2025119"
 | `include_polygon` | `true`면 `geom_json` 포함 |
 
 응답 `points[]`: `lat`, `lon`, `name`, `count`, `fatal`, `severe`, `지역` …  
-캐시 파일: `data/cache/hotspots/` (Git 제외, TTL 기본 24시간).
+캐시:
+- AI 파일: `data/cache/hotspots/` (TTL 기본 **7일**, `HOTSPOT_CACHE_TTL_HOURS`)
+- 프론트: `sessionStorage` `gov:hotspots` (**7일** 이내면 Backend/AI 미호출)
 
 ### Backend 경유 (프론트)
 

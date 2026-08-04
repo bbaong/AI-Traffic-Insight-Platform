@@ -11,7 +11,7 @@
 환경변수:
   KOROAD_AUTH_KEY 또는 DATA_GO_KR_SERVICE_KEY  (필수)
   HOTSPOT_DEFAULT_YEAR    (searchYearCd, 기본 2025119)
-  HOTSPOT_CACHE_TTL_HOURS (선택, 기본 24)
+  HOTSPOT_CACHE_TTL_HOURS (선택, 기본 168=7일)
 """
 
 from __future__ import annotations
@@ -65,7 +65,8 @@ def _auth_key() -> str:
 
 
 def _cache_ttl_seconds() -> float:
-    hours = float(os.getenv("HOTSPOT_CACHE_TTL_HOURS", "24"))
+    # 기본 7일 — 공식 다발은 연 단위라 KOROAD 호출을 줄임
+    hours = float(os.getenv("HOTSPOT_CACHE_TTL_HOURS", "168"))
     return max(hours, 0.0) * 3600.0
 
 
