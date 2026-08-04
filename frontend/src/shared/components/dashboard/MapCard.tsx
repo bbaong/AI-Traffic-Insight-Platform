@@ -61,8 +61,11 @@ export interface MapCardProps {
 }
 
 const ACCENT = '#21ADC4';
-const HOTSPOT_STROKE = '#9B1C1C';
-const HOTSPOT_FILL = '#C62828';
+/** 중대율 CRITICAL 빨강과 구분 — 보라 계열 */
+const HOTSPOT_STROKE = '#4A148C';
+const HOTSPOT_FILL = '#8E24AA';
+/** 이 레벨 이하(확대)에서만 공식 다발 원 표시. 숫자가 작을수록 확대 */
+const HOTSPOT_MAX_LEVEL = 7;
 
 const BASE_STROKE = {
   strokeWeight: 1,
@@ -149,6 +152,7 @@ export function MapCard({
     setBounds: (...args: unknown[]) => void;
     setCenter: (latlng: unknown) => void;
     setLevel: (level: number) => void;
+    getLevel: () => number;
   } | null>(null);
   const layersRef = useRef<DistrictLayer[]>([]);
   const outlineRef = useRef<KakaoPolygon[]>([]);
@@ -192,12 +196,12 @@ export function MapCard({
       const circle = new window.kakao.maps.Circle({
         center,
         radius: hotspotRadiusMeters(p.count),
-        strokeWeight: 1.5,
+        strokeWeight: 2.5,
         strokeColor: HOTSPOT_STROKE,
-        strokeOpacity: 0.95,
+        strokeOpacity: 1,
         strokeStyle: 'solid',
         fillColor: HOTSPOT_FILL,
-        fillOpacity: 0.32,
+        fillOpacity: 0.4,
         zIndex: 6,
       });
       circle.setMap(map);
@@ -218,6 +222,17 @@ export function MapCard({
       window.kakao.maps.event.addListener(circle, 'mouseout', () => {
         clearHotspotOverlay();
       });
+    }
+  };
+
+  const syncHotspotsVisibility = (map: {
+    getLevel: () => number;
+  } | null) => {
+    if (!map || !window.kakao?.maps) return;
+    if (map.getLevel() <= HOTSPOT_MAX_LEVEL) {
+      drawHotspots(map, hotspotsRef.current);
+    } else {
+      clearCircles();
     }
   };
 
@@ -365,7 +380,10 @@ export function MapCard({
       }
       outlineRef.current = outlines;
 
-      drawHotspots(map, hotspotsRef.current);
+      syncHotspotsVisibility(map);
+      window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
+        syncHotspotsVisibility(map);
+      });
 
       window.setTimeout(() => {
         map.relayout?.();
@@ -374,6 +392,7 @@ export function MapCard({
         } else {
           map.setCenter(center);
         }
+        syncHotspotsVisibility(map);
       }, 0);
     });
 
@@ -403,19 +422,19 @@ export function MapCard({
     hotspotsRef.current = hotspots;
     const map = mapRef.current;
     if (!map || status !== 'loaded') return;
-    drawHotspots(map, hotspots);
+    syncHotspotsVisibility(map);
   }, [hotspots, status]);
 
   useEffect(() => {
     selectedRef.current = selectedCode;
     applyStyles(hoveredRef.current, selectedCode);
-  
+
     const map = mapRef.current;
     if (!map || !selectedCode || !window.kakao?.maps) return;
-  
+
     const district = DAEGU_DISTRICTS.find((d) => d.code === selectedCode);
     if (!district) return;
-  
+
     const bounds = new window.kakao.maps.LatLngBounds();
     for (const ring of district.paths) {
       for (const p of ring) {
@@ -423,6 +442,8 @@ export function MapCard({
       }
     }
     map.setBounds(bounds, 40, 40, 40, 40);
+    // setBounds 후 레벨 반영 타이밍을 위해 한 번 더 맞춤
+    window.setTimeout(() => syncHotspotsVisibility(map), 0);
   }, [selectedCode]);
 
   return (
@@ -507,7 +528,7 @@ export function MapCard({
             />
             <span>
               공식 다발
-              {hotspotYear != null ? ` (${hotspotYear})` : ''}
+              {hotspotYear != null ? ` (${hotspotYear})` : ''} · 확대 시
             </span>
           </li>
         </ul>

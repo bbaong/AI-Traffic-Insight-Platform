@@ -189,20 +189,21 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 
 ### `GET /hotspots` (공식 다발지역)
 
-공공데이터「지자체별 교통사고 다발지역」을 서버에서 조회·캐시합니다.  
-키: `ai/.env` 의 `DATA_GO_KR_SERVICE_KEY` (프론트에 키를 두지 않음).
+도로교통공단 OpenAPI「지자체별 교통사고 다발지역」을 서버에서 조회·캐시합니다.  
+키: `ai/.env` 의 `KOROAD_AUTH_KEY` (프론트에 키를 두지 않음).  
+`year` 는 캘린더 연도가 아니라 **searchYearCd**(예: `2025119`)입니다.
 
 ```bash
 # AI 직접
-curl "http://localhost:8000/hotspots?year=2024"
+curl "http://localhost:8000/hotspots?year=2025119&refresh=true"
 
 # Backend 경유
-curl "http://localhost:5000/api/prediction/predict-gov-hotspots?year=2024"
+curl "http://localhost:5000/api/prediction/predict-gov-hotspots?year=2025119"
 ```
 
 | 쿼리 | 설명 |
 |------|------|
-| `year` | 연도. 없으면 캐시·최신 후보 순 |
+| `year` | `searchYearCd` (예: 2025119). 없으면 `HOTSPOT_DEFAULT_YEAR` |
 | `refresh` | `true`면 캐시 무시 |
 | `include_polygon` | `true`면 `geom_json` 포함 |
 

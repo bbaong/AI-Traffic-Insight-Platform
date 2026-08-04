@@ -77,7 +77,8 @@ class HotspotPoint(BaseModel):
 
 
 class HotspotResponse(BaseModel):
-    year: int
+    year: int = Field(..., description="KOROAD searchYearCd")
+    searchYearCd: Optional[str] = None
     sido: str
     source: str
     fetched_at: str
