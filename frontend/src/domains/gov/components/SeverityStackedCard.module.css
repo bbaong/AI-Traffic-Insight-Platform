@@ -22,7 +22,7 @@
     justify-content: space-around;
     gap: 12px;
     flex: 1;
-    min-height: 180px;
+    min-height: 120px;
     padding: 4px 4px 0;
   }
   
@@ -34,7 +34,7 @@
     align-items: center;
     gap: 6px;
     height: 100%;
-    min-height: 160px;
+    min-height: 0;
   }
   
   .colForecast {

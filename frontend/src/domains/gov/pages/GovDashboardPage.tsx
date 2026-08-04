@@ -147,7 +147,7 @@ export function GovDashboardPage() {
     setAllRows(rows);
 
     setPriorityRegions(
-      bySevere.slice(0, 5).map((row, i) => ({
+      bySevere.slice(0, 3).map((row, i) => ({
         rank: i + 1,
         regionName: row.지역,
         score: priorityScore(row),
@@ -338,7 +338,7 @@ export function GovDashboardPage() {
       </div>
   
       <div className={styles.cellDistrict}>
-        <DashboardCard title="구별 우선점검 TOP5">
+        <DashboardCard title="구별 우선점검 TOP3">
           <div className={styles.priorityPanel}>
             {loading ? (
               <p className={styles.loadingHint} aria-busy="true">
@@ -401,7 +401,7 @@ export function GovDashboardPage() {
                   </tbody>
                 </table>
                 <p className={styles.priorityHint}>
-                  예측 중대사고율(%) 높은 순 · TOP5
+                  예측 중대사고율(%) 높은 순 · TOP3
                 </p>
               </>
             )}
