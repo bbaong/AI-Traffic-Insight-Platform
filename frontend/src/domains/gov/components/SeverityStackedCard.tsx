@@ -124,7 +124,9 @@ export function SeverityStackedCard({
             </div>
             <span className={styles.label}>
               {formatPeriod(point.분기)}
-              {point.kind === 'forecast' ? ' 예측' : ''}
+              {point.kind === 'forecast' ? (
+                <span className={styles.forecastBadge}>예측</span>
+              ) : null}
             </span>
           </div>
         ))}
