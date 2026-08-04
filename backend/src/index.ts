@@ -2,6 +2,10 @@ import express, { Request, Response } from 'express';
 import userRoutes from './routes/user.route';
 import cors from 'cors';
 import predictionRoutes from './routes/prediction.route';
+import insuranceRoutes from './routes/insurance';
+import discountRiderRoutes from './routes/discountRider.route';
+import consultationRoutes from './routes/consultation.route';
+import customerRoutes from './routes/customer.route';
 
 const app = express();
 const port = 5000;
@@ -14,6 +18,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/user', userRoutes);
 
 app.use('/api/prediction', predictionRoutes);
+app.use('/api/insurance', insuranceRoutes);
+app.use('/api/discount-riders', discountRiderRoutes);
+app.use('/api/consultations', consultationRoutes);
+app.use('/api/customers', customerRoutes);
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello, TypeScript with Express!');
