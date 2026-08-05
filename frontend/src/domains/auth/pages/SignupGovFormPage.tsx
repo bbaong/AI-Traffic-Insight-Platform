@@ -135,7 +135,10 @@ export function SignupGovFormPage() {
 
       setShowSuccessToast(true);
       window.setTimeout(() => {
-        navigate(ROUTES.SIGNUP_COMPLETE);
+        navigate(ROUTES.LANDING, {
+          replace: true,
+          state: { signupSuccess: true },
+        });
       }, 1200);
     } catch {
       setSubmitError('회원가입에 실패했습니다. 다시 시도해 주세요.');

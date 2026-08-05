@@ -27,8 +27,6 @@ import { useAuthStore } from '../../../stores/authStore';
 import styles from './InsDashboardPage.module.css';
 
 const MEMO_MAX = 500;
-const FOOTER_NOTICE =
-  '데이터 기준 2016–2025년 · 통계적 분석 모델이며 실제 사고 발생을 보장하지 않습니다';
 
 function initialChecklist(): ChecklistAnswers {
   return {
@@ -422,6 +420,12 @@ export function InsDashboardPage() {
                 </div>
               ) : null}
             </div>
+
+            <p className={styles.riskDisclaimer} role="note">
+              데이터 기준 2016–2025년 · 통계적 분석 모델이며
+              <br className={styles.riskDisclaimerBr} />
+              실제 사고 발생을 보장하지 않습니다
+            </p>
           </section>
         </div>
 
@@ -689,19 +693,11 @@ export function InsDashboardPage() {
                     초기화
                   </button>
                 </div>
-                <p className={styles.saveHint}>
-                  고객·프로필·체크리스트·메모를 저장합니다. 위험점수와 특약은
-                  서버에서 다시 계산해 DB에 반영합니다.
-                </p>
               </div>
             </div>
           </section>
         </div>
       </div>
-
-      <p className={styles.footerNotice} role="note">
-        {FOOTER_NOTICE}
-      </p>
 
       <Toast message="상담 내용이 저장되었습니다" visible={toastVisible} />
     </div>

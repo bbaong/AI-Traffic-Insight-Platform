@@ -20,16 +20,16 @@ export function CtaSection() {
         <p className={styles.subtitle}>회원가입은 1분이면 끝납니다.</p>
         <div className={styles.actions}>
           <Link
-            to={ROUTES.SIGNUP}
-            className={`${buttonStyles.button} ${buttonStyles.primary}`}
-          >
-            회원가입
-          </Link>
-          <Link
             to={ROUTES.LOGIN}
             className={`${buttonStyles.button} ${buttonStyles.outlineOnDark}`}
           >
             로그인
+          </Link>
+          <Link
+            to={ROUTES.SIGNUP}
+            className={`${buttonStyles.button} ${buttonStyles.primary}`}
+          >
+            회원가입
           </Link>
         </div>
         <p className={styles.hint}>

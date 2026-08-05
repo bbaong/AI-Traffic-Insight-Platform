@@ -3,14 +3,20 @@
   flex-direction: column;
   gap: 10px;
   min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .layout {
   display: grid;
-  grid-template-columns: 320px minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
-  align-items: stretch;
+  align-items: start;
   min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .column {
@@ -19,7 +25,6 @@
   gap: 12px;
   min-width: 0;
   min-height: 0;
-  height: 100%;
 }
 
 .card {
@@ -35,8 +40,22 @@
 }
 
 .cardGrow {
-  flex: 1;
-  min-height: 0;
+  /* 기본: 내용 높이. 3열(1520px+)에서만 flex 확장 */
+}
+
+@media (min-width: 1520px) {
+  .cardGrow {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .btnFoot {
+    margin-top: auto;
+  }
+
+  .memoSection {
+    margin-top: auto;
+  }
 }
 
 .cardHeadBlock {
@@ -192,7 +211,7 @@
 }
 
 .btnFoot {
-  margin-top: auto;
+  margin-top: 4px;
 }
 
 .spinner {
@@ -234,6 +253,9 @@
 .riskCard {
   flex: 1;
   min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  container-type: inline-size;
 }
 
 .riskBody {
@@ -241,6 +263,28 @@
   display: flex;
   flex-direction: column;
   min-height: 220px;
+}
+
+.riskDisclaimer {
+  margin: auto 0 0;
+  padding-top: 10px;
+  flex-shrink: 0;
+  font-size: 10.5px;
+  line-height: 1.4;
+  color: var(--color-hint);
+  text-align: center;
+}
+
+/* 카드가 넓을 때 한 줄, 좁을 때 모델이며 뒤 줄바꿈 */
+@container (min-width: 420px) {
+  .riskDisclaimer {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .riskDisclaimerBr {
+    display: none;
+  }
 }
 
 .riskBody > .emptyHint {
@@ -412,8 +456,13 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex: 1;
-  min-height: 0;
+}
+
+@media (min-width: 1520px) {
+  .checklistBody {
+    flex: 1;
+    min-height: 0;
+  }
 }
 
 .checkItem {
@@ -478,10 +527,11 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 25%, transparent);
 }
 
-/* 검토 전·후 동일 높이 고정 (5특약 2줄 설명 자리 예약) */
+/* 검토 전·후 동일 높이 — 넓은 화면에서만 고정 */
 .tokkPanel {
   flex: 0 0 auto;
-  height: 420px;
+  min-height: 280px;
+  height: auto;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -502,18 +552,16 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  overflow: hidden;
   box-sizing: border-box;
 }
 
 .tokkRow {
   display: flex;
   gap: 8px;
-  flex: 1;
+  flex: 0 0 auto;
   min-height: 68px;
   padding: 10px 12px;
   border: 0.5px solid var(--color-border-light);
@@ -582,7 +630,6 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: auto;
   padding-top: 2px;
 }
 
@@ -655,34 +702,56 @@
   color: var(--color-hint);
 }
 
-.footerNotice {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--color-hint);
-  text-align: center;
+/* 태블릿·좁은 데스크톱: 1열 세로 스택 */
+@media (max-width: 1199px) {
+  .detailFields {
+    grid-template-columns: 1fr;
+  }
+
+  .riskCard {
+    min-height: 0;
+  }
+
+  .riskBody {
+    min-height: 0;
+  }
+
+  .memoSection .textarea {
+    height: 140px;
+    min-height: 140px;
+    max-height: none;
+    resize: vertical;
+  }
+
+  .saveActions {
+    flex-direction: column;
+  }
+
+  .saveActions .primaryBtn,
+  .resetBtn {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
-@media (max-width: 1200px) {
+/* 넓은 화면: 2열 (프로필+위험 | 체크리스트+특약) */
+@media (min-width: 1200px) and (max-width: 1519px) {
   .layout {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .column:first-child {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 12px;
-  }
-
-  .column:first-child > .riskCard {
-    min-height: 280px;
   }
 }
 
-@media (max-width: 800px) {
+/* 매우 넓은 화면: 3열 */
+@media (min-width: 1520px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(260px, 320px) minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .column:first-child {
@@ -690,8 +759,27 @@
     flex-direction: column;
   }
 
-  .detailFields {
-    grid-template-columns: 1fr;
+  .tokkPanel {
+    height: 420px;
+    min-height: 420px;
+  }
+
+  .tokkList {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .tokkRow {
+    flex: 1;
+    min-height: 68px;
+  }
+
+  .riskCard {
+    min-height: 280px;
+  }
+
+  .riskBody {
+    min-height: 220px;
   }
 }
 
