@@ -1,12 +1,13 @@
-# AI 모듈 (Python 3.11+)
-# 설치: pip install -r requirements.txt
-# 실행: ai/README.md
+# AI module (Python 3.11+)
+# Install: pip install -r requirements.txt
+# Run: see ai/README.md
 
-# --- 서빙 런타임 (uvicorn app.main:app) ---
-# GovGuard v1.0.4는 scripts/gov_v1_0_4.py 단일 파일이며
-# scikit-learn·matplotlib 이 서빙에도 필요합니다.
+# --- Serving runtime (uvicorn app.main:app) ---
+# GovGuard v1.0.4 is a single file (scripts/gov_v1_0_4.py);
+# scikit-learn and matplotlib are also required at serve time.
 pandas>=2.0.0
 numpy>=1.24.0
+pyarrow>=14.0.0
 scikit-learn>=1.3.0
 matplotlib>=3.7.0
 fastapi>=0.110.0
@@ -15,6 +16,6 @@ pydantic>=2.0.0
 httpx>=0.27.0
 python-dotenv>=1.0.0
 
-# --- 학습·실험·노트북·벤치 (선택이나 스크립트에서 사용) ---
+# --- Training / experiments / notebooks / benchmarks ---
 seaborn>=0.13.0
 psutil>=5.9.0
