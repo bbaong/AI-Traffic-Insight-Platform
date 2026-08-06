@@ -16,7 +16,7 @@
   AI_SERVICE_URL 환경변수 (기본 http://localhost:8000)
         │
         ▼
-[AI]  uvicorn app.main:app  (http://localhost:8000)
+[AI]  python -m uvicorn app.main:app  (http://localhost:8000)
   POST /predict      →  InsureGuard v1.0.3
   POST /predict/gov  →  GovGuard v1.0.4
   GET  /hotspots     →  대구 공식 사고다발 TOP3 (캐시)
@@ -96,8 +96,10 @@ python scripts/gov_v1_0_4.py
 ### AI 서버 실행
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+
+Windows에서 `uvicorn`이 Device Guard로 차단되면 `python -m uvicorn`을 사용하세요.
 
 - 서버: `http://localhost:8000`
 - Swagger: `http://localhost:8000/docs`

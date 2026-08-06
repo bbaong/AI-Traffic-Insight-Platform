@@ -51,6 +51,8 @@ export type MapHotspot = {
 };
 
 export interface MapCardProps {
+  mapExpanded?: boolean;
+  onToggleMapExpand?: () => void;
   title: string;
   riskByCode?: Record<string, RiskLevel>;
   legend?: readonly MapLegendItem[];
@@ -141,6 +143,8 @@ export function MapCard({
   hotspots = [],
   hotspotYear = null,
   onDistrictSelect,
+  mapExpanded = false,
+  onToggleMapExpand,
 }: MapCardProps) {
   const { status, retry } = useKakaoLoader();
   const selectedCode = useDistrictStore((s) => s.selectedCode);
@@ -473,6 +477,38 @@ export function MapCard({
   }, [selectedCode]);
 
   useEffect(() => {
+    const map = mapRef.current;
+    if (!map || status !== 'loaded') return;
+
+    const refresh = () => {
+      map.relayout?.();
+      if (!selectedRef.current || !window.kakao?.maps) return;
+      const district = DAEGU_DISTRICTS.find(
+        (d) => d.code === selectedRef.current,
+      );
+      if (!district) return;
+      const bounds = new window.kakao.maps.LatLngBounds();
+      for (const ring of district.paths) {
+        for (const p of ring) {
+          bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng));
+        }
+      }
+      map.setBounds(bounds, 40, 40, 40, 40);
+      syncHotspotsVisibility(map);
+    };
+
+    const raf = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(refresh);
+    });
+    const t = window.setTimeout(refresh, 100);
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+    };
+  }, [mapExpanded, status]);
+
+  useEffect(() => {
     selectedRef.current = selectedCode;
     applyStyles(hoveredRef.current, selectedCode);
 
@@ -547,6 +583,19 @@ export function MapCard({
           style={{ display: status === 'loaded' ? 'block' : 'none' }}
           aria-label="카카오맵 · 대구 구·군 위험도 및 사고다발"
         />
+
+        {onToggleMapExpand ? (
+          <button
+            type="button"
+            className={styles.expandBtn}
+            onClick={onToggleMapExpand}
+            aria-pressed={mapExpanded}
+            aria-label={mapExpanded ? '지도 축소' : '지도 확장'}
+            title={mapExpanded ? '축소' : '확장'}
+          >
+            {mapExpanded ? '⤓' : '⤢'}
+          </button>
+        ) : null}
 
         {selectedCode ? (
           <p className={styles.selectionHint} aria-live="polite">
