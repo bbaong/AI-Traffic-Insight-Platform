@@ -184,3 +184,47 @@ export const getPrediction = async (_req: Request, res: Response) => {
     message: '아직 구현되지 않았습니다.',
   });
 };
+
+/** POST /api/prediction/gov-report-pdf — AI GOV PDF proxy */
+export const predictGovReportPdf = async (req: Request, res: Response) => {
+  try {
+    const { 지역 } = req.body ?? {};
+    if (!지역 || typeof 지역 !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: '지역은 필수입니다.',
+      });
+    }
+
+    const aiRes = await fetch(`${AI_BASE}/report/gov-pdf`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body),
+    });
+
+    if (!aiRes.ok) {
+      const detail = await aiRes.text();
+      const status = aiRes.status === 400 ? 400 : 502;
+      return res.status(status).json({
+        success: false,
+        message: 'AI GOV PDF 생성 실패',
+        error: detail,
+      });
+    }
+
+    const buf = Buffer.from(await aiRes.arrayBuffer());
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      'inline; filename="gov-admin-report.pdf"',
+    );
+    return res.send(buf);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: 'GOV PDF 요청 실패',
+      error: String(error),
+    });
+  }
+};

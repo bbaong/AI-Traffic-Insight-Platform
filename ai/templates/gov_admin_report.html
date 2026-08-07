@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>행정 참고 리포트</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    body {
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      color: #1a1a1a;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .brand { color: #5a6a6e; font-size: 11px; margin-bottom: 4px; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    .meta { color: #555; font-size: 11px; margin: 2px 0; }
+    .divider { border: 0; border-top: 1px solid #d0d5d8; margin: 14px 0; }
+    h2 { font-size: 14px; margin: 0 0 8px; }
+    .badge {
+      display: inline-block;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-weight: 700;
+      font-size: 11px;
+      background: #d7f0ec;
+      color: #0b6b5f;
+      border: 1px solid #0b6b5f;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    th, td { border-bottom: 1px solid #e2e6e8; padding: 7px 6px; text-align: left; }
+    th { background: #eef2f3; font-size: 11px; }
+    .factor { margin: 4px 0; }
+    .footer {
+      margin-top: 18px;
+      padding-top: 10px;
+      border-top: 1px solid #d0d5d8;
+      color: #666;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="brand">AI Traffic Insight · GovGuard</div>
+  <h1>{{ district_name }} 교통안전 행정 참고 리포트</h1>
+  <p class="meta">생성일시: {{ generated_at }}</p>
+  <p class="meta">작성자: {{ author_name }}</p>
+  <p class="meta">기관: {{ org_name }}</p>
+  <p class="meta">예측 기간: {{ period_label }}</p>
+
+  <hr class="divider" />
+
+  <h2>우선점검 TOP3</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>순위</th>
+        <th>지역</th>
+        <th>중대율(%)</th>
+        <th>예상건수</th>
+        <th>등급</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in top3 %}
+      <tr>
+        <td>{{ r.rank }}</td>
+        <td>{{ r.region }}</td>
+        <td>{{ "%.1f"|format(r.severe_rate) }}</td>
+        <td>{{ r.count }}</td>
+        <td>{{ r.grade }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <hr class="divider" />
+
+  <h2>선택 지역 AI 요약 · {{ district_name }}</h2>
+  <p><span class="badge">{{ selected.grade }}</span></p>
+  <p class="meta">우선점검 점수(중대율 %): {{ "%.1f"|format(selected.severe_rate) }}</p>
+  <p class="meta">예상 사고건수: {{ selected.count }}건</p>
+
+  <h2>사고유형(기준분기 비율 환산)</h2>
+  {% if selected.types %}
+    {% for name, cnt in selected.types %}
+    <div class="factor">{{ name }}: {{ cnt }}건</div>
+    {% endfor %}
+  {% else %}
+    <p class="meta">유형 데이터 없음</p>
+  {% endif %}
+
+  <h2>권고</h2>
+  <p>{{ recommendation }}</p>
+
+  <div class="footer">
+    본 문서는 행정 참고용이며, 처분·정책의 직접 근거가 아닙니다.
+  </div>
+</body>
+</html>

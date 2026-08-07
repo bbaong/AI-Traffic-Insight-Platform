@@ -1,0 +1,71 @@
+.empty {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--color-hint);
+  }
+  
+  .grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .card {
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border-light);
+  }
+  
+  .cardOn {
+    border-color: color-mix(in srgb, var(--color-amber) 45%, transparent);
+    background: color-mix(in srgb, var(--color-amber) 10%, transparent);
+  }
+  
+  .cardOff {
+    opacity: 0.72;
+    background: color-mix(in srgb, currentColor 3%, transparent);
+  }
+  
+  .head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  
+  .name {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 650;
+  }
+  
+  .badge {
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 650;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid currentColor;
+  }
+  
+  .cardOn .badge {
+    color: var(--color-amber-tint-text, #8a5a00);
+    border-color: var(--color-amber);
+  }
+  
+  .script {
+    margin: 0 0 4px;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  
+  .reason {
+    margin: 0;
+    font-size: 11px;
+    color: var(--color-hint);
+    line-height: 1.4;
+  }
