@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { predictIns } from '../api/prediction';
 import { fetchTokkReview } from '../api/tokkReview';
 import { saveConsultation } from '../api/consultation';
@@ -16,6 +15,7 @@ import type {
   ProfileInput,
   TokkResult,
 } from '../types/consulting';
+import { CoverageRecommendCards } from '../components/CoverageRecommendCards';
 import type { InsPredictData } from '../types/prediction';
 import {
   formatPct1,
@@ -23,8 +23,13 @@ import {
   toRiskGrade,
 } from '../utils/riskMeta';
 import { Toast } from '../../../shared/components/ui/Toast';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import { useAuthStore } from '../../../stores/authStore';
 import styles from './InsDashboardPage.module.css';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../../shared/constants/routes';
+import { useInsReportDraftStore } from '../../reports/stores/insReportDraftStore';
 
 const MEMO_MAX = 500;
 
@@ -51,6 +56,8 @@ function initialProfile(): ProfileInput {
 
 export function InsDashboardPage() {
   const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
+  const setInsReportDraft = useInsReportDraftStore((s) => s.setDraft);
   const [customer, setCustomer] = useState<CustomerInfo>({
     name: '',
     phone: '',
@@ -70,6 +77,8 @@ export function InsDashboardPage() {
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
+  const [reportNavError, setReportNavError] = useState<string | null>(null);
+  const [reportConfirmOpen, setReportConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (!toastVisible) return;
@@ -156,6 +165,31 @@ export function InsDashboardPage() {
     setMemo('');
     setSaveLoading(false);
     setSaveError(null);
+  }
+
+  function handleGoToReportPage() {
+    if (!prediction) {
+      setReportNavError('먼저 위험도 분석을 실행해 주세요.');
+      return;
+    }
+    setReportNavError(null);
+    setReportConfirmOpen(true);
+  }
+
+  const closeReportConfirm = useCallback(() => {
+    setReportConfirmOpen(false);
+  }, []);
+
+  function confirmGoToReportPage() {
+    setReportConfirmOpen(false);
+    setInsReportDraft({
+      구군: profile.region,
+      연령대: profile.age,
+      성별: profile.gender,
+      차종: profile.vehicle,
+      고객명: customer.name || undefined,
+    });
+    navigate(ROUTES.REPORTS);
   }
 
   const grade = prediction
@@ -426,6 +460,36 @@ export function InsDashboardPage() {
               <br className={styles.riskDisclaimerBr} />
               실제 사고 발생을 보장하지 않습니다
             </p>
+          </section>
+          <section className={`${styles.card} ${styles.cardGrow}`}>
+            <div className={styles.cardHeadBlock}>
+              <h2 className={styles.cardTitle}>표준 6대 담보 추천</h2>
+              <p className={styles.cardSub}>
+                AI 위험도·법규위반 성향을 표준약관 담보 규칙으로 변환한 결과입니다.
+                (할인특약 검토와 별개)
+              </p>
+            </div>
+            {prediction ? (
+              <CoverageRecommendCards items={prediction.담보추천 ?? []} />
+            ) : (
+              <p className={styles.emptyHint}>
+                분석하기를 누르면 담보 추천이 표시됩니다.
+              </p>
+            )}
+            {reportNavError ? (
+              <p className={styles.errorBanner} role="alert">
+                {reportNavError}
+              </p>
+            ) : null}
+            <button
+              type="button"
+              className={styles.primaryBtn}
+              style={{ marginTop: 12 }}
+              onClick={handleGoToReportPage}
+              disabled={!prediction}
+            >
+              상담 참고 리포트 생성
+            </button>
           </section>
         </div>
 
@@ -700,6 +764,16 @@ export function InsDashboardPage() {
       </div>
 
       <Toast message="상담 내용이 저장되었습니다" visible={toastVisible} />
+      <ConfirmDialog
+        open={reportConfirmOpen}
+        title="상담 참고 리포트"
+        message="이 상담 내용을 바탕으로 참고 리포트를 생성하시겠습니까?"
+        detail="고객 조건과 분석 결과가 리포트 페이지로 전달됩니다."
+        confirmLabel="리포트로 이동"
+        cancelLabel="취소"
+        onConfirm={confirmGoToReportPage}
+        onCancel={closeReportConfirm}
+      />
     </div>
   );
 }

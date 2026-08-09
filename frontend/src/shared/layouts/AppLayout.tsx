@@ -45,10 +45,12 @@ export function AppLayout() {
   if (!user) {
     return <Navigate to={ROUTES.LOGIN} replace />;
   }
-
+  
   const title =
-    location.pathname === ROUTES.MYPAGE
-      ? '마이페이지'
+  location.pathname === ROUTES.MYPAGE
+    ? '마이페이지'
+    : location.pathname === ROUTES.REPORTS
+      ? '리포트'
       : location.pathname === ROUTES.DASHBOARD_INS
         ? '보험 상담 대시보드'
         : user.role === 'ROLE_A'

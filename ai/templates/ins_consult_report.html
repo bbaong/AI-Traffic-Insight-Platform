@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>상담 참고 리포트</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      color: #1a1a1a;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .brand { color: #5a6a6e; font-size: 11px; margin-bottom: 4px; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    .meta { color: #555; font-size: 11px; margin: 2px 0; }
+    .divider { border: 0; border-top: 1px solid #d0d5d8; margin: 14px 0; }
+    h2 { font-size: 14px; margin: 0 0 8px; }
+    .tags span {
+      display: inline-block;
+      background: #f1f4f5;
+      border-radius: 999px;
+      padding: 3px 10px;
+      margin: 0 6px 6px 0;
+      font-size: 11px;
+    }
+    .score {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0 12px;
+    }
+    .score-num { font-size: 28px; font-weight: 700; }
+    .badge {
+      border: 1px solid #c98900;
+      color: #8a5a00;
+      background: #fdecc8;
+      border-radius: 6px;
+      padding: 3px 10px;
+      font-weight: 700;
+      font-size: 11px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    th, td { border-bottom: 1px solid #e2e6e8; padding: 7px 6px; text-align: left; }
+    th { background: #eef2f3; font-size: 11px; }
+    .cov { margin-bottom: 10px; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e6e8; }
+    .cov.on { background: #fff7ed; border-color: #f5c896; }
+    .cov.off { opacity: 0.85; }
+    .cov-head { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 4px; }
+    .pill { font-size: 10px; border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; }
+    .reason { color: #666; font-size: 11px; margin: 2px 0 0; }
+    .footer {
+      margin-top: 18px;
+      padding-top: 10px;
+      border-top: 1px solid #d0d5d8;
+      color: #666;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="brand">AI Traffic Insight · InsureGuard</div>
+  <h1>상담 참고 리포트</h1>
+  <p class="meta">생성일시: {{ generated_at }}</p>
+  {% if customer_name %}
+  <p class="meta">고객명: {{ customer_name }}</p>
+  {% endif %}
+  <p class="meta">작성자: {{ author_name }}</p>
+
+  <hr class="divider" />
+
+  <h2>고객 조건</h2>
+  <div class="tags">
+    <span>{{ profile.구군 }}</span>
+    <span>{{ profile.연령대 }}</span>
+    <span>{{ profile.성별 }}</span>
+    <span>{{ profile.차종 }}</span>
+  </div>
+
+  <hr class="divider" />
+
+  <h2>위험도 요약</h2>
+  <div class="score">
+    <div class="score-num">{{ "%.1f"|format(prediction.위험도) }} <span style="font-size:14px;font-weight:500">/ 100</span></div>
+    <span class="badge">{{ prediction.예측등급 }}</span>
+  </div>
+  <p class="meta">모델: {{ prediction.버전 }}</p>
+
+  <h2>법규위반 성향 TOP3</h2>
+  <table>
+    <thead>
+      <tr><th>순위</th><th>항목</th><th>확률</th></tr>
+    </thead>
+    <tbody>
+      {% for name, p in top_violations %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ name }}</td>
+        <td>{{ "%.1f"|format(p * 100) }}%</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <hr class="divider" />
+
+  <h2>표준 6대 담보 추천</h2>
+  {% for c in coverages %}
+  <div class="cov {{ 'on' if c.recommended else 'off' }}">
+    <div class="cov-head">
+      <span>{{ c.name }}</span>
+      <span class="pill">{{ '추천' if c.recommended else '비추천' }}</span>
+    </div>
+    <div>{{ c.script }}</div>
+    <p class="reason">근거: {{ c.reason }}</p>
+  </div>
+  {% endfor %}
+
+  <div class="footer">
+    본 리포트는 참고 지표이며 보험료 산출·인수 심사의 직접 근거가 아닙니다.
+  </div>
+</body>
+</html>
