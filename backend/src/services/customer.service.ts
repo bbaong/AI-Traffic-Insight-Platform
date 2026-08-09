@@ -46,6 +46,7 @@ export async function listCustomers(q?: string) {
       consultationCount: c._count.consultations,
       lastConsultedAt: last?.consulted_at?.toISOString() ?? null,
       lastStatus: last?.status ?? null,
+      lastConsultationType: last?.consultation_type ?? null,
       lastRiskScore: toNum(profile?.risk_score),
       lastRiskGrade: profile?.risk_grade ?? null,
       lastRegion: profile?.districts?.district_name ?? null,
@@ -101,6 +102,7 @@ export async function listCustomerConsultations(customerId: string) {
 
       return {
         consultationId: row.consultation_id.toString(),
+        consultationType: row.consultation_type,
         status: row.status,
         consultedAt: row.consulted_at.toISOString(),
         memo: row.memo,
