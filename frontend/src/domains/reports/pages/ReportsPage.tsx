@@ -8,6 +8,7 @@ import { useDistrictStore } from '../../../shared/stores/districtStore';
 import { PdfPreviewModal } from '../../../shared/components/ui/PdfPreviewModal';
 import { useAuthStore } from '../../../stores/authStore';
 import { useInsReportDraftStore } from '../stores/insReportDraftStore';
+import { InsConsultReportView } from '../components/InsConsultReportView';
 import styles from './ReportsPage.module.css';
 
 /**
@@ -32,6 +33,11 @@ export function ReportsPage() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [downloadBase, setDownloadBase] = useState('report');
+  const [includeMemo, setIncludeMemo] = useState(true);
+
+  useEffect(() => {
+    setIncludeMemo(Boolean(insDraft?.memo));
+  }, [insDraft]);
 
   useEffect(() => {
     return () => {
@@ -92,10 +98,22 @@ export function ReportsPage() {
       setPdfError('대시보드에서「상담 참고 리포트 생성」으로 이동해 주세요.');
       return;
     }
+    const {
+      memo,
+      예측등급: _grade,
+      위험도: _score,
+      담보추천: _coverages,
+      checklist: _checklist,
+      analyzedAt: _analyzedAt,
+      consultType: _consultType,
+      orgName: _orgName,
+      ...rest
+    } = insDraft;
     await runPdfJob(
       () =>
         fetchInsReportPdf({
-          ...insDraft,
+          ...rest,
+          ...(includeMemo && memo ? { memo } : {}),
           작성자: user?.name || undefined,
         }),
       `상담참고리포트_${insDraft.구군}`,
@@ -112,88 +130,68 @@ export function ReportsPage() {
 
   return (
     <div className={styles.page}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>리포트</h1>
-        <p className={styles.sub}>
-          {isGov
-            ? '대시보드에서 본 구·군을 기준으로 행정 참고 PDF를 만듭니다.'
-            : '대시보드에서 가져온 고객 조건으로 상담 참고 PDF를 만듭니다.'}
-        </p>
-      </header>
-
-      <section className={styles.card}>
-        {isGov ? (
-          <>
-            <h2 className={styles.cardTitle}>행정 참고 리포트</h2>
-            <p className={styles.meta}>
-              대상 지역: <strong>{selectedName ?? '선택 없음'}</strong>
-              {!selectedName ? (
-                <>
-                  {' '}
-                  —{' '}
-                  <Link className={styles.link} to={dashboardPath}>
-                    대시보드에서 구·군 선택
-                  </Link>
-                </>
-              ) : null}
-            </p>
-            {pdfError ? (
-              <p className={styles.error} role="alert">
-                {pdfError}
-              </p>
-            ) : null}
-            <button
-              type="button"
-              className={styles.primaryBtn}
-              onClick={() => void handleCreateGovPdf()}
-              disabled={!selectedName || pdfLoading}
-            >
-              {pdfLoading ? '리포트 생성 중…' : '행정 참고 리포트 생성'}
-            </button>
-          </>
-        ) : (
-          <>
-            <h2 className={styles.cardTitle}>상담 참고 리포트</h2>
-            {insDraft ? (
-              <p className={styles.meta}>
-                고객 조건:{' '}
-                <strong>
-                  {[insDraft.구군, insDraft.연령대, insDraft.성별, insDraft.차종]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </strong>
-                {insDraft.고객명 ? (
-                  <>
-                    <br />
-                    고객명: <strong>{insDraft.고객명}</strong>
-                  </>
-                ) : null}
-              </p>
-            ) : (
-              <p className={styles.meta}>
-                대시보드에서 분석 후「상담 참고 리포트 생성」을 눌러 이동해 주세요.{' '}
+      {isGov || !insDraft ? (
+        <header className={styles.header}>
+          <h1 className={styles.title}>리포트</h1>
+          <p className={styles.sub}>
+            {isGov
+              ? '대시보드에서 본 구·군을 기준으로 행정 참고 PDF를 만듭니다.'
+              : '대시보드에서 가져온 고객 조건으로 상담 참고 PDF를 만듭니다.'}
+          </p>
+        </header>
+      ) : null}
+  
+      {isGov ? (
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>행정 참고 리포트</h2>
+          <p className={styles.meta}>
+            대상 지역: <strong>{selectedName ?? '선택 없음'}</strong>
+            {!selectedName ? (
+              <>
+                {' '}
+                —{' '}
                 <Link className={styles.link} to={dashboardPath}>
-                  {dashboardLabel}로 이동
+                  대시보드에서 구·군 선택
                 </Link>
-              </p>
-            )}
-            {pdfError ? (
-              <p className={styles.error} role="alert">
-                {pdfError}
-              </p>
+              </>
             ) : null}
-            <button
-              type="button"
-              className={styles.primaryBtn}
-              onClick={() => void handleCreateInsPdf()}
-              disabled={!insDraft || pdfLoading}
-            >
-              {pdfLoading ? '리포트 생성 중…' : '상담 참고 리포트 생성'}
-            </button>
-          </>
-        )}
-      </section>
-
+          </p>
+          {pdfError ? (
+            <p className={styles.error} role="alert">
+              {pdfError}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            className={styles.primaryBtn}
+            onClick={() => void handleCreateGovPdf()}
+            disabled={!selectedName || pdfLoading}
+          >
+            {pdfLoading ? '리포트 생성 중…' : '행정 참고 리포트 생성'}
+          </button>
+        </section>
+      ) : !insDraft ? (
+        <section className={styles.card}>
+          <h2 className={styles.cardTitle}>상담 참고 리포트</h2>
+          <p className={styles.meta}>
+            대시보드에서 분석 후「상담 참고 리포트 생성」을 눌러 이동해 주세요.{' '}
+            <Link className={styles.link} to={dashboardPath}>
+              {dashboardLabel}로 이동
+            </Link>
+          </p>
+        </section>
+      ) : (
+        <InsConsultReportView
+          draft={insDraft}
+          orgLabel={user?.orgName || '보험사'}
+          pdfLoading={pdfLoading}
+          pdfError={pdfError}
+          includeMemo={includeMemo}
+          onIncludeMemoChange={setIncludeMemo}
+          onCreatePdf={() => void handleCreateInsPdf()}
+        />
+      )}
+  
       <PdfPreviewModal
         open={pdfOpen}
         pdfUrl={pdfUrl}

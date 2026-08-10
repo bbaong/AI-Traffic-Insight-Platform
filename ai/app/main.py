@@ -76,13 +76,14 @@ def report_ins_pdf(body: InsReportPdfRequest) -> Response:
     """Consult reference PDF (Jinja2 + Playwright). Returns application/pdf."""
     try:
         pdf_bytes = build_ins_report_pdf(
-            구군=body.구군,
-            연령대=body.연령대,
-            성별=body.성별,
-            차종=body.차종,
-            고객명=body.고객명,
-            작성자=body.작성자,
-        )
+        구군=body.구군,
+        연령대=body.연령대,
+        성별=body.성별,
+        차종=body.차종,
+        고객명=body.고객명,
+        작성자=body.작성자,
+        memo=body.memo,
+    )
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     except ValueError as exc:
