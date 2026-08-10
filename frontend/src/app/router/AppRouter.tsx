@@ -3,7 +3,6 @@ import { AppLayout } from '../../shared/layouts/AppLayout';
 import { ROUTES } from '../../shared/constants/routes';
 import { LandingPage } from '../../pages/home/LandingPage';
 import { LoginPage } from '../../domains/auth/pages/LoginPage';
-import { SignupCompletePage } from '../../domains/auth/pages/SignupCompletePage';
 import { SignupFormEntryPage } from '../../domains/auth/pages/SignupFormEntryPage';
 import { SignupRoleGatePage } from '../../domains/auth/pages/SignupRoleGatePage';
 import { GovDashboardPage } from '../../domains/gov/pages/GovDashboardPage';
@@ -13,6 +12,7 @@ import { ProtectedRoute } from './ProtectedRoute';
 import { RoleRoute } from './RoleRoute';
 import { MyPage } from '../../pages/mypage/MyPage';
 import { SettingsGate } from '../../pages/settings/SettingsGate';
+import { ReportsPage } from '../../domains/reports/pages/ReportsPage';
 
 /**
  * 앱 라우터.
@@ -26,7 +26,10 @@ export function AppRouter() {
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.SIGNUP} element={<SignupRoleGatePage />} />
       <Route path={ROUTES.SIGNUP_FORM} element={<SignupFormEntryPage />} />
-      <Route path={ROUTES.SIGNUP_COMPLETE} element={<SignupCompletePage />} />
+      <Route
+        path={ROUTES.SIGNUP_COMPLETE}
+        element={<Navigate to={ROUTES.LANDING} replace />}
+      />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
@@ -36,6 +39,7 @@ export function AppRouter() {
           <Route element={<RoleRoute allow="ROLE_B" />}>
             <Route path={ROUTES.DASHBOARD_INS} element={<InsDashboardPage />} />
           </Route>
+          <Route path={ROUTES.REPORTS} element={<ReportsPage />} />
           <Route path={ROUTES.MYPAGE} element={<MyPage />} />
           <Route path={ROUTES.SETTINGS} element={<SettingsGate />} />
         </Route>

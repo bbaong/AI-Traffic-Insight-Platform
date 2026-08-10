@@ -130,6 +130,7 @@ export function GovDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [priorityRegions, setPriorityRegions] = useState<PriorityRegionRow[]>([]);
+  const [mapExpanded, setMapExpanded] = useState(false);
 
   const [historyData, setHistoryData] = useState<GovHistoryResponse | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -312,13 +313,15 @@ export function GovDashboardPage() {
   }, [selectedCode, selectedName, allRows]);
 
   return (
-    <div className={styles.govGrid}>
+    <div className={`${styles.govGrid} ${mapExpanded ? styles.govGridMapExpanded : ''}`}>
       <div className={styles.cellMap}>
         <MapCard
           title="시군구 중대사고 위험 · 우선점검"
           riskByCode={riskByCode}
           hotspots={hotspots}
           hotspotYear={hotspotYear}
+          mapExpanded={mapExpanded}
+          onToggleMapExpand={() => setMapExpanded((v) => !v)}
           legend={[
             { label: '중대율 상위 25%', color: RISK_COLORS.CRITICAL },
             { label: '상위 25–50%', color: RISK_COLORS.HIGH },
@@ -337,7 +340,11 @@ export function GovDashboardPage() {
         />
       </div>
   
-      <div className={styles.cellDistrict}>
+      <div
+        className={styles.cellDistrict}
+        hidden={mapExpanded}
+        aria-hidden={mapExpanded}
+      >
         <DashboardCard title="구별 우선점검 TOP3">
           <div className={styles.priorityPanel}>
             {loading ? (

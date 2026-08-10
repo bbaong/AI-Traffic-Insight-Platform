@@ -1,0 +1,102 @@
+.root {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.dim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: rgb(20 24 28 / 48%);
+  cursor: pointer;
+}
+
+.panel {
+  position: relative;
+  z-index: 1;
+  width: min(400px, 100%);
+  padding: 22px 22px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border-light, #e6e8eb);
+  background: var(--color-card, #fff);
+  box-shadow:
+    0 4px 6px rgb(15 23 42 / 4%),
+    0 18px 40px rgb(15 23 42 / 14%);
+  color: var(--color-ink, #1a1a1a);
+}
+
+.title {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.message {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--color-body, #333);
+}
+
+.detail {
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--color-hint, #777);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.cancelBtn,
+.confirmBtn {
+  height: 38px;
+  min-width: 88px;
+  padding: 0 14px;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+
+.cancelBtn {
+  border: 1px solid var(--color-border-strong, #c8cdd3);
+  background: var(--color-surface, #fff);
+  color: var(--color-body, #444);
+}
+
+.cancelBtn:hover {
+  background: color-mix(in srgb, currentColor 5%, transparent);
+}
+
+.confirmBtn {
+  border: none;
+  background: var(--color-amber, #f77c34);
+  color: #fff;
+  box-shadow: 0 1px 2px rgb(247 124 52 / 28%);
+}
+
+.confirmBtn:hover {
+  filter: brightness(1.05);
+}
+
+[data-accent='teal'] .confirmBtn {
+  background: var(--accent, #0b6b5f);
+  box-shadow: 0 1px 2px rgb(11 107 95 / 22%);
+}

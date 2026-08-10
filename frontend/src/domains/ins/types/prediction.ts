@@ -7,12 +7,23 @@ export interface InsPredictRequest {
   차종: string;
 }
 
+/** 표준약관 6대 담보 추천 (AI coverage_rules) */
+export interface CoverageRecommendItem {
+  id: string;
+  name: string;
+  recommended: boolean;
+  script: string;
+  reason: string;
+}
+
 export interface InsPredictData {
   버전: string;
   variant: 'ins' | string;
   예측등급: RiskGrade | string;
   위험도: number;
   등급확률: Record<string, number>;
+  사고경중비율?: Record<string, number>;
+  담보추천?: CoverageRecommendItem[];
 }
 
 export interface ApiResponse<T> {

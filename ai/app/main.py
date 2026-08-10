@@ -6,16 +6,20 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Query, Response
 
 from app.schemas import (
     GovHistoryRequest,
     GovPredictRequest,
+    GovReportPdfRequest,
     HealthResponse,
     HotspotResponse,
+    InsReportPdfRequest,
     PredictRequest,
     PredictResponse,
 )
+from src.report_pdf import build_ins_report_pdf, build_gov_report_pdf
+
 from src.gov_inference import (
     load_model as load_gov_model,
     predict_gov_history,
@@ -67,6 +71,62 @@ def predict(body: PredictRequest) -> PredictResponse:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return PredictResponse(**result)
 
+@app.post("/report/ins-pdf")
+def report_ins_pdf(body: InsReportPdfRequest) -> Response:
+    """Consult reference PDF (Jinja2 + Playwright). Returns application/pdf."""
+    try:
+        pdf_bytes = build_ins_report_pdf(
+            구군=body.구군,
+            연령대=body.연령대,
+            성별=body.성별,
+            차종=body.차종,
+            고객명=body.고객명,
+            작성자=body.작성자,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500, detail=f"PDF generation failed: {exc}"
+        ) from exc
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": 'inline; filename="ins-consult-report.pdf"',
+        },
+    )
+
+@app.post("/report/gov-pdf")
+def report_gov_pdf(body: GovReportPdfRequest) -> Response:
+    """Admin reference PDF for a district (Jinja2 + Playwright)."""
+    try:
+        pdf_bytes = build_gov_report_pdf(
+            지역=body.지역,
+            as_of=body.as_of,
+            freq=body.freq,
+            작성자=body.작성자,
+            기관=body.기관,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500, detail=f"PDF generation failed: {exc}"
+        ) from exc
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": 'inline; filename="gov-admin-report.pdf"',
+        },
+    )
 
 @app.post("/predict/gov")
 def predict_gov(body: GovPredictRequest):

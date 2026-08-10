@@ -245,6 +245,20 @@
 .cellDistrict { grid-column: 1; grid-row: 2; }
 .cellReport { grid-column: 2; grid-row: 2; }
 
+.govGridMapExpanded .cellMap {
+  grid-column: 1;
+  grid-row: 1 / -1;
+}
+
+.govGridMapExpanded .cellDistrict {
+  display: none;
+}
+
+.govGridMapExpanded .cellReport {
+  grid-column: 2;
+  grid-row: 2;
+}
+
 .cellMap > *,
 .cellSeverity > * {
   flex: 1;

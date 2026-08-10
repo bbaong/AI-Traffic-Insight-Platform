@@ -11,6 +11,8 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
+from src.coverage_rules import recommend_coverages
+
 from src import MODEL_DIR
 
 MODEL_PATH = MODEL_DIR / "ins_model_v1.0.3.pkl"
@@ -82,6 +84,7 @@ def predict_from_input(
         reverse=True,
     )
     top3 = {str(name): round(float(p), 4) for name, p in ranked[:3]}
+    all_vio = {str(name): float(p) for name, p in zip(vio_enc.classes_, vio_probs)}
 
     sev_enc = package["label_encoders"]["사고내용"]
     sev_clf = package["severity_classifier"]
@@ -96,13 +99,18 @@ def predict_from_input(
     }
 
     return {
-        "버전": f"{package.get('name', 'InsureGuard AI')} v{package.get('version', '1.0.3')}",
-        "variant": "ins_v1.0.3",
-        "예측등급": risk_level_from_score(risk),
-        "위험도": round(risk, 1),
-        "등급확률": top3,
-        "사고경중비율": severity,
-    }
+    "버전": f"{package.get('name', 'InsureGuard AI')} v{package.get('version', '1.0.3')}",
+    "variant": "ins_v1.0.3",
+    "예측등급": risk_level_from_score(risk),
+    "위험도": round(risk, 1),
+    "등급확률": top3,
+    "사고경중비율": severity,
+    "담보추천": recommend_coverages(
+        grade=risk_level_from_score(risk),
+        age=연령대,
+        violation_probs=all_vio,
+    ),
+}
 
 
 def main() -> None:

@@ -6,12 +6,28 @@ from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
+class CoverageRecommendItem(BaseModel):
+    id: str
+    name: str
+    recommended: bool
+    script: str
+    reason: str
 
 class PredictRequest(BaseModel):
     구군: str = Field(..., examples=["달서구"], description="대구시 구·군명 (=모델 지역)")
     연령대: str = Field(..., examples=["51-60세"], description="나이(연령대)")
     성별: str = Field(..., examples=["남"])
     차종: str = Field(..., examples=["승용"])
+
+    model_config = {"populate_by_name": True}
+
+class InsReportPdfRequest(BaseModel):
+    구군: str
+    연령대: str
+    성별: str
+    차종: str
+    고객명: Optional[str] = None
+    작성자: Optional[str] = None
 
     model_config = {"populate_by_name": True}
 
@@ -25,10 +41,21 @@ class PredictResponse(BaseModel):
     사고경중비율: Dict[str, float] = Field(
         ..., description="사망/중상/경상/부상신고 확률"
     )
+    담보추천: List[CoverageRecommendItem] = Field(
+        default_factory=list,
+        description="표준약관 6대 담보 추천",
+    )
 
 
 class HealthResponse(BaseModel):
     status: str = "ok"
+
+class GovReportPdfRequest(BaseModel):
+    지역: str = Field(..., examples=["수성구"])
+    as_of: Optional[str] = None
+    freq: Literal["Q", "H"] = "Q"
+    작성자: Optional[str] = None
+    기관: Optional[str] = None
 
 class GovPredictRequest(BaseModel):
     지역: Optional[str] = Field(None, examples=["수성구"], description="구·군명. 없으면 전 지역")

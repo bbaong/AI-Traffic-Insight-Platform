@@ -112,6 +112,7 @@ model consultations {
   status                         consultations_status             @default(IN_PROGRESS)
   consulted_at                   DateTime                         @default(now()) @db.DateTime(0)
   updated_at                     DateTime                         @default(now()) @db.DateTime(0)
+  consultation_type              consultations_consultation_type
   consultation_checklist_answers consultation_checklist_answers[]
   consultation_discount_riders   consultation_discount_riders[]
   customers                      customers                        @relation(fields: [customer_id], references: [customer_id], onUpdate: Restrict, map: "fk_consultation_customer")
@@ -385,4 +386,12 @@ enum customer_risk_profiles_risk_grade {
   Moderate
   High
   Critical
+}
+
+enum consultations_consultation_type {
+  NEW
+  RENEWAL
+  CLAIM
+  COVERAGE_ANALYSIS
+  OTHER
 }

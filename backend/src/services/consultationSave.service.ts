@@ -36,8 +36,25 @@ function mapRiskGrade(grade: string) {
   return 'Low';
 }
 
+const CONSULTATION_TYPES = [
+  'NEW',
+  'RENEWAL',
+  'CLAIM',
+  'COVERAGE_ANALYSIS',
+  'OTHER',
+] as const;
+
+type ConsultationType = (typeof CONSULTATION_TYPES)[number];
+
+function isConsultationType(v: unknown): v is ConsultationType {
+  return (
+    typeof v === 'string' &&
+    (CONSULTATION_TYPES as readonly string[]).includes(v)
+  );
+}
+
 export async function saveConsultation(input: any) {
-  const { customer, profile, checklist, memo, userId } = input;
+  const { customer, profile, checklist, memo, userId, consultationType } = input;
 
   if (!customer?.name || !customer?.phone) {
     throw new Error('고객명·전화번호는 필수입니다.');
@@ -47,6 +64,11 @@ export async function saveConsultation(input: any) {
   }
   if (!userId) {
     throw new Error('userId(상담원)가 필요합니다.');
+  }
+  if (!isConsultationType(consultationType)) {
+    throw new Error(
+      '상담 유형은 NEW|RENEWAL|CLAIM|COVERAGE_ANALYSIS|OTHER 중 하나여야 합니다.',
+    );
   }
 
   // 1) AI 재추론 — 프론트 prediction 무시
@@ -118,6 +140,7 @@ export async function saveConsultation(input: any) {
         customer_id: savedCustomer.customer_id,
         user_id: BigInt(userId),
         profile_id: riskProfile.profile_id,
+        consultation_type: consultationType,
         memo: memo ?? null,
         status: 'COMPLETED',
       },

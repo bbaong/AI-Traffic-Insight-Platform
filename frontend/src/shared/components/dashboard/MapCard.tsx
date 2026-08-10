@@ -51,6 +51,8 @@ export type MapHotspot = {
 };
 
 export interface MapCardProps {
+  mapExpanded?: boolean;
+  onToggleMapExpand?: () => void;
   title: string;
   riskByCode?: Record<string, RiskLevel>;
   legend?: readonly MapLegendItem[];
@@ -133,6 +135,34 @@ function styleFor(
   return { ...BASE_STROKE, fillColor, zIndex: 1 };
 }
 
+function MapExpandIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function MapCollapseIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M3 8h5V3M16 3v5h5M3 16h5v5M21 16h-5v5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 /** GOV·INS 공용 카카오맵 · 구·군 Choropleth + 공식 다발 원 */
 export function MapCard({
   title,
@@ -141,6 +171,8 @@ export function MapCard({
   hotspots = [],
   hotspotYear = null,
   onDistrictSelect,
+  mapExpanded = false,
+  onToggleMapExpand,
 }: MapCardProps) {
   const { status, retry } = useKakaoLoader();
   const selectedCode = useDistrictStore((s) => s.selectedCode);
@@ -473,6 +505,38 @@ export function MapCard({
   }, [selectedCode]);
 
   useEffect(() => {
+    const map = mapRef.current;
+    if (!map || status !== 'loaded') return;
+
+    const refresh = () => {
+      map.relayout?.();
+      if (!selectedRef.current || !window.kakao?.maps) return;
+      const district = DAEGU_DISTRICTS.find(
+        (d) => d.code === selectedRef.current,
+      );
+      if (!district) return;
+      const bounds = new window.kakao.maps.LatLngBounds();
+      for (const ring of district.paths) {
+        for (const p of ring) {
+          bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng));
+        }
+      }
+      map.setBounds(bounds, 40, 40, 40, 40);
+      syncHotspotsVisibility(map);
+    };
+
+    const raf = window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(refresh);
+    });
+    const t = window.setTimeout(refresh, 100);
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+    };
+  }, [mapExpanded, status]);
+
+  useEffect(() => {
     selectedRef.current = selectedCode;
     applyStyles(hoveredRef.current, selectedCode);
 
@@ -547,6 +611,19 @@ export function MapCard({
           style={{ display: status === 'loaded' ? 'block' : 'none' }}
           aria-label="카카오맵 · 대구 구·군 위험도 및 사고다발"
         />
+
+        {onToggleMapExpand ? (
+          <button
+            type="button"
+            className={styles.expandBtn}
+            onClick={onToggleMapExpand}
+            aria-pressed={mapExpanded}
+            aria-label={mapExpanded ? '지도 축소' : '지도 확장'}
+            title={mapExpanded ? '축소' : '확장'}
+          >
+            {mapExpanded ? <MapCollapseIcon /> : <MapExpandIcon />}
+          </button>
+        ) : null}
 
         {selectedCode ? (
           <p className={styles.selectionHint} aria-live="polite">
