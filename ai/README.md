@@ -67,6 +67,9 @@ python -m venv .venv
 # source .venv/bin/activate           # macOS/Linux
 
 pip install -r requirements.txt
+
+# PDF 리포트(Jinja2 + Playwright)용 — pip 설치와 별도로 Chromium이 필요합니다.
+playwright install chromium
 ```
 
 ### 원천 데이터
