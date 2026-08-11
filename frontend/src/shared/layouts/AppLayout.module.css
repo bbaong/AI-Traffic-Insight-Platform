@@ -35,6 +35,11 @@
   max-width: 100%;
 }
 
+/* 보험사 대시보드만 — 헤더~본문 간격 축소 (GOV 미적용) */
+.contentIns {
+  padding: 12px 20px 16px;
+}
+
 .backdrop {
   display: none;
 }
@@ -42,6 +47,10 @@
 @media (max-width: 1100px) {
   .content {
     padding: 16px;
+  }
+
+  .contentIns {
+    padding: 12px 16px 16px;
   }
 
   .backdrop {

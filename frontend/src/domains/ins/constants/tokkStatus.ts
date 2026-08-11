@@ -18,7 +18,7 @@ export const TOKK_STATUS_META: Record<
     bg: '#c8f5d4',
   },
   CHECK: {
-    label: '확인',
+    label: '추천',
     color: '#d35400',
     bg: '#ffe0c2',
   },

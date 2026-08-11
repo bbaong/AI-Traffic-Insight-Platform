@@ -42,6 +42,7 @@ export async function saveConsultation(
       profile: payload.profile,
       checklist: payload.checklist,
       memo: payload.memo,
+      consultationType: payload.consultationType,
       userId: payload.userId,
     }),
   });

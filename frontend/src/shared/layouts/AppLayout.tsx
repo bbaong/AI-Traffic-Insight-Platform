@@ -81,7 +81,13 @@ export function AppLayout() {
           onMenuClick={() => setSidebarOpen((v) => !v)}
           menuOpen={sidebarOpen}
         />
-        <div className={styles.content}>
+        <div
+          className={`${styles.content}${
+            location.pathname === ROUTES.DASHBOARD_INS
+              ? ` ${styles.contentIns}`
+              : ''
+          }`}
+        >
           <Outlet />
         </div>
       </div>
