@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import os
 import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
+from playwright.sync_api import Error as PlaywrightError
 from playwright.sync_api import sync_playwright
 
 from src.gov_inference import predict_gov_rates
@@ -15,6 +17,49 @@ from src.inference import predict_from_input
 
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = ROOT / "templates"
+
+
+def _stable_browsers_dir() -> Path:
+    override = (os.environ.get("AI_PLAYWRIGHT_BROWSERS_PATH") or "").strip()
+    if override:
+        return Path(override)
+    local = os.environ.get("LOCALAPPDATA") or os.environ.get("HOME") or str(Path.home())
+    return Path(local) / "ms-playwright"
+
+
+def _configure_playwright_browsers_path() -> Path:
+    """Force a stable browser dir; Cursor sandbox cache often lacks binaries."""
+    preferred = _stable_browsers_dir()
+    preferred.mkdir(parents=True, exist_ok=True)
+    current = (os.environ.get("PLAYWRIGHT_BROWSERS_PATH") or "").strip()
+    current_norm = current.replace("\\", "/").lower()
+    if (
+        not current
+        or "cursor-sandbox-cache" in current_norm
+        or not Path(current).exists()
+    ):
+        os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(preferred)
+    os.environ.setdefault("PLAYWRIGHT_CHROMIUM_USE_HEADLESS_SHELL", "0")
+    return Path(os.environ["PLAYWRIGHT_BROWSERS_PATH"])
+
+
+# uvicorn may inherit PLAYWRIGHT_BROWSERS_PATH=cursor-sandbox-cache
+_configure_playwright_browsers_path()
+
+
+def _find_chromium_executable(browsers_dir: Path) -> Path | None:
+    patterns = (
+        "chromium-*/chrome-win64/chrome.exe",
+        "chromium-*/chrome-linux/chrome",
+        "chromium-*/chrome-mac*/Chromium",
+        "chromium_headless_shell-*/chrome-headless-shell-win64/chrome-headless-shell.exe",
+        "chromium_headless_shell-*/chrome-headless-shell-linux64/chrome-headless-shell",
+    )
+    for pat in patterns:
+        found = sorted(browsers_dir.glob(pat), reverse=True)
+        if found and found[0].is_file():
+            return found[0]
+    return None
 
 
 def _render_html(context: dict[str, Any]) -> str:
@@ -27,23 +72,44 @@ def _render_html(context: dict[str, Any]) -> str:
 
 
 def _html_to_pdf_bytes(html: str) -> bytes:
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        try:
-            page = browser.new_page()
-            page.set_content(html, wait_until="networkidle")
-            pdf = page.pdf(
-                format="A4",
-                print_background=True,
-                margin={
-                    "top": "12mm",
-                    "bottom": "12mm",
-                    "left": "12mm",
-                    "right": "12mm",
-                },
-            )
-        finally:
-            browser.close()
+    browsers_dir = _configure_playwright_browsers_path()
+    exe = _find_chromium_executable(browsers_dir)
+    try:
+        with sync_playwright() as p:
+            if exe is not None:
+                browser = p.chromium.launch(
+                    executable_path=str(exe),
+                    headless=True,
+                )
+            else:
+                browser = p.chromium.launch(headless=True)
+            try:
+                page = browser.new_page()
+                page.set_content(html, wait_until="networkidle")
+                pdf = page.pdf(
+                    format="A4",
+                    print_background=True,
+                    margin={
+                        "top": "12mm",
+                        "bottom": "12mm",
+                        "left": "12mm",
+                        "right": "12mm",
+                    },
+                )
+            finally:
+                browser.close()
+    except PlaywrightError as exc:
+        msg = str(exc)
+        if "Executable doesn't exist" in msg or "playwright install" in msg.lower():
+            raise RuntimeError(
+                "Playwright Chromium이 없습니다. "
+                f"브라우저 경로: {browsers_dir}\n"
+                "외부 터미널(같은 Python)에서:\n"
+                f'  set PLAYWRIGHT_BROWSERS_PATH={browsers_dir}\n'
+                "  python -m playwright install chromium\n"
+                "설치 후 AI(uvicorn)를 재시작하세요."
+            ) from exc
+        raise
     return pdf
 
 def build_ins_report_pdf(

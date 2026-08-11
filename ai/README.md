@@ -66,11 +66,19 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1          # Windows
 # source .venv/bin/activate           # macOS/Linux
 
-pip install -r requirements.txt
+# Windows(cp949)에서 requirements 주석 UTF-8 오류가 나면:
+#   $env:PYTHONUTF8 = "1"
+python -m pip install -r requirements.txt
 
-# PDF 리포트(Jinja2 + Playwright)용 — pip 설치와 별도로 Chromium이 필요합니다.
-playwright install chromium
+# PDF 리포트(Jinja2 + Playwright) — pip와 별도로 Chromium 필요.
+# uvicorn을 실행하는 그 Python과 같은 환경에서, 샌드박스가 아닌 경로에 설치하세요.
+$env:PLAYWRIGHT_BROWSERS_PATH = "$env:LOCALAPPDATA\ms-playwright"
+python -m playwright install chromium
 ```
+
+PDF가 `cursor-sandbox-cache` / `Executable doesn't exist`로 실패하면 Cursor가 `PLAYWRIGHT_BROWSERS_PATH`를 샌드박스로 심은 경우입니다.  
+`report_pdf`는 `%LOCALAPPDATA%\ms-playwright`의 `chrome.exe`를 직접 쓰도록 우회합니다.  
+설치 후에도 실패하면 **AI(uvicorn)를 재시작**하세요. 경로는 `AI_PLAYWRIGHT_BROWSERS_PATH`로 바꿀 수 있습니다.
 
 ### 원천 데이터
 
