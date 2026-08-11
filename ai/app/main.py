@@ -18,7 +18,11 @@ from app.schemas import (
     PredictRequest,
     PredictResponse,
 )
-from src.report_pdf import build_ins_report_pdf, build_gov_report_pdf
+from src.report_pdf import (
+    _configure_playwright_browsers_path,
+    build_gov_report_pdf,
+    build_ins_report_pdf,
+)
 
 from src.gov_inference import (
     load_model as load_gov_model,
@@ -32,6 +36,9 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    # Cursor 등이 PLAYWRIGHT_BROWSERS_PATH를 샌드박스로 심어 두면 PDF가 깨짐
+    browsers = _configure_playwright_browsers_path()
+    print(f"[warmup] PLAYWRIGHT_BROWSERS_PATH={browsers}")
     # 기동 시 pkl 로드 (첫 요청 지연 감소)
     try:
         load_gov_model()
