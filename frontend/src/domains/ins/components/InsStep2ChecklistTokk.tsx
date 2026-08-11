@@ -3,7 +3,7 @@ import {
   CONSULT_TYPE_OPTIONS,
   type ConsultType,
 } from '../constants/consultTypes';
-import { TOKK_STATUS_META } from '../constants/tokkStatus';
+import { TOKK_LEGEND_STATUSES, TOKK_STATUS_META } from '../constants/tokkStatus';
 import type { ChecklistAnswers, TokkResult } from '../types/consulting';
 import shared from './insConsultingShared.module.css';
 import styles from './InsStep2ChecklistTokk.module.css';
@@ -208,11 +208,7 @@ export function InsStep2ChecklistTokk({
             <div className={styles.rightHead}>
               <h2 className={shared.cardTitle}>맞춤 특약 검토 결과</h2>
               <div className={styles.legend} aria-label="특약 상태 범례">
-                {(
-                  Object.keys(TOKK_STATUS_META) as Array<
-                    keyof typeof TOKK_STATUS_META
-                  >
-                ).map((key) => {
+                {TOKK_LEGEND_STATUSES.map((key) => {
                   const m = TOKK_STATUS_META[key];
                   return (
                     <span

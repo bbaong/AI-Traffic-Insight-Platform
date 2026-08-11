@@ -179,8 +179,7 @@ export function InsStep1Analyze({
           <div className={styles.footerNav}>
             <button
               type="button"
-              className={styles.primaryBtn}
-              style={{ width: 'auto', minWidth: 140, padding: '0 20px' }}
+              className={`${styles.primaryBtn} ${styles.nextBtn}`}
               onClick={onNext}
               disabled={!prediction}
             >

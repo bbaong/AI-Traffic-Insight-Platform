@@ -1,8 +1,8 @@
 import styles from './InsStepIndicator.module.css';
 
 const STEPS = [
-  { id: 1 as const, label: '고객·AI 분석' },
-  { id: 2 as const, label: '체크리스트·특약' },
+  { id: 1 as const, label: '고객·AI 분석', shortLabel: '분석' },
+  { id: 2 as const, label: '체크리스트·특약', shortLabel: '특약' },
 ];
 
 type Props = {
@@ -35,7 +35,10 @@ export function InsStepIndicator({ current, onGoTo }: Props) {
                 {s.id}
               </span>
             )}
-            <span>{s.label}</span>
+            <span className={styles.labelFull}>{s.label}</span>
+            <span className={styles.labelShort} aria-hidden="true">
+              {s.shortLabel}
+            </span>
           </button>
         );
       })}

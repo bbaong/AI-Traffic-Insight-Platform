@@ -35,9 +35,10 @@
   max-width: 100%;
 }
 
-/* 보험사 대시보드만 — 헤더~본문 간격 축소 (GOV 미적용) */
+/* 보험사 대시보드만 — 헤더~본문 간격 축소, 본문은 페이지 스크롤 (GOV 미적용) */
 .contentIns {
-  padding: 12px 20px 16px;
+  padding: 12px 20px 24px;
+  align-items: stretch;
 }
 
 .backdrop {
@@ -50,7 +51,7 @@
   }
 
   .contentIns {
-    padding: 12px 16px 16px;
+    padding: 12px 16px 20px;
   }
 
   .backdrop {

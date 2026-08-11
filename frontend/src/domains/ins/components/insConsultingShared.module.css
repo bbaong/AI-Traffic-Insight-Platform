@@ -1,22 +1,20 @@
 /* INS 상담 폼·카드 공통 (Step1/2 공유) — 8px spacing system */
 
 .stepRoot {
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  height: auto;
 }
 
 .grid2 {
-  flex: 1;
-  min-height: 0;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 20px;
-  align-items: stretch;
+  align-items: start;
   width: 100%;
+  height: auto;
 }
 
 .column {
@@ -24,13 +22,11 @@
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  min-height: 0;
-  height: 100%;
+  height: auto;
 }
 
 .columnGrow {
-  flex: 1;
-  min-height: 0;
+  min-width: 0;
 }
 
 .card {
@@ -46,23 +42,17 @@
   width: 100%;
 }
 
-/* 좌·우 카드 동일 높이 (부모 stretch) */
 .cardFill {
-  flex: 1;
-  height: 100%;
-  min-height: 0;
+  height: auto;
 }
 
 .cardBody {
-  flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 .cardActions {
-  margin-top: auto;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -236,6 +226,12 @@
   flex-shrink: 0;
 }
 
+.nextBtn {
+  width: auto;
+  min-width: 140px;
+  padding: 0 20px;
+}
+
 .footerNavStart {
   justify-content: space-between;
 }
@@ -281,8 +277,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  flex: 1;
-  min-height: 120px;
+  min-height: 140px;
   padding: 20px 16px;
   text-align: center;
   color: var(--color-hint);
@@ -301,18 +296,33 @@
   color: var(--color-hint);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .grid2 {
     grid-template-columns: 1fr;
-    align-items: start;
+    gap: 16px;
   }
 
-  .cardFill {
-    height: auto;
-    flex: none;
+  .cardActions {
+    margin-top: 4px;
   }
 
   .cardActionsRow {
     grid-template-columns: 1fr;
+  }
+
+  .footerNav {
+    justify-content: stretch;
+  }
+
+  .nextBtn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 16px;
+    gap: 12px;
   }
 }

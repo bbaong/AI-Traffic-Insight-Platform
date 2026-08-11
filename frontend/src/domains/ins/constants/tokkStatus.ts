@@ -8,6 +8,13 @@ export const TOKK_STATUS_ORDER: Record<TokkStatus, number> = {
   EXCLUDE: 3,
 };
 
+/** 화면 범례 — 기존가입은 체크리스트에서 안 물어 노출하지 않음 */
+export const TOKK_LEGEND_STATUSES: TokkStatus[] = [
+  'RECOMMEND',
+  'CHECK',
+  'EXCLUDE',
+];
+
 export const TOKK_STATUS_META: Record<
   TokkStatus,
   { label: string; color: string; bg: string }

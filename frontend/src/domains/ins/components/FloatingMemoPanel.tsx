@@ -221,8 +221,8 @@ export function FloatingMemoPanel({ open, value, onChange, onClose }: Props) {
         return;
       }
       setSize((s) => {
-        const maxW = Math.max(MIN_W, window.innerWidth - pos!.x - MARGIN);
-        const maxH = Math.max(MIN_H, window.innerHeight - pos!.y - MARGIN);
+        const maxW = Math.max(160, window.innerWidth - MARGIN * 2);
+        const maxH = Math.max(140, window.innerHeight - headerOffset() - MARGIN);
         const next = {
           w: Math.min(s.w, maxW),
           h: Math.min(s.h, maxH),

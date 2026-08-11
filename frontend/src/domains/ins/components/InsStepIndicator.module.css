@@ -17,6 +17,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-width: 0;
   min-height: 0;
   height: 100%;
   padding: 0 12px;
@@ -78,4 +79,40 @@
   font-weight: 600;
   line-height: 1;
   opacity: 0.85;
+}
+
+.labelFull,
+.labelShort {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.labelFull {
+  display: inline;
+}
+
+.labelShort {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .bar {
+    height: 40px;
+    min-height: 36px;
+  }
+
+  .step {
+    gap: 5px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+
+  .labelFull {
+    display: none;
+  }
+
+  .labelShort {
+    display: inline;
+  }
 }

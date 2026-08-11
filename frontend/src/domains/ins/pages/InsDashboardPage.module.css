@@ -9,9 +9,10 @@
   box-sizing: border-box;
 }
 
-/* Step1·2 공통: content 남은 높이 채움 → 카드 높이 동기화 */
+/* 내용 높이만큼만 차지 → 부족하면 content가 페이지 스크롤 */
 .pageFill {
-  flex: 1;
+  flex: none;
+  height: auto;
 }
 
 .toolbar {
@@ -53,4 +54,23 @@
   background: var(--color-amber-bg);
   color: var(--color-amber-tint-text);
   font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .toolbar {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .toolbar > :first-child {
+    flex: 1 1 180px;
+  }
+}
+
+@media (max-width: 640px) {
+  .memoBtn {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 12.5px;
+  }
 }

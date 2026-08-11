@@ -13,9 +13,7 @@
 }
 
 .cardFill {
-  flex: 1;
-  height: 100%;
-  min-height: 0;
+  height: auto;
 }
 
 .title {
@@ -417,12 +415,28 @@
   color: #94a3b8;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
+  .cardFill {
+    height: auto;
+    flex: none;
+  }
+
   .midRow {
     grid-template-columns: 1fr;
   }
 
   .covGrid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .scoreVal {
+    font-size: 20px;
   }
 }
