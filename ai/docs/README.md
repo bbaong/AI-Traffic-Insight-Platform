@@ -21,8 +21,16 @@
 |------|------|
 | [validation_v1_0_3.md](validation_v1_0_3.md) | InsureGuard v1.0.3 검증 요약 |
 | [validation_v1_0_3_results.json](validation_v1_0_3_results.json) | 검증 수치 |
+| [ins_sklearn_model_compare.md](ins_sklearn_model_compare.md) | Ins sklearn 알고리즘 비교 (회귀·분류) |
+| [ins_sklearn_model_compare.json](ins_sklearn_model_compare.json) | Ins 비교 수치 |
 | [gov_v1_0_4_b1_vs_b2.md](gov_v1_0_4_b1_vs_b2.md) | B1(share) vs B2(log건수) + 캡 비교 |
 | [gov_v1_0_4_b1_vs_b2.json](gov_v1_0_4_b1_vs_b2.json) | 비교 수치 |
+| [gov_sklearn_rate_compare.md](gov_sklearn_rate_compare.md) | Gov B1+last×2 고정, rate 알고리즘 sklearn 비교 |
+| [gov_sklearn_rate_compare.json](gov_sklearn_rate_compare.json) | Gov rate 비교 수치 |
+| [prediction_latency.md](prediction_latency.md) | Ins/Gov 예측 응답 시간 측정 요약 |
+| [prediction_latency.json](prediction_latency.json) | 지연 시간 원시 수치 |
+| [prediction_latency_e2e.md](prediction_latency_e2e.md) | AI + Backend(+FE HTML) 전체 스택 지연 |
+| [prediction_latency_e2e.json](prediction_latency_e2e.json) | E2E 지연 원시 수치 |
 | `figures/gov_v1_0_4_compare/` | 군위 등 케이스 차트 |
 | `figures/` | 버전·실험별 차트 PNG |
 

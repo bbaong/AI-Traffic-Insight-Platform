@@ -1,0 +1,78 @@
+{
+  "note": "In-process Python latency (pkl already in memory after cold load). Not browser→Express E2E.",
+  "warmup": 5,
+  "runs": 50,
+  "ins_cold_load_ms": 1518.785,
+  "ins_predict_single": {
+    "n": 50,
+    "mean_ms": 88.264,
+    "stdev_ms": 12.622,
+    "p50_ms": 84.76,
+    "p95_ms": 100.47,
+    "p99_ms": 140.887,
+    "min_ms": 81.435,
+    "max_ms": 164.631
+  },
+  "ins_sample_risk": 41.0,
+  "ins_sample_grade": "MODERATE",
+  "gov_first_call_includes_load_ms": null,
+  "gov_all_districts_one_shot_ms": 316.046,
+  "gov_predict_one_region": {
+    "n": 50,
+    "mean_ms": 39.424,
+    "stdev_ms": 3.435,
+    "p50_ms": 39.535,
+    "p95_ms": 44.011,
+    "p99_ms": 46.455,
+    "min_ms": 30.688,
+    "max_ms": 48.679
+  },
+  "gov_predict_all_regions": {
+    "n": 20,
+    "mean_ms": 343.747,
+    "stdev_ms": 26.971,
+    "p50_ms": 340.103,
+    "p95_ms": 362.265,
+    "p99_ms": 431.768,
+    "min_ms": 320.725,
+    "max_ms": 449.144
+  },
+  "gov_history_n4": {
+    "n": 20,
+    "mean_ms": 47.528,
+    "stdev_ms": 20.702,
+    "p50_ms": 42.221,
+    "p95_ms": 57.672,
+    "p99_ms": 118.949,
+    "min_ms": 38.496,
+    "max_ms": 134.268
+  },
+  "http": {
+    "available": true,
+    "ins_first_ms": 1469.675,
+    "ins_predict": {
+      "n": 20,
+      "mean_ms": 104.939,
+      "stdev_ms": 18.109,
+      "p50_ms": 102.064,
+      "p95_ms": 141.356,
+      "p99_ms": 155.344,
+      "min_ms": 87.581,
+      "max_ms": 158.841
+    },
+    "gov_all_first_ms": 671.66,
+    "gov_predict_all": {
+      "n": 10,
+      "mean_ms": 366.633,
+      "stdev_ms": 25.709,
+      "p50_ms": 360.866,
+      "p95_ms": 404.752,
+      "p99_ms": 421.514,
+      "min_ms": 337.181,
+      "max_ms": 425.704
+    },
+    "backend_proxy": {
+      "predict_ins_error": "<urlopen error [WinError 10061] 대상 컴퓨터에서 연결을 거부했으므로 연결하지 못했습니다>"
+    }
+  }
+}
