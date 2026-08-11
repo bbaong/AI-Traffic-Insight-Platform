@@ -41,6 +41,50 @@
   align-items: stretch;
 }
 
+/* 보험사 고객관리 — 전체화면(정비율)은 뷰포트 고정, 카드 안 스크롤 (GOV 미적용) */
+.layoutInsCustomers {
+  overflow: hidden;
+}
+
+.layoutInsCustomers > aside {
+  height: 100%;
+  overflow: hidden;
+}
+
+.contentCustomers {
+  flex: 1;
+  min-height: 0;
+  padding: 12px 20px 16px;
+  overflow: hidden;
+}
+
+/* 창을 세로로 많이 줄였을 때만 페이지 스크롤. 전체화면(정비율)은 해당 없음 */
+@media (min-width: 1101px) and (max-height: 600px) {
+  :global(html.ins-customers-page),
+  :global(body.ins-customers-page),
+  :global(#root.ins-customers-page) {
+    height: auto;
+    max-height: none;
+    min-height: 100%;
+    overflow: visible;
+  }
+
+  .layoutInsCustomers,
+  .mainColumnInsCustomers {
+    height: auto;
+    max-height: none;
+    min-height: 900px;
+    overflow: visible;
+  }
+
+  .layoutInsCustomers > aside {
+    height: auto;
+    min-height: 900px;
+    align-self: stretch;
+    overflow: hidden;
+  }
+}
+
 .backdrop {
   display: none;
 }
@@ -52,6 +96,28 @@
 
   .contentIns {
     padding: 12px 16px 20px;
+  }
+
+  .contentCustomers {
+    padding: 12px 16px 16px;
+    overflow: auto;
+  }
+
+  .layoutInsCustomers,
+  .mainColumnInsCustomers {
+    min-height: 0;
+    height: auto;
+  }
+
+  .layoutInsCustomers > aside {
+    position: fixed;
+    top: 0;
+    left: 0;
+    align-self: auto;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    z-index: 1000;
   }
 
   .backdrop {
