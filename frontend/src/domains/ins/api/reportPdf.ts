@@ -7,6 +7,7 @@ export interface InsReportPdfRequest {
   차종: string;
   고객명?: string;
   작성자?: string;
+  memo?: string;
 }
 
 /** POST /api/insurance/report-pdf → PDF Blob */

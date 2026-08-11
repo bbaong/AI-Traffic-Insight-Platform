@@ -8,6 +8,7 @@ import { DAEGU_DISTRICTS } from '../../../shared/constants/daeguBoundaries';
 import type { AiSummaryData, PriorityRegionRow, RiskLevel } from '../../../shared/types/dashboard';
 import { getRiskMeta } from '../../../shared/utils/riskMeta';
 import {
+  fetchGovForecasts,
   getPredictedCount,
   predictGov,
   predictGovHistory,
@@ -21,6 +22,7 @@ import { RISK_COLORS, type MapHotspot } from '../../../shared/components/dashboa
 import { SeverityStackedCard } from '../components/SeverityStackedCard';
 import styles from '../../../shared/components/dashboard/GovDashboardPage.module.css';
 import { useState, useEffect, useRef } from 'react';
+
 
 function getAccidentCount(row: GovPredictResult): number {
   return getPredictedCount(row);
@@ -72,7 +74,7 @@ function toAiSummary(row: GovPredictResult): AiSummaryData {
     factorUnit: '건',
   };
 }
-const GOV_PRED_CACHE_KEY = 'gov:predictGov:Q';
+const GOV_PRED_CACHE_KEY = 'gov:forecasts:Q';
 const GOV_HOTSPOT_CACHE_KEY = 'gov:hotspots';
 /** 프론트: 이 시간 안이면 Backend/AI 다발 API를 다시 치지 않음 */
 const GOV_HOTSPOT_CLIENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -185,9 +187,16 @@ export function GovDashboardPage() {
       setError(null);
 
       try {
-        const all = await predictGov({ freq: 'Q' });
+        let rows: GovPredictResult[];
+        try {
+          const snap = await fetchGovForecasts({ freq: 'Q' });
+          rows = snap.rows;
+        } catch {
+          // 배치 없거나 API 오류 → 기존 AI 실시간 폴백
+          const all = await predictGov({ freq: 'Q' });
+          rows = [...(Array.isArray(all) ? all : [all])];
+        }
         if (cancelled) return;
-        const rows = [...(Array.isArray(all) ? all : [all])];
         writeSessionJson(GOV_PRED_CACHE_KEY, rows);
         applyPredictRows(rows);
       } catch (e) {

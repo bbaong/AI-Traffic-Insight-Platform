@@ -78,6 +78,11 @@
     <span>{{ profile.성별 }}</span>
     <span>{{ profile.차종 }}</span>
   </div>
+  {% if memo %}
+  <hr class="divider" />
+  <h2>상담 메모</h2>
+  <p class="meta" style="white-space: pre-wrap;">{{ memo }}</p>
+  {% endif %}
 
   <hr class="divider" />
 

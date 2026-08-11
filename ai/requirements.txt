@@ -19,6 +19,10 @@ jinja2>=3.1.0
 # PDF reports also need browser binaries: playwright install chromium
 playwright>=1.40.0
 
+# --- Batch jobs (e.g. scripts/batch_gov_forecast.py → MySQL) ---
+# Needs DATABASE_URL (mysql://...) from env or backend/.env
+PyMySQL>=1.1.0
+
 # --- Training / experiments / notebooks / benchmarks ---
 seaborn>=0.13.0
 psutil>=5.9.0

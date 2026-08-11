@@ -28,6 +28,7 @@ class InsReportPdfRequest(BaseModel):
     차종: str
     고객명: Optional[str] = None
     작성자: Optional[str] = None
+    memo: Optional[str] = None
 
     model_config = {"populate_by_name": True}
 

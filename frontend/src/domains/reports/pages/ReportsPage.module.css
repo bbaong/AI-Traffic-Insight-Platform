@@ -103,3 +103,18 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+.memoInclude {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 0.85rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.memoInclude input {
+  margin: 0;
+  accent-color: var(--color-amber, #f77c34);
+}

@@ -7,11 +7,29 @@ import { useAuthStore } from '../../stores/authStore';
 import styles from './AppLayout.module.css';
 
 const SIDEBAR_DRAWER_MQ = '(max-width: 1100px)';
+const INS_CUSTOMERS_PAGE_CLASS = 'ins-customers-page';
 
 export function AppLayout() {
   const user = useAuthStore((s) => s.user);
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isInsCustomers = location.pathname === ROUTES.CUSTOMERS;
+
+  useEffect(() => {
+    const roots = [
+      document.documentElement,
+      document.body,
+      document.getElementById('root'),
+    ];
+    if (isInsCustomers) {
+      roots.forEach((el) => el?.classList.add(INS_CUSTOMERS_PAGE_CLASS));
+    } else {
+      roots.forEach((el) => el?.classList.remove(INS_CUSTOMERS_PAGE_CLASS));
+    }
+    return () => {
+      roots.forEach((el) => el?.classList.remove(INS_CUSTOMERS_PAGE_CLASS));
+    };
+  }, [isInsCustomers]);
 
   useEffect(() => {
     const mq = window.matchMedia(SIDEBAR_DRAWER_MQ);
@@ -53,13 +71,15 @@ export function AppLayout() {
       ? '리포트'
       : location.pathname === ROUTES.DASHBOARD_INS
         ? '보험 상담 대시보드'
-        : user.role === 'ROLE_A'
+        : location.pathname === ROUTES.CUSTOMERS
+          ? '고객관리'
+          : user.role === 'ROLE_A'
           ? '지자체 대시보드'
           : '보험사 대시보드';
 
   return (
     <div
-      className={styles.layout}
+      className={`${styles.layout}${isInsCustomers ? ` ${styles.layoutInsCustomers}` : ''}`}
       data-accent={user.role === 'ROLE_A' ? 'teal' : 'amber'}
     >
       <div
@@ -74,14 +94,26 @@ export function AppLayout() {
         onNavigate={() => setSidebarOpen(false)}
       />
 
-      <div className={styles.mainColumn}>
+      <div
+        className={`${styles.mainColumn}${
+          isInsCustomers ? ` ${styles.mainColumnInsCustomers}` : ''
+        }`}
+      >
         <Header
           title={title}
           role={user.role}
           onMenuClick={() => setSidebarOpen((v) => !v)}
           menuOpen={sidebarOpen}
         />
-        <div className={styles.content}>
+        <div
+          className={`${styles.content}${
+            location.pathname === ROUTES.DASHBOARD_INS
+              ? ` ${styles.contentIns}`
+              : location.pathname === ROUTES.CUSTOMERS
+                ? ` ${styles.contentCustomers}`
+                : ''
+          }`}
+        >
           <Outlet />
         </div>
       </div>

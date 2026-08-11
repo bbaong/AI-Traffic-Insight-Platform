@@ -46,7 +46,6 @@ def _html_to_pdf_bytes(html: str) -> bytes:
             browser.close()
     return pdf
 
-
 def build_ins_report_pdf(
     *,
     구군: str,
@@ -55,6 +54,7 @@ def build_ins_report_pdf(
     차종: str,
     고객명: str | None = None,
     작성자: str | None = None,
+    memo: str | None = None,
 ) -> bytes:
     """Same calculation path as on-screen: predict + coverage rules → PDF."""
     prediction = predict_from_input(
@@ -68,6 +68,7 @@ def build_ins_report_pdf(
         key=lambda x: x[1],
         reverse=True,
     )[:3]
+    memo_text = (memo or "").strip() or None
     context = {
         "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         "customer_name": (고객명 or "").strip() or None,
@@ -81,6 +82,7 @@ def build_ins_report_pdf(
         "prediction": prediction,
         "top_violations": top,
         "coverages": prediction.get("담보추천") or [],
+        "memo": memo_text,
     }
     html = _render_html(context)
     return _html_to_pdf_bytes(html)
