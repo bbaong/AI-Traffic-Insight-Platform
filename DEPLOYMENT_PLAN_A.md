@@ -259,8 +259,32 @@ PDF가 데모에 필수면 같은 2GB A 구성에서는 비추천입니다.
 2. Backend: npm ci → npx prisma generate → npm run build → restart
 3. AI: 필요 시 pip → pkl 동기화 → restart
 4. Frontend: VITE_* 넣고 build → Pages 배포
-5. 스모크: AI /health, 로그인, predict-ins, predict-gov
+5. 스모크: AI /health, 로그인, predict-ins, `GET /api/prediction/gov-forecasts`
 ```
+
+---
+
+## Gov 배치 스케줄 (AI와 DB가 다른 서버일 때)
+
+방안 A는 당장 BE+AI 동일 인스턴스도 가능하지만, **이후 AI만 별도 서버**로 빼는 전제에도 배치 위치는 같습니다.
+
+| 위치 | 할지 |
+|------|------|
+| **AI 서버** cron / systemd | ✅ `scripts/run_gov_forecast_batch.sh` (또는 `batch_gov_forecast.py`) |
+| MySQL(Managed DB) | ❌ 사용자 cron 없음. Trusted sources에 **AI 출구 IP** 허용 |
+| Backend 서버 | ❌ 배치 실행 안 함 (스냅샷 **조회**만) |
+| 개발자 PC 작업 스케줄러 | ❌ 등록하지 않음 |
+
+흐름: AI에서 pkl 추론 → `DATABASE_URL`(remote)로 `gov_forecast_*` INSERT → Backend `gov-forecasts`가 최신 `SUCCEEDED` 조회.
+
+상세·cron 예시: [`ai/README.md`](ai/README.md) 「Gov 예측 배치」절.
+
+AI를 분리할 때 추가 확인:
+
+1. DB Trusted sources에 AI Static IP
+2. AI에 `DATABASE_URL` + PyMySQL + pkl
+3. cron은 AI에만 (`CRON_TZ=Asia/Seoul`, 예: 매주 월 03:00)
+4. Backend↔AI(예측 폴백)와 AI→DB(배치) 네트워크를 각각 열어 둘 것
 
 ---
 
@@ -277,6 +301,7 @@ PDF가 데모에 필수면 같은 2GB A 구성에서는 비추천입니다.
 9. Frontend 빌드·정적 배포, 카카오 도메인 등록
 10. CORS를 프론트 도메인으로 제한
 11. 22번은 본인 IP만, 5000/8000 공인 차단
+12. (AI 분리 시) AI 서버 cron으로 Gov 배치, DB에 AI IP 허용 — PC 스케줄러 사용 금지
 
 ---
 

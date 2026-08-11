@@ -1,8 +1,10 @@
 import 'dotenv/config';
 import { Request, Response } from 'express';
+import { getLatestGovForecast } from '../services/govForecast.service';
 
 const AI_BASE = process.env.AI_SERVICE_URL ?? 'http://localhost:8000';
 
+/** POST /api/prediction/ins — 사고예측 요청 */
 export const predictIns = async (req: Request, res: Response) => {
   try {
     const { 구군, 연령대, 성별, 차종, 주야, 노면상태 } = req.body;
@@ -48,6 +50,7 @@ export const predictIns = async (req: Request, res: Response) => {
   }
 };
 
+/** POST /api/prediction/gov — 지자체 예측 요청 */
 export const predictGov = async (req: Request, res: Response) => {
   try {
     const { 지역, as_of, freq } = req.body ?? {};
@@ -83,6 +86,31 @@ export const predictGov = async (req: Request, res: Response) => {
   }
 };
 
+/** GET /api/prediction/gov-forecasts — Gov 예측 스냅샷 조회 */
+export const getGovForecasts = async (req: Request, res: Response) => {
+  try {
+    const freq = (req.query.freq as 'Q' | 'H' | undefined) ?? 'Q';
+    const as_of = req.query.as_of as string | undefined;
+    const scope = (req.query.scope as string | undefined) ?? 'DAEGU';
+
+    const data = await getLatestGovForecast({ freq, as_of, scope });
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        message: '저장된 Gov 예측 스냅샷이 없습니다. 배치를 먼저 실행하세요.',
+      });
+    }
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: error instanceof Error ? error.message : 'forecast 조회 실패',
+    });
+  }
+};
+
+/** POST /api/prediction/gov-history — 지자체 history 예측 요청 */
 export const predictGovHistory = async (req: Request, res: Response) => {
   try {
     const { 지역, as_of, n_history } = req.body ?? {};
@@ -178,6 +206,7 @@ export const predictGovHotspots = async (req: Request, res: Response) => {
   }
 };
 
+/** GET /api/prediction — 예측 요청 테스트 */
 export const getPrediction = async (_req: Request, res: Response) => {
   return res.status(501).json({
     success: false,
@@ -185,7 +214,7 @@ export const getPrediction = async (_req: Request, res: Response) => {
   });
 };
 
-/** POST /api/prediction/gov-report-pdf — AI GOV PDF proxy */
+/** POST /api/prediction/gov-report-pdf — AI GOV PDF 생성 */
 export const predictGovReportPdf = async (req: Request, res: Response) => {
   try {
     const { 지역 } = req.body ?? {};
