@@ -18,6 +18,7 @@
 | [signup-ins-form.md](signup-ins-form.md) | 보험사 회원가입 폼 |
 | [signup-api-integration.md](signup-api-integration.md) | 회원가입 API 연동 |
 | [mypage.md](mypage.md) | 마이페이지 |
+| [ins-customers-page.md](ins-customers-page.md) | 보험사 고객관리 (목록·이력 실API + 리포트 목업) |
 
 ---
 

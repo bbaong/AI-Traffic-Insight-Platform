@@ -13,6 +13,7 @@ import { RoleRoute } from './RoleRoute';
 import { MyPage } from '../../pages/mypage/MyPage';
 import { SettingsGate } from '../../pages/settings/SettingsGate';
 import { ReportsPage } from '../../domains/reports/pages/ReportsPage';
+import { CustomersPage } from '../../domains/ins/pages/CustomersPage';
 
 /**
  * 앱 라우터.
@@ -38,6 +39,7 @@ export function AppRouter() {
           </Route>
           <Route element={<RoleRoute allow="ROLE_B" />}>
             <Route path={ROUTES.DASHBOARD_INS} element={<InsDashboardPage />} />
+            <Route path={ROUTES.CUSTOMERS} element={<CustomersPage />} />
           </Route>
           <Route path={ROUTES.REPORTS} element={<ReportsPage />} />
           <Route path={ROUTES.MYPAGE} element={<MyPage />} />

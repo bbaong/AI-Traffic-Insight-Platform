@@ -27,17 +27,19 @@ model accident_condition_stats {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model accident_records {
-  record_id         BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
-  district_id       Int                          @db.UnsignedInt
-  accident_date     DateTime                     @db.Date
-  time_of_day       accident_records_time_of_day
-  weather_condition String                       @db.VarChar(20)
-  road_condition    String                       @db.VarChar(20)
-  vehicle_type      String                       @db.VarChar(20)
-  severity          accident_records_severity
-  source            String                       @default("TAAS") @db.VarChar(50)
-  created_at        DateTime                     @default(now()) @db.DateTime(0)
-  districts         districts                    @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_accrecord_district")
+  record_id                BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
+  district_id              Int                          @db.UnsignedInt
+  accident_date            DateTime                     @db.Date
+  time_of_day              accident_records_time_of_day
+  weather_condition        String                       @db.VarChar(20)
+  road_condition           String                       @db.VarChar(20)
+  vehicle_type             String                       @db.VarChar(20)
+  severity                 accident_records_severity
+  accident_type            String?                      @db.VarChar(50)
+  weather_condition_actual String?                      @db.VarChar(20)
+  source                   String                       @default("TAAS") @db.VarChar(50)
+  created_at               DateTime                     @default(now()) @db.DateTime(0)
+  districts                districts                    @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_accrecord_district")
 
   @@index([district_id, accident_date], map: "idx_accrecord_district_date")
 }
