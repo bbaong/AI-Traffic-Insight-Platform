@@ -116,23 +116,25 @@
 
 .selectionHint {
   position: absolute;
-  right: 10px;
-  left: auto;
-  bottom: 10px;
+  top: 10px;
+  left: 10px;
   z-index: 2;
   margin: 0;
   padding: 4px 8px;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.92);
   border: 0.5px solid var(--color-border-strong);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 8%);
   font-size: 12px;
   color: var(--color-ink);
+  white-space: nowrap;
   pointer-events: none;
 }
+
 .expandBtn {
   position: absolute;
-  left: 10px;
-  right: auto;
+  left: auto;
+  right: 10px;
   bottom: 10px;
   z-index: 3;
   width: auto;

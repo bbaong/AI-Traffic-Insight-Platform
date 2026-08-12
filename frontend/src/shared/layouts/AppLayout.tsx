@@ -8,7 +8,6 @@ import styles from './AppLayout.module.css';
 
 const SIDEBAR_DRAWER_MQ = '(max-width: 1100px)';
 const APP_SHELL_CLASS = 'app-shell';
-const INS_CUSTOMERS_PAGE_CLASS = 'ins-customers-page';
 
 export function AppLayout() {
   const user = useAuthStore((s) => s.user);
@@ -23,18 +22,10 @@ export function AppLayout() {
       document.getElementById('root'),
     ];
     roots.forEach((el) => el?.classList.add(APP_SHELL_CLASS));
-    if (isInsCustomers) {
-      roots.forEach((el) => el?.classList.add(INS_CUSTOMERS_PAGE_CLASS));
-    } else {
-      roots.forEach((el) => el?.classList.remove(INS_CUSTOMERS_PAGE_CLASS));
-    }
     return () => {
-      roots.forEach((el) => {
-        el?.classList.remove(APP_SHELL_CLASS);
-        el?.classList.remove(INS_CUSTOMERS_PAGE_CLASS);
-      });
+      roots.forEach((el) => el?.classList.remove(APP_SHELL_CLASS));
     };
-  }, [isInsCustomers]);
+  }, []);
 
   useEffect(() => {
     const mq = window.matchMedia(SIDEBAR_DRAWER_MQ);
@@ -84,7 +75,7 @@ export function AppLayout() {
 
   return (
     <div
-      className={`${styles.layout}${isInsCustomers ? ` ${styles.layoutInsCustomers}` : ''}`}
+      className={styles.layout}
       data-accent={user.role === 'ROLE_A' ? 'teal' : 'amber'}
     >
       <div
@@ -100,9 +91,7 @@ export function AppLayout() {
       />
 
       <div
-        className={`${styles.mainColumn}${
-          isInsCustomers ? ` ${styles.mainColumnInsCustomers}` : ''
-        }`}
+        className={styles.mainColumn}
       >
         <Header
           title={title}

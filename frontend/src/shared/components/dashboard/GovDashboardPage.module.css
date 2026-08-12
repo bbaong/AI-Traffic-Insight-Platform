@@ -233,6 +233,31 @@
   padding-bottom: 8px;
 }
 
+/*
+  GOV 대시보드 반응형 요약
+  ─────────────────────────────────────────────────────────
+  기본 레이아웃 (가로 넓음, 1281px+)
+    row1: [지도 1.55fr | 비교 1fr]
+    row2: [추세 1.7fr | AI제안 1fr | TOP3 1fr]
+
+  가로 줄어듦 (breakpoint 순)
+    1280px↓  row2만 1열 (추세·제안·TOP3 세로 스택)
+    1120px↓  row1도 1열 (지도·비교 세로 스택) + 지도 min-height ↑
+
+  세로 줄어듦 (1121px+ 이면서 max-height 700px)
+    grid 열 수는 유지, row min-height만 키움
+    카드 압축 대신 govPage가 길어지고 AppLayout .content 에서 스크롤
+
+  지도 레이어 확장 (.govPageMapExpanded)
+    row2 숨김, row1=지도만, min-height = 100dvh - header
+    가로 1120px↓ / 세로 700px↓ 에서도 동일하게 큰 지도 유지
+
+  컴포넌트 단위 (이 파일 밖)
+    · MapCard: 오버레이 absolute, 지도 min-height
+    · SeverityStackedCard: 상해정도별 선·점 + 예측 구간 점선
+  ─────────────────────────────────────────────────────────
+*/
+
 .row1,
 .row2 {
   display: grid;
@@ -305,7 +330,7 @@
   min-height: calc(100dvh - var(--header-height) - 88px);
 }
 
-/* 추세 3열이 좁아져 막대가 겹치기 전에 하단만 세로 전환 */
+/* ── 가로 1280px↓: 하단 3열 → 1열 (막대 겹침 방지, row1은 2열 유지) ── */
 @media (max-width: 1280px) {
   .row2 {
     grid-template-columns: 1fr;
@@ -320,6 +345,7 @@
   }
 }
 
+/* ── 가로 1120px↓: 상단 2열 → 1열 (지도·비교 세로 스택) + 지도 확장 대응 ── */
 @media (max-width: 1120px) {
   .govPage {
     min-height: auto;
@@ -369,7 +395,7 @@
   }
 }
 
-/* 세로 짧을 때: 카드 압축 대신 본문이 아래로 늘어남 (쉘 페이지 스크롤과 맞춤) */
+/* ── 세로 700px↓ (가로 1121px+): 열 배치 유지, row min-height만 확보 → content 스크롤 ── */
 @media (min-width: 1121px) and (max-height: 700px) {
   .govPage {
     min-height: auto;

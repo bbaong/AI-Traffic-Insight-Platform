@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { DashboardCard } from '../../../shared/components/dashboard';
 import { DAEGU_DISTRICTS } from '../../../shared/constants/daeguBoundaries';
@@ -14,6 +15,46 @@ export interface PriorityTop3CardProps {
   onSelectCode: (code: string) => void;
 }
 
+function CriticalRateHint() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      className={styles.hintWrap}
+      onMouseEnter={() => setOpen(true)}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <button
+        type="button"
+        className={styles.hintTrigger}
+        aria-label="중대사고율 설명"
+        aria-expanded={open}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span>중대사고율이란?</span>
+        <span className={styles.hintIcon} aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+            <path
+              d="M12 11v5M12 8.5v.01"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
+        </span>
+      </button>
+      {open ? (
+        <div className={styles.hintPop} role="tooltip">
+         전체 사고 중 사망자+중상자 비율
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function PriorityTop3Card({
   rows,
   selectedCode,
@@ -24,9 +65,7 @@ export function PriorityTop3Card({
   return (
     <DashboardCard
       title="구별 우선점검 TOP3"
-      action={
-        <p className={styles.metaHint}>예측 중대사고율(%) 높은 순 · TOP3</p>
-      }
+      action={<CriticalRateHint />}
     >
       <div className={styles.panel}>
         {loading ? (
