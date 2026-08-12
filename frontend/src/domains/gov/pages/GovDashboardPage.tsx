@@ -402,6 +402,7 @@ export function GovDashboardPage() {
             hotspotYear={hotspotYear}
             mapExpanded={mapExpanded}
             onToggleMapExpand={() => setMapExpanded((v) => !v)}
+            showRegionFilters
             legend={[
               { label: '중대율 상위 25%', color: RISK_COLORS.CRITICAL },
               { label: '상위 25–50%', color: RISK_COLORS.HIGH },

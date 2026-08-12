@@ -272,6 +272,7 @@
 .cellTop3 > * {
   flex: 1;
   min-height: 0;
+  min-width: 0;
 }
 
 .cellMap {
@@ -304,23 +305,34 @@
   min-height: calc(100dvh - var(--header-height) - 88px);
 }
 
-@media (max-width: 1120px) {
-  .govPage {
-    min-height: auto;
-  }
-
-  .row1,
+/* 추세 3열이 좁아져 막대가 겹치기 전에 하단만 세로 전환 */
+@media (max-width: 1280px) {
   .row2 {
     grid-template-columns: 1fr;
     flex: none;
     min-height: 0;
   }
 
-  .cellMap,
-  .cellCompare,
   .cellTrend,
   .cellSuggest,
   .cellTop3 {
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 1120px) {
+  .govPage {
+    min-height: auto;
+  }
+
+  .row1 {
+    grid-template-columns: 1fr;
+    flex: none;
+    min-height: 0;
+  }
+
+  .cellMap,
+  .cellCompare {
     min-height: 240px;
   }
 

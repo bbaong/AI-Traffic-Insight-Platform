@@ -20,10 +20,10 @@ const SEVERITY_COLORS: Record<string, string> = {
     부상신고사고: '#fff',
   };
 
-  function formatPeriod(raw: string): { year: string; quarter: string } {
+  function formatPeriod(raw: string): string {
     const q = /^(\d{4})Q([1-4])$/i.exec(raw);
-    if (q) return { year: `${q[1].slice(2)}년`, quarter: `${q[2]}분기` };
-    return { year: raw, quarter: '' };
+    if (q) return `${q[1].slice(2)}년 ${q[2]}분기`;
+    return raw;
   }
 
 export interface SeverityStackedCardProps {
@@ -107,10 +107,11 @@ export function SeverityStackedCard({
                 ? `예측 ${point.사고건수.toLocaleString('ko-KR')}`
                 : point.사고건수.toLocaleString('ko-KR')}
             </span>
-            <div
+            <div className={styles.stackWrap}>
+              <div
                 className={styles.stack}
-                style={{ height: `${(point.사고건수 / maxTotal) * 95}%` }}
-            >
+                style={{ height: `${(point.사고건수 / maxTotal) * 100}%` }}
+              >
                 {[...GOV_SEVERITY_KEYS].reverse().map((key) => {
                   const count = point.경중_건수[key] ?? 0;
                   const pct =
@@ -135,18 +136,9 @@ export function SeverityStackedCard({
                     </div>
                   );
                 })}
+              </div>
             </div>
-            <span className={styles.label}>
-              {(() => {
-                const period = formatPeriod(point.분기);
-                return (
-                  <>
-                    <span>{period.year}</span>
-                    <span>{period.quarter}</span>
-                  </>
-                );
-              })()}
-            </span>
+            <span className={styles.label}>{formatPeriod(point.분기)}</span>
           </div>
         ))}
       </div>
