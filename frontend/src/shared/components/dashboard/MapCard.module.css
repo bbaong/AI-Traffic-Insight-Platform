@@ -167,15 +167,11 @@
 .regionFilters {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
   gap: 6px;
-  flex-shrink: 1;
-  min-width: 0;
-  flex-wrap: wrap;
+  flex-shrink: 0;
 }
-
 .regionSelect {
-  height: 30px;
+  height: 28px;
   padding: 0 8px;
   border: 0.5px solid var(--color-border-strong);
   border-radius: 6px;
@@ -184,8 +180,7 @@
   font-size: 12px;
   color: var(--color-body);
   cursor: pointer;
-  min-width: 0;
-  max-width: 140px;
+  max-width: 130px;
 }
 
 .regionSelect:disabled {
