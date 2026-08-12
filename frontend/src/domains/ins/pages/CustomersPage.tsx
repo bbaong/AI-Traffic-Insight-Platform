@@ -12,8 +12,10 @@ import {
   fetchConsultationReport,
   fetchCustomerConsultations,
   fetchCustomers,
+  hideCustomers,
 } from '../api/customers';
 import { ReportDrawer } from '../components/customers/ReportDrawer';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import {
   CONSULTATION_TYPE_META,
   RIDER_BADGE_META,
@@ -56,10 +58,15 @@ export function CustomersPage() {
   const [page, setPage] = useState(1);
 
   const [list, setList] = useState<CustomerListItem[]>([]);
+  const [listNonce, setListNonce] = useState(0);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(() => new Set());
+  const [hideOpen, setHideOpen] = useState(false);
+  const [hiding, setHiding] = useState(false);
+  const [hideError, setHideError] = useState<string | null>(null);
   const [detail, setDetail] = useState<ConsultationsResponse | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
@@ -88,6 +95,13 @@ export function CustomersPage() {
         if (cancelled) return;
         setList(rows);
         setPage(1);
+        setCheckedIds((prev) => {
+          const next = new Set<string>();
+          for (const id of prev) {
+            if (rows.some((r) => r.customerId === id)) next.add(id);
+          }
+          return next;
+        });
         setSelectedId((prev) => {
           if (prev && rows.some((r) => r.customerId === prev)) return prev;
           return rows[0]?.customerId ?? null;
@@ -97,6 +111,7 @@ export function CustomersPage() {
         if (cancelled) return;
         setList([]);
         setSelectedId(null);
+        setCheckedIds(new Set());
         setListError(
           e instanceof Error ? e.message : '고객 목록을 불러오지 못했습니다.',
         );
@@ -107,7 +122,7 @@ export function CustomersPage() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedQ]);
+  }, [debouncedQ, listNonce]);
 
   useEffect(() => {
     if (!selectedId) {
@@ -162,6 +177,67 @@ export function CustomersPage() {
 
   const selectedCustomer =
     list.find((r) => r.customerId === selectedId) ?? detail?.customer ?? null;
+
+  const checkedCustomers = useMemo(
+    () => filteredList.filter((row) => checkedIds.has(row.customerId)),
+    [filteredList, checkedIds],
+  );
+  const allPageChecked =
+    pagedList.length > 0 &&
+    pagedList.every((row) => checkedIds.has(row.customerId));
+  const somePageChecked = pagedList.some((row) => checkedIds.has(row.customerId));
+
+  function toggleChecked(id: string, on: boolean) {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function togglePageChecks() {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (allPageChecked) {
+        for (const row of pagedList) next.delete(row.customerId);
+      } else {
+        for (const row of pagedList) next.add(row.customerId);
+      }
+      return next;
+    });
+  }
+
+  async function confirmHide() {
+    if (hiding || checkedCustomers.length === 0) return;
+    setHiding(true);
+    setHideError(null);
+    try {
+      const { hiddenIds, failed } = await hideCustomers(
+        checkedCustomers.map((row) => row.customerId),
+      );
+      if (failed.length === 0) {
+        setCheckedIds(new Set());
+        setHideOpen(false);
+      } else {
+        setCheckedIds(new Set(failed.map((item) => item.id)));
+        setHideError(
+          hiddenIds.length > 0
+            ? `${hiddenIds.length}명은 삭제됐고, ${failed.length}명은 실패했습니다.`
+            : failed[0]?.message ?? '고객을 삭제하지 못했습니다.',
+        );
+        setHideOpen(false);
+      }
+      if (hiddenIds.length > 0) setListNonce((n) => n + 1);
+    } catch (e: unknown) {
+      setHideError(
+        e instanceof Error ? e.message : '고객을 삭제하지 못했습니다.',
+      );
+      setHideOpen(false);
+    } finally {
+      setHiding(false);
+    }
+  }
 
   const filteredConsults = useMemo(() => {
     const rows = detail?.data ?? [];
@@ -285,7 +361,26 @@ export function CustomersPage() {
 
       <div className={styles.grid}>
         <section className={styles.listCard} aria-label="고객 목록">
-          <h2 className={styles.cardTitle}>고객 목록</h2>
+          <div className={styles.listHead}>
+            <h2 className={styles.cardTitle}>고객 목록</h2>
+            <button
+              type="button"
+              className={styles.deleteBtn}
+              disabled={checkedCustomers.length === 0 || hiding}
+              onClick={() => {
+                setHideError(null);
+                setHideOpen(true);
+              }}
+            >
+              삭제
+              {checkedCustomers.length > 0 ? ` (${checkedCustomers.length})` : ''}
+            </button>
+          </div>
+          {hideError ? (
+            <p className={styles.error} role="alert">
+              {hideError}
+            </p>
+          ) : null}
           {listLoading ? (
             <p className={styles.hint}>목록을 불러오는 중…</p>
           ) : listError ? (
@@ -299,7 +394,20 @@ export function CustomersPage() {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th className={styles.radioCol} />
+                    <th className={styles.checkCol}>
+                      <input
+                        type="checkbox"
+                        className={styles.check}
+                        checked={allPageChecked}
+                        ref={(el) => {
+                          if (el) {
+                            el.indeterminate = somePageChecked && !allPageChecked;
+                          }
+                        }}
+                        onChange={togglePageChecks}
+                        aria-label="현재 페이지 고객 전체 선택"
+                      />
+                    </th>
                     <th>고객명</th>
                     <th>휴대폰 번호</th>
                     <th>최근 상담일</th>
@@ -309,18 +417,23 @@ export function CustomersPage() {
                 <tbody>
                   {pagedList.map((row) => {
                     const active = row.customerId === selectedId;
+                    const checked = checkedIds.has(row.customerId);
                     return (
                       <tr
                         key={row.customerId}
                         className={active ? styles.rowActive : ''}
                         onClick={() => setSelectedId(row.customerId)}
                       >
-                        <td className={styles.radioCol}>
-                          <span
-                            className={`${styles.radio} ${
-                              active ? styles.radioOn : ''
-                            }`}
-                            aria-hidden="true"
+                        <td className={styles.checkCol}>
+                          <input
+                            type="checkbox"
+                            className={styles.check}
+                            checked={checked}
+                            onChange={(e) =>
+                              toggleChecked(row.customerId, e.target.checked)
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`${row.name} 선택`}
                           />
                         </td>
                         <td className={styles.nameCell}>{row.name}</td>
@@ -687,6 +800,32 @@ export function CustomersPage() {
         }
         onDownloadPdf={downloadReportPdf}
         onClose={() => setReportOpen(false)}
+      />
+      <ConfirmDialog
+        open={hideOpen}
+        title="고객 삭제"
+        message={
+          checkedCustomers.length === 1
+            ? `'${checkedCustomers[0]?.name ?? '선택한 고객'}' 님을 목록에서 삭제하시겠습니까?`
+            : `선택한 ${checkedCustomers.length}명의 고객을 목록에서 삭제하시겠습니까?`
+        }
+        detail={
+          checkedCustomers.length > 1
+            ? `${checkedCustomers
+                .slice(0, 8)
+                .map((row) => row.name)
+                .join(', ')}${checkedCustomers.length > 8 ? ' …' : ''} · 상담 이력은 보관됩니다.`
+            : '상담 이력은 보관되며, 목록에서만 사라집니다.'
+        }
+        confirmLabel={hiding ? '삭제 중…' : '삭제'}
+        cancelLabel="취소"
+        busy={hiding}
+        onConfirm={() => {
+          void confirmHide();
+        }}
+        onCancel={() => {
+          if (!hiding) setHideOpen(false);
+        }}
       />
     </div>
   );

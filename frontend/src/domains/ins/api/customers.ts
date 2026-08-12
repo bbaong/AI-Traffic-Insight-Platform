@@ -39,6 +39,68 @@ export async function fetchCustomers(q?: string): Promise<CustomerListItem[]> {
   return json.data;
 }
 
+export interface HideCustomerResult {
+  customerId: string;
+  isHidden: boolean;
+  hiddenAt: string | null;
+}
+
+/** PATCH /api/customers/:id/hide — Soft Delete(목록 숨김) */
+export async function hideCustomer(
+  customerId: string,
+): Promise<HideCustomerResult> {
+  const res = await fetch(
+    `${API_BASE}/api/customers/${encodeURIComponent(customerId)}/hide`,
+    { method: 'PATCH' },
+  );
+  const json = await readJson<ApiResponse<HideCustomerResult>>(res);
+
+  if (res.status === 404) {
+    throw new Error(json.message ?? '고객을 찾을 수 없습니다.');
+  }
+  if (res.status === 400) {
+    throw new Error(json.message ?? '잘못된 고객입니다.');
+  }
+  if (!res.ok || !json.success || !json.data) {
+    throw new Error(json.message ?? '고객을 삭제하지 못했습니다.');
+  }
+  return json.data;
+}
+
+/** 여러 고객을 순차 숨김. 일부 실패해도 나머지는 진행 */
+export async function hideCustomers(customerIds: string[]): Promise<{
+  hiddenIds: string[];
+  failed: Array<{ id: string; message: string }>;
+}> {
+  const hiddenIds: string[] = [];
+  const failed: Array<{ id: string; message: string }> = [];
+
+  const results = await Promise.allSettled(
+    customerIds.map(async (id) => {
+      await hideCustomer(id);
+      return id;
+    }),
+  );
+
+  results.forEach((result, i) => {
+    const id = customerIds[i];
+    if (!id) return;
+    if (result.status === 'fulfilled') {
+      hiddenIds.push(id);
+      return;
+    }
+    failed.push({
+      id,
+      message:
+        result.reason instanceof Error
+          ? result.reason.message
+          : '고객을 삭제하지 못했습니다.',
+    });
+  });
+
+  return { hiddenIds, failed };
+}
+
 /** GET /api/customers/:id/consultations */
 export async function fetchCustomerConsultations(
   customerId: string,
