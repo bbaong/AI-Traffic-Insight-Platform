@@ -47,6 +47,12 @@ export function InsStep1Analyze({
   onAnalyze,
   onNext,
 }: Props) {
+  const phoneDigits = customer.phone.replace(/\D/g, '');
+  const canAnalyze =
+    customer.name.trim().length > 0 &&
+    phoneDigits.length >= 10 &&
+    phoneDigits.length <= 11;
+
   return (
     <div className={styles.stepRoot}>
       <div className={styles.grid2}>
@@ -57,7 +63,9 @@ export function InsStep1Analyze({
             <div className={styles.cardBody}>
               <div className={styles.fieldStack}>
                 <label className={styles.field} htmlFor="customer-name">
-                  <span className={styles.fieldLabel}>고객명</span>
+                  <span className={styles.fieldLabel}>
+                    고객명 <span className={styles.requiredMark}>*</span>
+                  </span>
                   <input
                     id="customer-name"
                     className={styles.input}
@@ -67,10 +75,13 @@ export function InsStep1Analyze({
                     }
                     placeholder="홍길동"
                     autoComplete="name"
+                    required
                   />
                 </label>
                 <label className={styles.field} htmlFor="customer-phone">
-                  <span className={styles.fieldLabel}>휴대폰</span>
+                  <span className={styles.fieldLabel}>
+                    휴대폰 번호 <span className={styles.requiredMark}>*</span>
+                  </span>
                   <input
                     id="customer-phone"
                     className={styles.input}
@@ -84,6 +95,7 @@ export function InsStep1Analyze({
                     placeholder="휴대폰 번호(-없이)"
                     inputMode="numeric"
                     autoComplete="tel"
+                    required
                   />
                 </label>
 
@@ -173,7 +185,7 @@ export function InsStep1Analyze({
                 type="button"
                 className={styles.primaryBtn}
                 onClick={onAnalyze}
-                disabled={analyzeLoading}
+                disabled={analyzeLoading || !canAnalyze}
               >
                 {analyzeLoading ? (
                   <>

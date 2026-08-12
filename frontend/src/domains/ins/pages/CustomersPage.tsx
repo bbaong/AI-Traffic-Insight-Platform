@@ -1,10 +1,13 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 import {
   fetchConsultationReport,
   fetchCustomerConsultations,
@@ -24,6 +27,7 @@ import {
   toRiderBadge,
   toRiskGrade,
 } from '../constants/insEnums';
+import { CONSULT_TYPE_OPTIONS } from '../constants/consultTypes';
 import { fetchInsReportPdf } from '../api/reportPdf';
 import type {
   Consultation,
@@ -38,10 +42,10 @@ const PAGE_SIZE = 10;
 const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
   [
     { id: 'ALL', label: '전체' },
-    { id: 'NEW', label: '신규' },
-    { id: 'RENEWAL', label: '갱신' },
-    { id: 'CLAIM', label: '클레임' },
-    { id: 'COVERAGE_ANALYSIS', label: '보장분석' },
+    ...CONSULT_TYPE_OPTIONS.map((opt) => ({
+      id: opt.value,
+      label: opt.label,
+    })),
   ];
 
 export function CustomersPage() {
@@ -236,14 +240,14 @@ export function CustomersPage() {
     <div className={styles.page}>
       <div className={styles.filterBar}>
         <label className={styles.searchWrap}>
-          <span className={styles.fieldLabel}>고객명 / 연락처 검색</span>
+          <span className={styles.fieldLabel}>고객명 / 휴대폰 번호 검색</span>
           <span className={styles.searchBox}>
             <SearchIcon />
             <input
               className={styles.searchInput}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="이름 또는 전화번호"
+              placeholder="이름 또는 휴대폰 번호"
             />
           </span>
         </label>
@@ -297,7 +301,7 @@ export function CustomersPage() {
                   <tr>
                     <th className={styles.radioCol} />
                     <th>고객명</th>
-                    <th>연락처</th>
+                    <th>휴대폰 번호</th>
                     <th>최근 상담일</th>
                     <th>상담 수</th>
                   </tr>
@@ -410,7 +414,7 @@ export function CustomersPage() {
                   </div>
                   <div className={styles.infoGrid}>
                     <InfoTile icon={<PersonIcon />} label="고객명" value={selectedCustomer?.name ?? '-'} />
-                    <InfoTile icon={<PhoneIcon />} label="연락처" value={selectedCustomer?.phone ?? '-'} />
+                    <InfoTile icon={<PhoneIcon />} label="휴대폰 번호" value={selectedCustomer?.phone ?? '-'} />
                     <InfoTile icon={<CalendarIcon />} label="연령대" value={profile?.ageGroup ?? '-'} />
                     <InfoTile icon={<GenderIcon />} label="성별" value={genderLabel(profile?.gender)} />
                     <InfoTile icon={<CarIcon />} label="차종" value={profile?.vehicleType ?? '-'} />
@@ -515,26 +519,10 @@ export function CustomersPage() {
                                   onKeyDown={(e) => e.stopPropagation()}
                                 >
                                   {memoText ? (
-                                    <div className={styles.memoHover}>
-                                      <button
-                                        type="button"
-                                        className={styles.iconBtn}
-                                        aria-label={`${memoDate} 상담 메모`}
-                                      >
-                                        <MemoIcon />
-                                      </button>
-                                      <div
-                                        className={styles.memoPop}
-                                        role="tooltip"
-                                      >
-                                        <p className={styles.memoPopTitle}>
-                                          {memoDate} 상담 메모
-                                        </p>
-                                        <p className={styles.memoPopBody}>
-                                          {memoText}
-                                        </p>
-                                      </div>
-                                    </div>
+                                    <HistoryMemoPopover
+                                      title={`${memoDate} 상담 메모`}
+                                      body={memoText}
+                                    />
                                   ) : (
                                     <span className={styles.emptyCell}>-</span>
                                   )}
@@ -794,6 +782,119 @@ function PinIcon() {
       />
       <circle cx="12" cy="11" r="2" stroke="currentColor" strokeWidth="1.7" />
     </svg>
+  );
+}
+
+function HistoryMemoPopover({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<number>(0);
+  const [open, setOpen] = useState(false);
+  const [placed, setPlaced] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  const place = useCallback(() => {
+    const btn = btnRef.current;
+    const pop = popRef.current;
+    if (!btn || !pop) return;
+    const r = btn.getBoundingClientRect();
+    const pad = 8;
+    const gap = 6;
+    const w = pop.offsetWidth;
+    const h = pop.offsetHeight;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let top = r.bottom + gap;
+    if (top + h > vh - pad) top = r.top - gap - h;
+    if (top < pad) top = pad;
+
+    let left = r.right - w;
+    if (left < pad) left = pad;
+    if (left + w > vw - pad) left = Math.max(pad, vw - pad - w);
+
+    setPos({ top, left });
+    setPlaced(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    place();
+  }, [open, place, title, body]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onMove() {
+      place();
+    }
+    window.addEventListener('resize', onMove);
+    window.addEventListener('scroll', onMove, true);
+    return () => {
+      window.removeEventListener('resize', onMove);
+      window.removeEventListener('scroll', onMove, true);
+    };
+  }, [open, place]);
+
+  function show() {
+    window.clearTimeout(closeTimer.current);
+    setOpen(true);
+  }
+
+  function hide() {
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => {
+      setOpen(false);
+      setPlaced(false);
+    }, 120);
+  }
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        className={styles.iconBtn}
+        aria-label={title}
+        aria-expanded={open}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
+        onClick={(e) => {
+          e.stopPropagation();
+          window.clearTimeout(closeTimer.current);
+          setOpen((v) => !v);
+        }}
+      >
+        <MemoIcon />
+      </button>
+      {open
+        ? createPortal(
+            <div
+              ref={popRef}
+              className={styles.memoPop}
+              role="tooltip"
+              style={{
+                top: pos.top,
+                left: pos.left,
+                visibility: placed ? 'visible' : 'hidden',
+              }}
+              onMouseEnter={show}
+              onMouseLeave={hide}
+            >
+              <p className={styles.memoPopTitle}>{title}</p>
+              <p className={styles.memoPopBody}>{body}</p>
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
   );
 }
 

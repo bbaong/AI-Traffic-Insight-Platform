@@ -12,7 +12,7 @@ export const CONSULTATION_TYPE_META: Record<
 > = {
   NEW: { label: '신규', color: '#3E6CA6', bg: '#E9F0F8' },
   RENEWAL: { label: '갱신', color: '#2E8B4E', bg: '#E7F4EA' },
-  CLAIM: { label: '사고/청구', color: '#B3261E', bg: '#FBE5E3' },
+  CLAIM: { label: '사고·청구', color: '#B3261E', bg: '#FBE5E3' },
   COVERAGE_ANALYSIS: { label: '담보분석', color: '#7A5AA8', bg: '#F0EBF8' },
   OTHER: { label: '기타', color: '#5A6B80', bg: '#EEF1F5' },
 };

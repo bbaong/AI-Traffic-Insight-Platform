@@ -628,22 +628,11 @@
   color: var(--color-ink);
 }
 
-.memoHover {
-  position: relative;
-}
-
-.memoHover:hover .memoPop,
-.memoHover:focus-within .memoPop {
-  display: block;
-}
-
 .memoPop {
-  display: none;
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 8;
-  width: min(260px, 70vw);
+  position: fixed;
+  z-index: 1200;
+  width: min(260px, calc(100vw - 16px));
+  max-height: min(280px, calc(100vh - 16px));
   padding: 10px 12px;
   border-radius: 8px;
   background: #fff8d6;
@@ -651,6 +640,9 @@
   box-shadow: 0 8px 20px rgb(15 27 45 / 12%);
   text-align: left;
   cursor: default;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .memoPopTitle {
@@ -658,6 +650,7 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--color-ink);
+  flex-shrink: 0;
 }
 
 .memoPopBody {
@@ -666,6 +659,8 @@
   line-height: 1.5;
   color: var(--color-body);
   white-space: pre-wrap;
+  overflow: auto;
+  min-height: 0;
 }
 
 .legend {

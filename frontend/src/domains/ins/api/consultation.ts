@@ -23,7 +23,7 @@ export async function saveConsultation(
     throw new Error('로그인이 필요합니다.');
   }
   if (!payload.customer.name.trim() || !payload.customer.phone.trim()) {
-    throw new Error('고객명·전화번호는 필수입니다.');
+    throw new Error('고객명·휴대폰 번호는 필수입니다.');
   }
   if (
     !payload.profile.region ||
