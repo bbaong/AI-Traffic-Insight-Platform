@@ -69,12 +69,14 @@ const HOTSPOT_FILL = '#8E24AA';
 /** 이 레벨 이하(확대)에서만 전체 다발 원 표시. 숫자가 작을수록 확대 */
 const HOTSPOT_MAX_LEVEL = 7;
 /**
- * 구 선택 setBounds 후 이보다 더 멀어지면(줌아웃) 한 단계 당김.
- * 수성·동구 등 일반 구는 보통 이보다 확대되므로 영향 없고,
- * 달성·군위처럼 경계가 커 과도하게 멀어지는 경우만 보정.
+ * 구 선택 setBounds 후 줌 클램프.
+ * - 너무 확대(level 작음)되면 당김 → 남구·수성 등이 답답하지 않게
+ * - 너무 축소(level 큼)되면 당김 → 달성·군위 과도 줌아웃 방지
  */
+const DISTRICT_MIN_IN_LEVEL = 8;
 const DISTRICT_MAX_OUT_LEVEL = 9;
-const DISTRICT_CLAMP_LEVEL = 8;
+const DISTRICT_CLAMP_OUT_LEVEL = 8;
+const DISTRICT_BOUNDS_PADDING = 56;
 
 const BASE_STROKE = {
   strokeWeight: 1,
@@ -218,6 +220,7 @@ export function MapCard({
     relayout?: () => void;
     setBounds: (...args: unknown[]) => void;
     setCenter: (latlng: unknown) => void;
+    getCenter: () => unknown;
     setLevel: (level: number) => void;
     getLevel: () => number;
   } | null>(null);
@@ -365,11 +368,20 @@ export function MapCard({
       }
     }
 
-    map.setBounds(bounds, 40, 40, 40, 40);
+    map.setBounds(
+      bounds,
+      DISTRICT_BOUNDS_PADDING,
+      DISTRICT_BOUNDS_PADDING,
+      DISTRICT_BOUNDS_PADDING,
+      DISTRICT_BOUNDS_PADDING,
+    );
 
     window.setTimeout(() => {
-      if (map.getLevel() > DISTRICT_MAX_OUT_LEVEL) {
-        map.setLevel(DISTRICT_CLAMP_LEVEL);
+      const level = map.getLevel();
+      if (level < DISTRICT_MIN_IN_LEVEL) {
+        map.setLevel(DISTRICT_MIN_IN_LEVEL);
+      } else if (level > DISTRICT_MAX_OUT_LEVEL) {
+        map.setLevel(DISTRICT_CLAMP_OUT_LEVEL);
       }
       syncHotspotsVisibility(map);
     }, 40);
@@ -411,133 +423,177 @@ export function MapCard({
     }
   };
 
+  const refreshMapTiles = (map: {
+    relayout?: () => void;
+    getCenter?: () => unknown;
+    setCenter?: (latlng: unknown) => void;
+  }) => {
+    map.relayout?.();
+    // 컨테이너 크기 복구 후 타일 재요청 (정비율 아닐 때 빈 지도 방지)
+    const c = map.getCenter?.();
+    if (c && map.setCenter) map.setCenter(c);
+  };
+
   useEffect(() => {
     if (status !== 'loaded') return;
     const container = containerRef.current;
     if (!container) return;
 
     let cancelled = false;
+    let sizeObserver: ResizeObserver | null = null;
+
+    const waitForContainerSize = () =>
+      new Promise<void>((resolve) => {
+        if (container.clientWidth > 0 && container.clientHeight > 0) {
+          resolve();
+          return;
+        }
+        sizeObserver = new ResizeObserver(() => {
+          if (container.clientWidth > 0 && container.clientHeight > 0) {
+            sizeObserver?.disconnect();
+            sizeObserver = null;
+            resolve();
+          }
+        });
+        sizeObserver.observe(container);
+        window.setTimeout(() => {
+          sizeObserver?.disconnect();
+          sizeObserver = null;
+          resolve();
+        }, 2500);
+      });
 
     window.kakao.maps.load(() => {
-      if (cancelled || !containerRef.current) return;
+      void waitForContainerSize().then(() => {
+        if (cancelled || !containerRef.current) return;
 
-      for (const layer of layersRef.current) {
-        for (const poly of layer.polygons) poly.setMap(null);
-      }
-      for (const poly of outlineRef.current) poly.setMap(null);
-      clearCircles();
-      hideLabel();
-      layersRef.current = [];
-      outlineRef.current = [];
-      container.innerHTML = '';
-      mapRef.current = null;
+        for (const layer of layersRef.current) {
+          for (const poly of layer.polygons) poly.setMap(null);
+        }
+        for (const poly of outlineRef.current) poly.setMap(null);
+        clearCircles();
+        hideLabel();
+        layersRef.current = [];
+        outlineRef.current = [];
+        container.innerHTML = '';
+        mapRef.current = null;
 
-      const center = new window.kakao.maps.LatLng(
-        DAEGU_CENTER.lat,
-        DAEGU_CENTER.lng,
-      );
-      const map = new window.kakao.maps.Map(container, {
-        center,
-        level: DAEGU_ZOOM_LEVEL,
-      });
-      mapRef.current = map;
+        const center = new window.kakao.maps.LatLng(
+          DAEGU_CENTER.lat,
+          DAEGU_CENTER.lng,
+        );
+        const map = new window.kakao.maps.Map(container, {
+          center,
+          level: DAEGU_ZOOM_LEVEL,
+        });
+        mapRef.current = map;
 
-      const bounds = new window.kakao.maps.LatLngBounds();
-      const layers: DistrictLayer[] = [];
+        const bounds = new window.kakao.maps.LatLngBounds();
+        const layers: DistrictLayer[] = [];
 
-      for (const district of DAEGU_DISTRICTS) {
-        const risk = riskRef.current[district.code] ?? 'LOW';
-        const polygons: KakaoPolygon[] = [];
-        const base = styleFor(district.code, risk, null, selectedRef.current);
+        for (const district of DAEGU_DISTRICTS) {
+          const risk = riskRef.current[district.code] ?? 'LOW';
+          const polygons: KakaoPolygon[] = [];
+          const base = styleFor(district.code, risk, null, selectedRef.current);
 
-        for (const ring of district.paths) {
+          for (const ring of district.paths) {
+            if (ring.length < 3) continue;
+            const path = ring.map(
+              (p) => new window.kakao.maps.LatLng(p.lat, p.lng),
+            );
+            for (const ll of path) bounds.extend(ll);
+
+            const polygon = new window.kakao.maps.Polygon({
+              path,
+              strokeStyle: 'solid',
+              ...base,
+            });
+            polygon.setMap(map);
+            polygons.push(polygon);
+
+            window.kakao.maps.event.addListener(polygon, 'mouseover', () => {
+              hoveredRef.current = district.code;
+              applyStyles(district.code, selectedRef.current);
+              showLabel(map, district, ring);
+            });
+
+            window.kakao.maps.event.addListener(polygon, 'mouseout', () => {
+              hoveredRef.current = null;
+              applyStyles(null, selectedRef.current);
+              hideLabel();
+            });
+
+            window.kakao.maps.event.addListener(polygon, 'click', () => {
+              focusRingRef.current = ring;
+              selectedRef.current = district.code;
+              setSelectedCode(district.code);
+              applyStyles(hoveredRef.current, district.code);
+              console.log('[MapCard] district select', {
+                code: district.code,
+                districtCode: district.districtCode,
+                name: district.name,
+                risk,
+              });
+              selectCbRef.current?.(district);
+            });
+          }
+
+          if (polygons.length > 0) {
+            layers.push({ district, risk, polygons });
+          }
+        }
+
+        layersRef.current = layers;
+
+        const outlines: KakaoPolygon[] = [];
+        for (const ring of DAEGU_OUTLINE_PATHS) {
           if (ring.length < 3) continue;
           const path = ring.map(
             (p) => new window.kakao.maps.LatLng(p.lat, p.lng),
           );
-          for (const ll of path) bounds.extend(ll);
-
-          const polygon = new window.kakao.maps.Polygon({
+          const outline = new window.kakao.maps.Polygon({
             path,
+            strokeWeight: 2,
+            strokeColor: ACCENT,
+            strokeOpacity: 0.9,
             strokeStyle: 'solid',
-            ...base,
+            fillColor: ACCENT,
+            fillOpacity: 0,
+            zIndex: 0,
           });
-          polygon.setMap(map);
-          polygons.push(polygon);
-
-          window.kakao.maps.event.addListener(polygon, 'mouseover', () => {
-            hoveredRef.current = district.code;
-            applyStyles(district.code, selectedRef.current);
-            showLabel(map, district, ring);
-          });
-
-          window.kakao.maps.event.addListener(polygon, 'mouseout', () => {
-            hoveredRef.current = null;
-            applyStyles(null, selectedRef.current);
-            hideLabel();
-          });
-
-          window.kakao.maps.event.addListener(polygon, 'click', () => {
-            focusRingRef.current = ring;
-            selectedRef.current = district.code;
-            setSelectedCode(district.code);
-            applyStyles(hoveredRef.current, district.code);
-            console.log('[MapCard] district select', {
-              code: district.code,
-              districtCode: district.districtCode,
-              name: district.name,
-              risk,
-            });
-            selectCbRef.current?.(district);
-          });
+          outline.setMap(map);
+          outlines.push(outline);
         }
+        outlineRef.current = outlines;
 
-        if (polygons.length > 0) {
-          layers.push({ district, risk, polygons });
-        }
-      }
-
-      layersRef.current = layers;
-
-      const outlines: KakaoPolygon[] = [];
-      for (const ring of DAEGU_OUTLINE_PATHS) {
-        if (ring.length < 3) continue;
-        const path = ring.map(
-          (p) => new window.kakao.maps.LatLng(p.lat, p.lng),
-        );
-        const outline = new window.kakao.maps.Polygon({
-          path,
-          strokeWeight: 2,
-          strokeColor: ACCENT,
-          strokeOpacity: 0.9,
-          strokeStyle: 'solid',
-          fillColor: ACCENT,
-          fillOpacity: 0,
-          zIndex: 0, // 구군(선택 zIndex 5)보다 아래
+        syncHotspotsVisibility(map);
+        window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
+          syncHotspotsVisibility(map);
         });
-        outline.setMap(map);
-        outlines.push(outline);
-      }
-      outlineRef.current = outlines;
 
-      syncHotspotsVisibility(map);
-      window.kakao.maps.event.addListener(map, 'zoom_changed', () => {
-        syncHotspotsVisibility(map);
+        window.setTimeout(() => {
+          if (cancelled || mapRef.current !== map) return;
+          refreshMapTiles(map);
+          const selected = selectedRef.current;
+          const selectedDistrict = selected
+            ? DAEGU_DISTRICTS.find((d) => d.code === selected)
+            : null;
+          if (selectedDistrict) {
+            focusDistrict(map, selectedDistrict);
+          } else if (!bounds.isEmpty?.()) {
+            map.setBounds(bounds, 40, 40, 40, 40);
+            syncHotspotsVisibility(map);
+          } else {
+            map.setCenter(center);
+            syncHotspotsVisibility(map);
+          }
+        }, 100);
       });
-
-      window.setTimeout(() => {
-        map.relayout?.();
-        if (!bounds.isEmpty?.()) {
-          map.setBounds(bounds, 40, 40, 40, 40);
-        } else {
-          map.setCenter(center);
-        }
-        syncHotspotsVisibility(map);
-      }, 0);
     });
 
     return () => {
       cancelled = true;
+      sizeObserver?.disconnect();
       for (const layer of layersRef.current) {
         for (const poly of layer.polygons) poly.setMap(null);
       }
@@ -565,12 +621,36 @@ export function MapCard({
     syncHotspotsVisibility(map);
   }, [hotspots, status]);
 
+  /* 반응형·레이아웃 변화 시 타일 깨짐 방지 */
+  useEffect(() => {
+    if (status !== 'loaded') return;
+    const el = containerRef.current;
+    if (!el) return;
+
+    let timer = 0;
+    const ro = new ResizeObserver(() => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        const map = mapRef.current;
+        if (!map) return;
+        if (el.clientWidth <= 0 || el.clientHeight <= 0) return;
+        refreshMapTiles(map);
+      }, 120);
+    });
+    ro.observe(el);
+
+    return () => {
+      ro.disconnect();
+      window.clearTimeout(timer);
+    };
+  }, [status]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map || status !== 'loaded') return;
 
     const refresh = () => {
-      map.relayout?.();
+      refreshMapTiles(map);
       if (!selectedRef.current || !window.kakao?.maps) return;
       const district = DAEGU_DISTRICTS.find(
         (d) => d.code === selectedRef.current,
@@ -582,7 +662,7 @@ export function MapCard({
     const raf = window.requestAnimationFrame(() => {
       window.requestAnimationFrame(refresh);
     });
-    const t = window.setTimeout(refresh, 100);
+    const t = window.setTimeout(refresh, 160);
 
     return () => {
       window.cancelAnimationFrame(raf);
@@ -604,7 +684,7 @@ export function MapCard({
   }, [selectedCode]);
 
   return (
-    <DashboardCard title={title}>
+    <DashboardCard title={title} className={styles.card}>
       <div className={styles.mapWrap}>
         {status === 'loading' ? (
           <div className={styles.stateBox} aria-busy="true">

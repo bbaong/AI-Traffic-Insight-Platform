@@ -274,13 +274,34 @@
   min-height: 0;
 }
 
+.cellMap {
+  min-height: 320px;
+}
+
+.cellMap > * {
+  min-height: 300px;
+}
+
 .govPageMapExpanded .row2 {
   display: none;
 }
 
 .govPageMapExpanded .row1 {
-  flex: 1;
-  min-height: 100%;
+  flex: 1 1 auto;
+  min-height: calc(100dvh - var(--header-height) - 64px);
+  grid-template-columns: 1fr;
+}
+
+.govPageMapExpanded .cellCompare {
+  display: none;
+}
+
+.govPageMapExpanded .cellMap {
+  min-height: calc(100dvh - var(--header-height) - 64px);
+}
+
+.govPageMapExpanded .cellMap > * {
+  min-height: calc(100dvh - var(--header-height) - 88px);
 }
 
 @media (max-width: 1120px) {
@@ -303,12 +324,36 @@
     min-height: 240px;
   }
 
+  .cellMap {
+    min-height: 360px;
+  }
+
+  .cellMap > * {
+    min-height: 340px;
+  }
+
+  /* 반응형에서도 지도 레이어 확장 시 크게 보이도록 */
+  .govPageMapExpanded {
+    min-height: calc(100dvh - var(--header-height) - 42px);
+  }
+
   .govPageMapExpanded .row2 {
-    display: grid;
+    display: none;
   }
 
   .govPageMapExpanded .row1 {
-    min-height: 360px;
+    flex: 1 1 auto;
+    min-height: calc(100dvh - var(--header-height) - 64px);
+    grid-template-columns: 1fr;
+  }
+
+  .govPageMapExpanded .cellCompare {
+    display: none;
+  }
+
+  .govPageMapExpanded .cellMap,
+  .govPageMapExpanded .cellMap > * {
+    min-height: calc(100dvh - var(--header-height) - 72px);
   }
 }
 
@@ -330,6 +375,16 @@
 
   .row2 {
     min-height: 320px;
+  }
+
+  .govPageMapExpanded {
+    min-height: calc(100dvh - var(--header-height) - 42px);
+  }
+
+  .govPageMapExpanded .row1,
+  .govPageMapExpanded .cellMap,
+  .govPageMapExpanded .cellMap > * {
+    min-height: calc(100dvh - var(--header-height) - 72px);
   }
 }
 
