@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import {
   listCustomers,
   listCustomerConsultations,
+  hideCustomer,
 } from '../services/customer.service';
 
 // GET /api/customers
@@ -49,5 +50,31 @@ export const getCustomerConsultations = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: '잘못된 고객 id입니다.' });
     }
     return res.status(500).json({ success: false, message: '상담 이력 조회 실패' });
+  }
+};
+
+// PATCH /api/customers/:id/hide
+export const hideCustomerHandler = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ success: false, message: '고객 id가 필요합니다.' });
+    }
+
+    const data = await hideCustomer(id as string);
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        message: '고객을 찾을 수 없습니다.',
+      });
+    }
+
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error(error);
+    if (error instanceof SyntaxError || error instanceof TypeError) {
+      return res.status(400).json({ success: false, message: '잘못된 고객 id입니다.' });
+    }
+    return res.status(500).json({ success: false, message: '고객 숨김 처리 실패' });
   }
 };

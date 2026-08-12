@@ -1,0 +1,442 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #e9edf2;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgb(15 27 45 / 4%);
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+}
+
+.cardFill {
+  height: auto;
+}
+
+.title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+}
+
+.chips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid #e9edf2;
+  background: #f8fafc;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-body);
+}
+
+.chipIcon {
+  display: inline-flex;
+  color: #94a3b8;
+}
+
+.midRow {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.9fr) minmax(0, 1.1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.gaugeBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.gaugeSvgWrap {
+  position: relative;
+  width: 100%;
+  max-width: 220px;
+}
+
+.gaugeSvg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.gaugeCenter {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.gradePill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11.5px;
+  font-weight: 700;
+  border: 1px solid;
+}
+
+.gradeLow {
+  color: #15803d;
+  border-color: #86efac;
+  background: #f0fdf4;
+}
+
+.gradeModerate {
+  color: #b45309;
+  border-color: #fcd34d;
+  background: #fffbeb;
+}
+
+.gradeHigh {
+  color: #c2410c;
+  border-color: #fdba74;
+  background: #fff7ed;
+}
+
+.gradeCritical {
+  color: #b91c1c;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.scoreLine {
+  margin: 0;
+  line-height: 1;
+}
+
+.scoreVal {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.scoreUnit {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.gaugeEnds {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 200px;
+  margin-top: -4px;
+  font-size: 11px;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+.gaugeCaption {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--color-ink);
+}
+
+.top3 {
+  min-width: 0;
+}
+
+.top3List {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.top3Row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.rank {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.rankPrimary {
+  background: #f97316;
+  color: #fff;
+}
+
+.rankSecondary {
+  background: transparent;
+  color: #f97316;
+  border: 1.5px solid #f97316;
+}
+
+.top3Body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.top3Head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.top3Name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--color-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.top3Pct {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.top3Track {
+  height: 6px;
+  border-radius: 999px;
+  background: #eef1f5;
+  overflow: hidden;
+}
+
+.top3Fill1,
+.top3FillRest {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.top3Fill1 {
+  background: #f97316;
+}
+
+.top3FillRest {
+  background: #fdba74;
+}
+
+.covBlock {
+  min-width: 0;
+}
+
+.covGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.covCol {
+  min-width: 0;
+}
+
+.covColTitle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #166534;
+}
+
+.covColTitleMuted {
+  color: #64748b;
+}
+
+.covCheck {
+  display: inline-flex;
+  color: #16a34a;
+}
+
+.covX {
+  display: inline-flex;
+  color: #94a3b8;
+}
+
+.covList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.covRowOn,
+.covRowOff {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.covRowOn {
+  background: #f4fbf5;
+  color: var(--color-ink);
+}
+
+.covRowOff {
+  background: #f8fafc;
+  color: #94a3b8;
+}
+
+.covRowIcon {
+  display: inline-flex;
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.covRowIconMuted {
+  display: inline-flex;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.emptyCov {
+  margin: 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.point {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #fed7aa;
+  background: #fff4ed;
+}
+
+.pointIcon {
+  display: inline-flex;
+  color: #f97316;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.pointText {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--color-body);
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.pointText strong {
+  color: #c2410c;
+  font-weight: 700;
+}
+
+.locked {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 120px;
+  padding: 20px 12px;
+  text-align: center;
+  color: #94a3b8;
+}
+
+.lockIcon {
+  font-size: 28px;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.lockText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.loading {
+  margin: 0;
+  padding: 20px 8px;
+  text-align: center;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+@media (max-width: 1100px) {
+  .cardFill {
+    height: auto;
+    flex: none;
+  }
+
+  .midRow {
+    grid-template-columns: 1fr;
+  }
+
+  .covGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .scoreVal {
+    font-size: 20px;
+  }
+}

@@ -66,11 +66,19 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1          # Windows
 # source .venv/bin/activate           # macOS/Linux
 
-pip install -r requirements.txt
+# Windows(cp949)에서 requirements 주석 UTF-8 오류가 나면:
+#   $env:PYTHONUTF8 = "1"
+python -m pip install -r requirements.txt
 
-# PDF 리포트(Jinja2 + Playwright)용 — pip 설치와 별도로 Chromium이 필요합니다.
-playwright install chromium
+# PDF 리포트(Jinja2 + Playwright) — pip와 별도로 Chromium 필요.
+# uvicorn을 실행하는 그 Python과 같은 환경에서, 샌드박스가 아닌 경로에 설치하세요.
+$env:PLAYWRIGHT_BROWSERS_PATH = "$env:LOCALAPPDATA\ms-playwright"
+python -m playwright install chromium
 ```
+
+PDF가 `cursor-sandbox-cache` / `Executable doesn't exist`로 실패하면 Cursor가 `PLAYWRIGHT_BROWSERS_PATH`를 샌드박스로 심은 경우입니다.  
+`report_pdf`는 `%LOCALAPPDATA%\ms-playwright`의 `chrome.exe`를 직접 쓰도록 우회합니다.  
+설치 후에도 실패하면 **AI(uvicorn)를 재시작**하세요. 경로는 `AI_PLAYWRIGHT_BROWSERS_PATH`로 바꿀 수 있습니다.
 
 ### 원천 데이터
 
@@ -95,6 +103,61 @@ python scripts/gov_v1_0_4.py
 ```
 
 `models/*.pkl`이 없으면 API가 **503**을 반환합니다.
+
+### Gov 예측 배치 (DB 스냅샷)
+
+지도용 구·군 예측을 MySQL `gov_forecast_runs` / `gov_forecast_districts`에 적재합니다.  
+(`requirements.txt`의 **PyMySQL** 필요. 테이블은 Backend DB에 DDL로 미리 생성.)
+
+스크립트는 **pkl 추론 후 DB에 직접 INSERT**합니다. Express Backend를 거치지 않습니다.
+
+```bash
+# DATABASE_URL=mysql://user:pass@host:3306/dbname
+# 미설정 시(로컬 전용) backend/.env 의 DATABASE_URL 을 읽습니다.
+# AI·DB 서버가 다르면 AI 쪽에서 remote DB URL을 환경변수로 넣으세요.
+python scripts/batch_gov_forecast.py
+# 또는 로그 래퍼:
+# bash scripts/run_gov_forecast_batch.sh
+```
+
+선택 환경 변수: `GOV_AS_OF`(예: `2025Q3`), `GOV_FREQ`(`Q`|`H`), `GOV_SCOPE`(기본 `DAEGU`).
+
+#### 배치 스케줄 (AI ≠ DB 서버 — 권장 운영)
+
+개발자 PC에 Windows 작업 스케줄러를 **등록하지 않습니다.**  
+cron / systemd timer는 **AI 서버**(pkl·배치 스크립트가 있는 곳)에만 둡니다.
+
+| 구성 | 역할 |
+|------|------|
+| **AI 서버** | 추론 + `batch_gov_forecast.py` + **스케줄 등록** |
+| **MySQL** (별도 호스트) | `gov_forecast_*` 적재. AI 출구 IP를 Trusted sources에 허용 |
+| **Backend** | `GET /api/prediction/gov-forecasts` 조회만. 배치 실행에 불필요 |
+
+```text
+[ cron on AI server ]
+        │  batch_gov_forecast.py (로컬 pkl)
+        ▼
+[ MySQL ]  ◄── DATABASE_URL (AI → DB 네트워크 허용)
+        ▲
+[ Backend ] GET gov-forecasts
+```
+
+**cron 예시** (AI 서버, 매주 월요일 03:00 `Asia/Seoul` — 경로·venv·URL은 배포에 맞게 수정):
+
+```cron
+CRON_TZ=Asia/Seoul
+0 3 * * 1 cd /opt/ai-traffic/ai && . .venv/bin/activate && \
+  export DATABASE_URL='mysql://USER:PASS@DB_HOST:3306/DBNAME' \
+  GOV_FREQ=Q GOV_SCOPE=DAEGU && \
+  bash scripts/run_gov_forecast_batch.sh
+```
+
+- 주 1회는 파이프라인 생존·데모용. 동일 `as_of`면 수치가 거의 같고 run 행만 늘 수 있음.
+- 공표 주기에 맞추려면 분기 트리거로 바꿔도 됨.
+- API는 최신 `SUCCEEDED` run만 읽으므로, 실패해도 직전 성공 스냅샷이 유지됨.
+- Backend 서버·Managed DB 호스트에 cron을 두지 말 것 (추론 없음 / cron 불가).
+
+분리 배포 체크: AI→MySQL 접속, `districts` 시드, AI에만 cron, 갱신 후 `GET .../gov-forecasts`로 `finished_at` 확인.
 
 ### AI 서버 실행
 

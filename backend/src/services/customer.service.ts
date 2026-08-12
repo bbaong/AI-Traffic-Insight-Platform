@@ -12,14 +12,17 @@ function toNum(v: unknown): number | null {
 /** GET /api/customers — 왼쪽 고객목록 */
 export async function listCustomers(q?: string) {
   const rows = await prisma.customers.findMany({
-    where: q
-      ? {
-          OR: [
-            { name: { contains: q } },
-            { phone_number: { contains: q } },
-          ],
-        }
-      : undefined,
+    where: {
+      is_hidden: false,
+      ...(q
+        ? {
+            OR: [
+              { name: { contains: q } },
+              { phone_number: { contains: q } },
+            ],
+          }
+        : {}),
+    },
     orderBy: { updated_at: 'desc' },
     include: {
       consultations: {
@@ -69,10 +72,11 @@ export async function listCustomerConsultations(customerId: string) {
       customer_id: true,
       name: true,
       phone_number: true,
+      is_hidden: true,
     },
   });
-
-  if (!customer) return null;
+  
+  if (!customer || customer.is_hidden) return null;
 
   const consultations = await prisma.consultations.findMany({
     where: { customer_id: id },
@@ -130,5 +134,37 @@ export async function listCustomerConsultations(customerId: string) {
         })),
       };
     }),
+  };
+}
+
+/** PATCH /api/customers/:id/hide — Soft Delete */
+export async function hideCustomer(customerId: string) {
+  const id = BigInt(customerId);
+
+  const existing = await prisma.customers.findUnique({
+    where: { customer_id: id },
+    select: { customer_id: true, is_hidden: true },
+  });
+
+  if (!existing) return null;
+
+  const updated = await prisma.customers.update({
+    where: { customer_id: id },
+    data: {
+      is_hidden: true,
+      hidden_at: new Date(),
+      updated_at: new Date(),
+    },
+    select: {
+      customer_id: true,
+      is_hidden: true,
+      hidden_at: true,
+    },
+  });
+
+  return {
+    customerId: updated.customer_id.toString(),
+    isHidden: updated.is_hidden,
+    hiddenAt: updated.hidden_at?.toISOString() ?? null,
   };
 }

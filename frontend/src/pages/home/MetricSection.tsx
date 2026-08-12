@@ -9,8 +9,8 @@ interface MetricItem {
 const METRICS: MetricItem[] = [
   { label: '분석 단위', value: '시군구' },
   { label: '위험 예측 응답', value: '3초 이내' },
-  { label: '데이터 갱신', value: '월 1회' },
-  { label: '분석 조건', value: '6축' },
+  { label: '데이터 갱신', value: '주 1회' },
+  { label: '분석 조건', value: '4축' },
 ];
 
 export function MetricSection() {

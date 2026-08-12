@@ -22,6 +22,10 @@
   font-size: 15px;
   font-weight: var(--font-weight-medium);
   color: var(--color-ink);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .badge {

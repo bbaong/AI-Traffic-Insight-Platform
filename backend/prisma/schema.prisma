@@ -170,11 +170,14 @@ model customers {
   registered_by BigInt          @db.UnsignedBigInt
   created_at    DateTime        @default(now()) @db.DateTime(0)
   updated_at    DateTime        @default(now()) @db.DateTime(0)
+  is_hidden     Boolean         @default(false)
+  hidden_at     DateTime?       @db.DateTime(0)
   consultations consultations[]
   users         users           @relation(fields: [registered_by], references: [user_id], onUpdate: Restrict, map: "fk_customer_registered_by")
 
   @@index([registered_by], map: "fk_customer_registered_by")
   @@index([name], map: "idx_customer_name")
+  @@index([is_hidden], map: "idx_customers_is_hidden")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
