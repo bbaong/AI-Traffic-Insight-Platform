@@ -9,6 +9,7 @@ import 'dotenv/config';
 import { PrismaClient } from '../generated/prisma/client';
 import { predictRisk } from './aiPredict.service';
 import { evaluateDiscountRiders } from './discountRider.service';
+import { preparePhoneForStorage } from '../utils/phoneCrypto';
 
 const prisma = new PrismaClient();
 
@@ -93,22 +94,29 @@ export async function saveConsultation(input: any) {
       });
     }
 
-    // 3) 고객 upsert (phone unique)
-    const existing = await tx.customers.findUnique({
-      where: { phone_number: customer.phone },
+    // 3) 고객 upsert (phone_hash unique / 암호문 저장)
+    const { phoneHash, phoneEnc } = preparePhoneForStorage(customer.phone);
+
+    const existing = await tx.customers.findFirst({
+      where: {
+        phone_hash: phoneHash,
+        registered_by: BigInt(userId),
+      },
     });
     const savedCustomer = existing
       ? await tx.customers.update({
           where: { customer_id: existing.customer_id },
           data: {
             name: customer.name !== existing.name ? customer.name : existing.name,
+            // 숨김 고객 재방문 시 복구가 필요하면 is_hidden: false 정책 검토
             updated_at: new Date(),
           },
         })
       : await tx.customers.create({
           data: {
             name: customer.name,
-            phone_number: customer.phone,
+            phone_number: phoneEnc,
+            phone_hash: phoneHash,
             registered_by: BigInt(userId),
           },
         });

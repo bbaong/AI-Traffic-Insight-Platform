@@ -14,8 +14,8 @@ from urllib.parse import unquote, urlparse
 import pymysql
 
 ROOT = Path(__file__).resolve().parent.parent
-MODEL_PATH = ROOT / "models" / "gov_model_v1.0.4.pkl"
-SCRIPT_PATH = ROOT / "scripts" / "gov_v1_0_4.py"
+MODEL_PATH = ROOT / "models" / "gov_model_v1.0.5.pkl"
+SCRIPT_PATH = ROOT / "scripts" / "gov_v1_0_5.py"
 
 
 def load_database_url() -> str:
@@ -52,7 +52,7 @@ def parse_mysql_url(url: str) -> dict:
 def load_gov_mod():
     import importlib.util
 
-    spec = importlib.util.spec_from_file_location("gov_v1_0_4", SCRIPT_PATH)
+    spec = importlib.util.spec_from_file_location("gov_v1_0_5", SCRIPT_PATH)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(mod)

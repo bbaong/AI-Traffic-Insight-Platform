@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-InsureGuard AI v1.0.3 — 엄격 검증 (A~C)
+InsureGuard AI v1.0.4 — 엄격 검증 (A~C)
 
 A) 연도 Time-based split
 B) 프로파일 통계를 train에서만 집계 후 test에 적용
 C) 개별 EPDO를 타깃으로 둔 baseline
 
 사용:
-  python -m scripts.validate_ins_v1_0_3
+  python -m scripts.validate_ins_v1_0_4
   # 또는
-  python scripts/validate_ins_v1_0_3.py
+  python scripts/validate_ins_v1_0_4.py
 """
 
 from __future__ import annotations
@@ -35,14 +35,14 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT_JSON = ROOT / "docs" / "validation_v1_0_3_results.json"
-OUT_MD = ROOT / "docs" / "validation_v1_0_3.md"
+OUT_JSON = ROOT / "docs" / "validation_v1_0_4_results.json"
+OUT_MD = ROOT / "docs" / "validation_v1_0_4.md"
 TEST_YEARS = {2024, 2025}  # A/B time split: 이 연도들을 test
 
 
 def _load_ins():
-    path = ROOT / "scripts" / "ins_v1_0_3.py"
-    spec = importlib.util.spec_from_file_location("ins_v1_0_3", path)
+    path = ROOT / "scripts" / "ins_v1_0_4.py"
+    spec = importlib.util.spec_from_file_location("ins_v1_0_4", path)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(mod)
@@ -306,9 +306,9 @@ def _fmt_pct(x) -> str:
 
 def write_markdown(results: list[dict], year_counts: dict) -> None:
     lines = [
-        "# InsureGuard AI v1.0.3 — 엄격 검증 결과 (A~C)",
+        "# InsureGuard AI v1.0.4 — 엄격 검증 결과 (A~C)",
         "",
-        "스크립트: `scripts/validate_ins_v1_0_3.py`  ",
+        "스크립트: `scripts/validate_ins_v1_0_4.py`  ",
         f"Test 연도(A/B time): `{sorted(TEST_YEARS)}`",
         "",
         "## 연도별 행 수",
@@ -385,7 +385,7 @@ def write_markdown(results: list[dict], year_counts: dict) -> None:
 
 
 def main() -> None:
-    print("=== InsureGuard v1.0.3 validation A~C ===")
+    print("=== InsureGuard v1.0.4 validation A~C ===")
     ins = _load_ins()
     df = ins.load_and_clean()
     df = add_year(df, ins)
@@ -413,7 +413,7 @@ def main() -> None:
 
     payload = {
         "model": "InsureGuard AI",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "test_years": sorted(TEST_YEARS),
         "year_counts": year_counts,
         "results": results,

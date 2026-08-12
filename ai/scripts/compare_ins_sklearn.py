@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-InsureGuard — sklearn-only algorithm comparison (v1.0.3 target fixed).
+InsureGuard — sklearn-only algorithm comparison (v1.0.4 target fixed).
 
 Compares regressors / classifiers under identical data, cleaning, features, and target.
 Outputs:
@@ -40,7 +40,7 @@ from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore", category=UserWarning)
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "scripts" / "ins_v1_0_3.py"
+SCRIPT = ROOT / "scripts" / "ins_v1_0_4.py"
 OUT_JSON = ROOT / "docs" / "ins_sklearn_model_compare.json"
 OUT_MD = ROOT / "docs" / "ins_sklearn_model_compare.md"
 
@@ -49,10 +49,10 @@ TEST_YEARS = {2024, 2025}
 
 
 def _load_ins():
-    spec = importlib.util.spec_from_file_location("ins_v1_0_3", SCRIPT)
+    spec = importlib.util.spec_from_file_location("ins_v1_0_4", SCRIPT)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
-    sys.modules["ins_v1_0_3"] = mod
+    sys.modules["ins_v1_0_4"] = mod
     spec.loader.exec_module(mod)
     return mod
 
@@ -277,7 +277,7 @@ def write_md(payload: dict) -> None:
     lines = [
         "# InsureGuard — sklearn 알고리즘 비교",
         "",
-        "> 타깃·피처·클리닝은 **v1.0.3 고정**. 후보만 변경 (sklearn only).",
+        "> 타깃·피처·클리닝은 **v1.0.4 고정**. 후보만 변경 (sklearn only).",
         "",
         "## 설정",
         "",
@@ -294,7 +294,7 @@ def write_md(payload: dict) -> None:
         "## 해석 주의",
         "",
         "- R²·RMSE·MAE는 **프로파일 스코어카드 재현도**이지 개별 사고 예측력이 아님.",
-        "- 현재 서빙: 회귀 HGBR + 분류 RF×2 (`ins_model_v1.0.3.pkl`).",
+        "- 현재 서빙: 회귀 HGBR + 분류 RF×2 (`ins_model_v1.0.4.pkl`).",
         "",
     ]
 
@@ -392,7 +392,7 @@ def main() -> None:
 
     payload = {
         "scope": "sklearn_only",
-        "target_version": "ins_v1.0.3",
+        "target_version": "ins_v1.0.4",
         "serving": {
             "regressor": "HistGradientBoostingRegressor",
             "violation_clf": "RandomForestClassifier",

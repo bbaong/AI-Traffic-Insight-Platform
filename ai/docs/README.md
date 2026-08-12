@@ -10,8 +10,8 @@
 
 | 계열 | 모델 | 피처 명세 | 학습 스크립트 |
 |------|------|-----------|---------------|
-| InsureGuard (보험) | `models/ins_model_v1.0.3.pkl` | [ins_v1_0_3_feature_spec.md](ins_v1_0_3_feature_spec.md) | `scripts/ins_v1_0_3.py` |
-| GovGuard (지자체) | `models/gov_model_v1.0.4.pkl` | [gov_v1_0_4_feature_spec.md](gov_v1_0_4_feature_spec.md) | `scripts/gov_v1_0_4.py` |
+| InsureGuard (보험) | `models/ins_model_v1.0.4.pkl` | [ins_v1_0_4_feature_spec.md](ins_v1_0_4_feature_spec.md) | `scripts/ins_v1_0_4.py` |
+| GovGuard (지자체) | `models/gov_model_v1.0.5.pkl` | [gov_v1_0_5_feature_spec.md](gov_v1_0_5_feature_spec.md) | `scripts/gov_v1_0_5.py` |
 
 ---
 
@@ -19,11 +19,11 @@
 
 | 문서 | 설명 |
 |------|------|
-| [validation_v1_0_3.md](validation_v1_0_3.md) | InsureGuard v1.0.3 검증 요약 |
-| [validation_v1_0_3_results.json](validation_v1_0_3_results.json) | 검증 수치 |
+| [validation_v1_0_4.md](validation_v1_0_4.md) | InsureGuard v1.0.4 검증 요약 |
+| [validation_v1_0_4_results.json](validation_v1_0_4_results.json) | 검증 수치 |
 | [ins_sklearn_model_compare.md](ins_sklearn_model_compare.md) | Ins sklearn 알고리즘 비교 (회귀·분류) |
 | [ins_sklearn_model_compare.json](ins_sklearn_model_compare.json) | Ins 비교 수치 |
-| [gov_v1_0_4_b1_vs_b2.md](gov_v1_0_4_b1_vs_b2.md) | B1(share) vs B2(log건수) + 캡 비교 |
+| [gov_v1_0_4_b1_vs_b2.md](gov_v1_0_4_b1_vs_b2.md) | B1(share) vs B2(log건수) + 캡 비교 (산식 선정 기록) |
 | [gov_v1_0_4_b1_vs_b2.json](gov_v1_0_4_b1_vs_b2.json) | 비교 수치 |
 | [gov_sklearn_rate_compare.md](gov_sklearn_rate_compare.md) | Gov B1+last×2 고정, rate 알고리즘 sklearn 비교 |
 | [gov_sklearn_rate_compare.json](gov_sklearn_rate_compare.json) | Gov rate 비교 수치 |

@@ -1,16 +1,19 @@
 ﻿# -*- coding: utf-8 -*-
 """
-GovGuard AI v1.0.4 (자급자족 서빙 단위)
+GovGuard AI v1.0.5 (자급자족 서빙 단위)
 
 지자체용 — 지도·대응 인력 (어디 사고가 많은가)
 
 포함:
-- v1.0.3 패널·점유율/건수/EB 중대·경중·반기 학습·추론
-- 서빙 건수: share×시전체(B1) + 직전 실적×2 캡
+- v1.0.4와 동일 산식: share×시전체(B1) + 직전 실적×2 캡
+- 패널·점유율/건수/EB 중대·경중·반기 학습·추론
 - 사고유형 비율: 학습 시 pkl 저장 (서빙 CSV 불필요)
 
+v1.0.4 대비:
+- 군위 2016.1~2023.6(편입 전) 사고 포함 재학습
+
 이전 스크립트:
-- scripts/archive/gov_v1_0_3.py 는 보관·재현용 (서빙은 본 파일만)
+- scripts/archive/gov_v1_0_4.py 는 보관·재현용 (서빙은 본 파일만)
 """
 
 from __future__ import annotations
@@ -31,10 +34,10 @@ warnings.filterwarnings("ignore", category=UserWarning)
 ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = ROOT / "data" / "raw" / "사고분석_2016~2025_원본합본.csv"
 MODEL_DIR = ROOT / "models"
-FIG_DIR = ROOT / "docs" / "figures" / "gov_v1_0_4"
+FIG_DIR = ROOT / "docs" / "figures" / "gov_v1_0_5"
 
 MODEL_NAME = "GovGuard AI"
-MODEL_VERSION = "1.0.4"
+MODEL_VERSION = "1.0.5"
 MODEL_FILENAME = f"gov_model_v{MODEL_VERSION}.pkl"
 COUNT_WEIGHT_POWER = 1.0  # w = n^power (1.0=건수, 0.5=sqrt)
 

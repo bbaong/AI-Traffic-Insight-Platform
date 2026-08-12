@@ -1,4 +1,4 @@
-﻿> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_4_feature_spec.md](../gov_v1_0_4_feature_spec.md) · [목차](../README.md)
+﻿> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_5_feature_spec.md](../gov_v1_0_5_feature_spec.md) · [목차](../README.md)
 
 # GovGuard AI v1.0.2 — 피처 명세서
 

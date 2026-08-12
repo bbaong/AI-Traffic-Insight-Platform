@@ -38,6 +38,7 @@ import type {
   CustomerListItem,
   ReportItem,
 } from '../types/customers';
+import { useAuthStore } from '../../../stores/authStore';
 import styles from './CustomersPage.module.css';
 
 const PAGE_SIZE = 10;
@@ -51,6 +52,9 @@ const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
   ];
 
 export function CustomersPage() {
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.userId;
+
   const [query, setQuery] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
   const [fromDate, setFromDate] = useState('');
@@ -87,10 +91,18 @@ export function CustomersPage() {
   }, [query]);
 
   useEffect(() => {
+    if (userId == null) {
+      setList([]);
+      setSelectedId(null);
+      setCheckedIds(new Set());
+      setListLoading(false);
+      setListError('로그인이 필요합니다.');
+      return;
+    }
     let cancelled = false;
     setListLoading(true);
     setListError(null);
-    void fetchCustomers(debouncedQ || undefined)
+    void fetchCustomers(debouncedQ || undefined, userId)
       .then((rows) => {
         if (cancelled) return;
         setList(rows);
@@ -122,10 +134,10 @@ export function CustomersPage() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedQ, listNonce]);
+  }, [debouncedQ, listNonce, userId]);
 
   useEffect(() => {
-    if (!selectedId) {
+    if (!selectedId || userId == null) {
       setDetail(null);
       setSelectedConsultId(null);
       return;
@@ -133,7 +145,7 @@ export function CustomersPage() {
     let cancelled = false;
     setDetailLoading(true);
     setDetailError(null);
-    void fetchCustomerConsultations(selectedId)
+    void fetchCustomerConsultations(selectedId, userId)
       .then((res) => {
         if (cancelled) return;
         setDetail(res);
@@ -154,7 +166,7 @@ export function CustomersPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedId]);
+  }, [selectedId, userId]);
 
   // TODO: 서버 기간 필터 지원 확인 후 API 파라미터로 이관
   const filteredList = useMemo(() => {
@@ -209,12 +221,13 @@ export function CustomersPage() {
   }
 
   async function confirmHide() {
-    if (hiding || checkedCustomers.length === 0) return;
+    if (hiding || checkedCustomers.length === 0 || userId == null) return;
     setHiding(true);
     setHideError(null);
     try {
       const { hiddenIds, failed } = await hideCustomers(
         checkedCustomers.map((row) => row.customerId),
+        userId,
       );
       if (failed.length === 0) {
         setCheckedIds(new Set());

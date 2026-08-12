@@ -1,4 +1,4 @@
-"""ins_model_v1.0.3.pkl 로컬 검증용."""
+"""ins_model_v1.0.4.pkl 로컬 검증용."""
 from __future__ import annotations
 
 from src.inference import predict_from_input
