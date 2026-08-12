@@ -22,7 +22,9 @@ export function Sidebar({ role, open = false, onNavigate }: SidebarProps) {
   }
 
   return (
-    <aside className={`${styles.sidebar} ${open ? styles.open : ''}`}>
+    <aside
+      className={`${styles.sidebar} ${isGov ? styles.sidebarGov : styles.sidebarIns} ${open ? styles.open : ''}`}
+    >
       <Link
         to={ROUTES.LANDING}
         className={styles.brand}

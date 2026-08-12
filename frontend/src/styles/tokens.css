@@ -27,6 +27,10 @@
   --color-surface: #ffffff;
   --color-surface-alt: #f7f9fb; /* 교차 배경 */
   --color-page-bg: #f7f9fb; /* 로그인·대시보드 본문 배경 */
+  --color-sidebar-gov: #eef6f6; /* 지자체 사이드바 · 아이스 틸 */
+  --color-sidebar-gov-active: #12a3a3; /* 지자체 사이드바 활성 */
+  --color-sidebar-ins: #f5f0eb; /* 보험사 사이드바 · 샌드 베이지 */
+  --color-sidebar-ins-active: #e8890c; /* 보험사 사이드바 활성 */
   --color-card: #ffffff;
   --color-card-fill: #f4f7fa; /* 회원가입 게이트 카드 채움 */
   --color-border: #dde3ea;
