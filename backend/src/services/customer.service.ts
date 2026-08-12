@@ -1,5 +1,11 @@
 import 'dotenv/config';
 import { PrismaClient } from '../generated/prisma/client';
+import {
+  assertValidMobile,
+  digitsOnly,
+  hashPhone,
+  safeDecryptPhone,
+} from '../utils/phoneCrypto';
 
 const prisma = new PrismaClient();
 
@@ -11,14 +17,27 @@ function toNum(v: unknown): number | null {
 
 /** GET /api/customers — 왼쪽 고객목록 */
 export async function listCustomers(q?: string) {
+  const term = q?.trim() ?? '';
+  const digits = term ? digitsOnly(term) : '';
+
+  let phoneHash: string | undefined;
+  if (digits.length >= 10 && digits.length <= 11) {
+    try {
+      assertValidMobile(digits);
+      phoneHash = hashPhone(digits);
+    } catch {
+      phoneHash = undefined;
+    }
+  }
+
   const rows = await prisma.customers.findMany({
     where: {
       is_hidden: false,
-      ...(q
+      ...(term
         ? {
             OR: [
-              { name: { contains: q } },
-              { phone_number: { contains: q } },
+              { name: { contains: term } },
+              ...(phoneHash ? [{ phone_hash: phoneHash }] : []),
             ],
           }
         : {}),
@@ -45,7 +64,7 @@ export async function listCustomers(q?: string) {
     return {
       customerId: c.customer_id.toString(),
       name: c.name,
-      phone: c.phone_number,
+      phone: safeDecryptPhone(c.phone_number),
       consultationCount: c._count.consultations,
       lastConsultedAt: last?.consulted_at?.toISOString() ?? null,
       lastStatus: last?.status ?? null,
@@ -99,7 +118,7 @@ export async function listCustomerConsultations(customerId: string) {
     customer: {
       customerId: customer.customer_id.toString(),
       name: customer.name,
-      phone: customer.phone_number,
+      phone: safeDecryptPhone(customer.phone_number),
     },
     consultations: consultations.map((row) => {
       const profile = row.customer_risk_profiles;
