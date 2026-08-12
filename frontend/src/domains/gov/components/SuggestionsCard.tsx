@@ -55,14 +55,22 @@ export function SuggestionsCard({
 
   if (!data || data.length === 0) {
     return (
-      <DashboardCard title={title}>
-        <p className={styles.hint}>현재 개선 제안이 없습니다</p>
+      <DashboardCard title={title} className={styles.card}>
+        <div className={styles.empty}>
+          <span className={styles.emptyIcon} aria-hidden="true">
+            ✓
+          </span>
+          <p className={styles.emptyTitle}>현재 개선 제안이 없습니다</p>
+          <p className={styles.emptyDesc}>
+            선택 구 지표가 대구 평균 이하입니다.
+          </p>
+        </div>
       </DashboardCard>
     );
   }
 
   return (
-    <DashboardCard title={title}>
+    <DashboardCard title={title} className={styles.card}>
       <ul className={styles.list}>
         {data.map((item) => (
           <li key={item.key} className={styles.item}>

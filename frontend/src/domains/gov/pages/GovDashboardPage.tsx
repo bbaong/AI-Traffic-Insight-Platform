@@ -1,8 +1,6 @@
-import { Link } from 'react-router-dom';
 import { MapCard } from '../../../shared/components/dashboard';
 import { useDistrictStore } from '../../../shared/stores/districtStore';
 import { DAEGU_DISTRICTS } from '../../../shared/constants/daeguBoundaries';
-import { ROUTES } from '../../../shared/constants/routes';
 import type { PriorityRegionRow, RiskLevel } from '../../../shared/types/dashboard';
 import {
   fetchGovForecasts,
@@ -114,6 +112,7 @@ function writeSessionJson(key: string, value: unknown) {
 export function GovDashboardPage() {
   const selectedCode = useDistrictStore((s) => s.selectedCode);
   const setSelectedCode = useDistrictStore((s) => s.setSelectedCode);
+  const setPeriodLabel = useDistrictStore((s) => s.setPeriodLabel);
   const selectedName =
     DAEGU_DISTRICTS.find((d) => d.code === selectedCode)?.name ?? null;
 
@@ -147,6 +146,16 @@ export function GovDashboardPage() {
     );
 
     setAllRows(rows);
+    const sample = rows[0];
+    const from = formatPeriodLabel(sample?.기준분기);
+    const to = formatPeriodLabel(sample?.예측분기);
+    setPeriodLabel(
+      from === '-' && to === '-'
+        ? '기간 정보 없음'
+        : to === '-'
+          ? from
+          : `${from} ~ ${to}`,
+    );
 
     setPriorityRegions(
       bySevere.slice(0, 3).map((row, i) => ({
@@ -314,15 +323,6 @@ export function GovDashboardPage() {
   const selectedDistrictId =
     allRows.find((r) => r.지역 === selectedName)?.districtId ?? null;
 
-  const periodLabel = (() => {
-    const sample = allRows[0];
-    const from = formatPeriodLabel(sample?.기준분기);
-    const to = formatPeriodLabel(sample?.예측분기);
-    if (from === '-' && to === '-') return '기간 정보 없음';
-    if (to === '-') return from;
-    return `${from} ~ ${to}`;
-  })();
-
   useEffect(() => {
     if (!selectedName) {
       setComparison(null);
@@ -393,47 +393,6 @@ export function GovDashboardPage() {
     <div
       className={`${styles.govPage} ${mapExpanded ? styles.govPageMapExpanded : ''}`}
     >
-      <div className={styles.toolbar}>
-        <select
-          className={styles.toolbarSelect}
-          value="daegu"
-          aria-label="시도 선택"
-          disabled
-        >
-          <option value="daegu">대구광역시</option>
-        </select>
-        <select
-          className={styles.toolbarSelect}
-          value={selectedCode ?? ''}
-          aria-label="구군 선택"
-          onChange={(e) => setSelectedCode(e.target.value || null)}
-        >
-          <option value="">구·군 선택</option>
-          {DAEGU_DISTRICTS.map((d) => (
-            <option key={d.code} value={d.code}>
-              {d.name}
-            </option>
-          ))}
-        </select>
-        {/* TODO: 기간 필터 API가 생기면 freq/as_of 로 예측을 다시 호출한다. 지금은 스냅샷 라벨 표시 전용. */}
-        <select
-          className={styles.toolbarSelect}
-          value="period"
-          aria-label="기간"
-          disabled
-        >
-          <option value="period">{periodLabel}</option>
-        </select>
-        <Link
-          className={styles.downloadBtn}
-          to={ROUTES.REPORTS}
-          aria-label="상세 리포트로 이동"
-          title="상세 리포트"
-        >
-          <DownloadIcon />
-        </Link>
-      </div>
-
       <div className={styles.row1}>
         <div className={styles.cellMap}>
           <MapCard
@@ -488,20 +447,6 @@ export function GovDashboardPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function DownloadIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }
 

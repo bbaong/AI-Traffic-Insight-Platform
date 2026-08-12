@@ -43,6 +43,8 @@
   flex-direction: column;
   gap: 2px;
   min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .link {
@@ -55,6 +57,7 @@
   font-size: 13px;
   color: color-mix(in srgb, var(--color-surface) 72%, transparent);
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .link:hover {

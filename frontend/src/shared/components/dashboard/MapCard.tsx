@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   DAEGU_DISTRICTS,
   DAEGU_OUTLINE_PATHS,
@@ -66,8 +66,15 @@ const ACCENT = '#21ADC4';
 /** 중대율 CRITICAL 빨강과 구분 — 보라 계열 */
 const HOTSPOT_STROKE = '#4A148C';
 const HOTSPOT_FILL = '#8E24AA';
-/** 이 레벨 이하(확대)에서만 공식 다발 원 표시. 숫자가 작을수록 확대 */
+/** 이 레벨 이하(확대)에서만 전체 다발 원 표시. 숫자가 작을수록 확대 */
 const HOTSPOT_MAX_LEVEL = 7;
+/**
+ * 구 선택 setBounds 후 이보다 더 멀어지면(줌아웃) 한 단계 당김.
+ * 수성·동구 등 일반 구는 보통 이보다 확대되므로 영향 없고,
+ * 달성·군위처럼 경계가 커 과도하게 멀어지는 경우만 보정.
+ */
+const DISTRICT_MAX_OUT_LEVEL = 9;
+const DISTRICT_CLAMP_LEVEL = 8;
 
 const BASE_STROKE = {
   strokeWeight: 1,
@@ -117,6 +124,35 @@ function ringCentroid(ring: { lat: number; lng: number }[]) {
     { lat: 0, lng: 0 },
   );
   return { lat: sum.lat / n, lng: sum.lng / n };
+}
+
+/** 대략적인 링 면적(상대 비교용) — 달성군처럼 분리된 path 중 본토 선택 */
+function ringAreaScore(ring: { lat: number; lng: number }[]) {
+  if (ring.length < 3) return 0;
+  let minLat = Infinity;
+  let maxLat = -Infinity;
+  let minLng = Infinity;
+  let maxLng = -Infinity;
+  for (const p of ring) {
+    if (p.lat < minLat) minLat = p.lat;
+    if (p.lat > maxLat) maxLat = p.lat;
+    if (p.lng < minLng) minLng = p.lng;
+    if (p.lng > maxLng) maxLng = p.lng;
+  }
+  return Math.max(0, maxLat - minLat) * Math.max(0, maxLng - minLng);
+}
+
+function largestRing(paths: { lat: number; lng: number }[][]) {
+  let best = paths[0] ?? [];
+  let bestScore = -1;
+  for (const ring of paths) {
+    const score = ringAreaScore(ring);
+    if (score > bestScore) {
+      bestScore = score;
+      best = ring;
+    }
+  }
+  return best;
 }
 
 function styleFor(
@@ -169,7 +205,6 @@ export function MapCard({
   riskByCode = DISTRICT_RISK_MOCK,
   legend = DEFAULT_LEGEND,
   hotspots = [],
-  hotspotYear = null,
   onDistrictSelect,
   mapExpanded = false,
   onToggleMapExpand,
@@ -189,6 +224,8 @@ export function MapCard({
   const layersRef = useRef<DistrictLayer[]>([]);
   const outlineRef = useRef<KakaoPolygon[]>([]);
   const circlesRef = useRef<KakaoCircle[]>([]);
+  /** 클릭한 폴리곤 링 — 달성군처럼 분리된 구는 클릭한 쪽만 맞춤 */
+  const focusRingRef = useRef<{ lat: number; lng: number }[] | null>(null);
   const hotspotOverlayRef = useRef<{
     setMap: (map: unknown | null) => void;
   } | null>(null);
@@ -204,10 +241,6 @@ export function MapCard({
   hotspotsRef.current = hotspots;
   selectCbRef.current = onDistrictSelect;
   selectedRef.current = selectedCode;
-
-  const [onlySelectedHotspots, setOnlySelectedHotspots] = useState(false);
-  const onlySelectedRef = useRef(onlySelectedHotspots);
-  onlySelectedRef.current = onlySelectedHotspots;
 
   const clearHotspotOverlay = () => {
     if (hotspotOverlayRef.current) {
@@ -268,7 +301,6 @@ export function MapCard({
   
     const all = hotspotsRef.current;
     const selected = selectedRef.current;
-    const filterSelected = onlySelectedRef.current;
     const levelOk = map.getLevel() <= HOTSPOT_MAX_LEVEL;
   
     const selectedPoints = () => {
@@ -279,29 +311,68 @@ export function MapCard({
         : [];
     };
   
-    // 체크: 선택 구만
-    if (filterSelected) {
-      if (!selected) {
-        clearCircles();
-        return;
-      }
-      drawHotspots(map, selectedPoints());
-      return;
-    }
-  
-    // 체크 해제 + 확대: 전체
+    // 확대: 전체 다발
     if (levelOk) {
       drawHotspots(map, all);
       return;
     }
   
-    // 체크 해제 + 구 선택(확대 전): 선택 구 다발은 유지
+    // 구 선택(확대 전): 선택 구 다발만
     if (selected) {
       drawHotspots(map, selectedPoints());
       return;
     }
   
     clearCircles();
+  };
+
+  /**
+   * 구 선택 시 확대: 수성·동구처럼 구 경계에 맞춤.
+   * 달성·군위는 분리/광역 경계 때문에 전체가 잡히면 과도하게 줌아웃되므로
+   * 클릭한 링(또는 가장 큰 링)만 맞춰 제스처를 통일한다.
+   */
+  const focusDistrict = (
+    map: {
+      setBounds: (...args: unknown[]) => void;
+      setLevel: (level: number) => void;
+      getLevel: () => number;
+    },
+    district: DistrictBoundary,
+  ) => {
+    if (!window.kakao?.maps) return;
+
+    const preferred = focusRingRef.current;
+    const preferredOk =
+      preferred != null &&
+      preferred.length >= 3 &&
+      district.paths.some((r) => r === preferred);
+    const focusRing = preferredOk
+      ? preferred
+      : district.paths.length > 1
+        ? largestRing(district.paths)
+        : null;
+
+    const bounds = new window.kakao.maps.LatLngBounds();
+    if (focusRing) {
+      for (const p of focusRing) {
+        bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng));
+      }
+    } else {
+      for (const ring of district.paths) {
+        for (const p of ring) {
+          bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng));
+        }
+      }
+    }
+
+    map.setBounds(bounds, 40, 40, 40, 40);
+
+    window.setTimeout(() => {
+      if (map.getLevel() > DISTRICT_MAX_OUT_LEVEL) {
+        map.setLevel(DISTRICT_CLAMP_LEVEL);
+      }
+      syncHotspotsVisibility(map);
+    }, 40);
   };
 
   const applyStyles = (hovered: string | null, selected: string | null) => {
@@ -407,6 +478,7 @@ export function MapCard({
           });
 
           window.kakao.maps.event.addListener(polygon, 'click', () => {
+            focusRingRef.current = ring;
             selectedRef.current = district.code;
             setSelectedCode(district.code);
             applyStyles(hoveredRef.current, district.code);
@@ -494,17 +566,6 @@ export function MapCard({
   }, [hotspots, status]);
 
   useEffect(() => {
-    onlySelectedRef.current = onlySelectedHotspots;
-    const map = mapRef.current;
-    if (!map || status !== 'loaded') return;
-    syncHotspotsVisibility(map);
-  }, [onlySelectedHotspots, status]);
-  
-  useEffect(() => {
-    if (!selectedCode) setOnlySelectedHotspots(false);
-  }, [selectedCode]);
-
-  useEffect(() => {
     const map = mapRef.current;
     if (!map || status !== 'loaded') return;
 
@@ -515,14 +576,7 @@ export function MapCard({
         (d) => d.code === selectedRef.current,
       );
       if (!district) return;
-      const bounds = new window.kakao.maps.LatLngBounds();
-      for (const ring of district.paths) {
-        for (const p of ring) {
-          bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng));
-        }
-      }
-      map.setBounds(bounds, 40, 40, 40, 40);
-      syncHotspotsVisibility(map);
+      focusDistrict(map, district);
     };
 
     const raf = window.requestAnimationFrame(() => {
@@ -546,46 +600,11 @@ export function MapCard({
     const district = DAEGU_DISTRICTS.find((d) => d.code === selectedCode);
     if (!district) return;
 
-    const bounds = new window.kakao.maps.LatLngBounds();
-    for (const ring of district.paths) {
-      for (const p of ring) {
-        bounds.extend(new window.kakao.maps.LatLng(p.lat, p.lng));
-      }
-    }
-    map.setBounds(bounds, 40, 40, 40, 40);
-    // setBounds 후 레벨 반영 타이밍을 위해 한 번 더 맞춤
-    window.setTimeout(() => syncHotspotsVisibility(map), 0);
+    focusDistrict(map, district);
   }, [selectedCode]);
 
   return (
-    <DashboardCard
-      title={title}
-      action={
-        <div className={styles.regionFilters}>
-          <select
-            className={styles.regionSelect}
-            value="daegu"
-            aria-label="시도 선택"
-            disabled
-          >
-            <option value="daegu">대구광역시</option>
-          </select>
-          <select
-            className={styles.regionSelect}
-            value={selectedCode ?? ''}
-            aria-label="구군 선택"
-            onChange={(e) => setSelectedCode(e.target.value || null)}
-          >
-            <option value="">구·군 선택</option>
-            {DAEGU_DISTRICTS.map((d) => (
-              <option key={d.code} value={d.code}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      }
-    >
+    <DashboardCard title={title}>
       <div className={styles.mapWrap}>
         {status === 'loading' ? (
           <div className={styles.stateBox} aria-busy="true">
@@ -657,15 +676,6 @@ export function MapCard({
           </li>
         </ul>
       </div>
-      <label className={styles.hotspotFilter}>
-        <input
-          type="checkbox"
-          checked={onlySelectedHotspots}
-          disabled={!selectedCode}
-          onChange={(e) => setOnlySelectedHotspots(e.target.checked)}
-        />
-        선택한 구·군의 사고 다발 지역만 표시{hotspotYear != null ? ` (${hotspotYear})` : ''}
-      </label>
     </DashboardCard>
   );
 }

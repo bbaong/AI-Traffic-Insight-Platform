@@ -7,6 +7,7 @@ import { useAuthStore } from '../../stores/authStore';
 import styles from './AppLayout.module.css';
 
 const SIDEBAR_DRAWER_MQ = '(max-width: 1100px)';
+const APP_SHELL_CLASS = 'app-shell';
 const INS_CUSTOMERS_PAGE_CLASS = 'ins-customers-page';
 
 export function AppLayout() {
@@ -21,13 +22,17 @@ export function AppLayout() {
       document.body,
       document.getElementById('root'),
     ];
+    roots.forEach((el) => el?.classList.add(APP_SHELL_CLASS));
     if (isInsCustomers) {
       roots.forEach((el) => el?.classList.add(INS_CUSTOMERS_PAGE_CLASS));
     } else {
       roots.forEach((el) => el?.classList.remove(INS_CUSTOMERS_PAGE_CLASS));
     }
     return () => {
-      roots.forEach((el) => el?.classList.remove(INS_CUSTOMERS_PAGE_CLASS));
+      roots.forEach((el) => {
+        el?.classList.remove(APP_SHELL_CLASS);
+        el?.classList.remove(INS_CUSTOMERS_PAGE_CLASS);
+      });
     };
   }, [isInsCustomers]);
 

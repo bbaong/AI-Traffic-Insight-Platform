@@ -20,10 +20,10 @@ const SEVERITY_COLORS: Record<string, string> = {
     부상신고사고: '#fff',
   };
 
-  function formatPeriod(raw: string): string {
+  function formatPeriod(raw: string): { year: string; quarter: string } {
     const q = /^(\d{4})Q([1-4])$/i.exec(raw);
-    if (q) return `${q[1].slice(2)}년도 ${q[2]}분기`;
-    return raw;
+    if (q) return { year: `${q[1].slice(2)}년`, quarter: `${q[2]}분기` };
+    return { year: raw, quarter: '' };
   }
 
 export interface SeverityStackedCardProps {
@@ -87,10 +87,15 @@ export function SeverityStackedCard({
   const maxTotal = Math.max(...series.map((p) => p.사고건수), 1);
 
   return (
-    <DashboardCard title={title}>
-      <p className={styles.sub}>
-        직전 4분기 실적 + 다음 분기 예측 (상해정도별 건수)
-      </p>
+    <DashboardCard
+      title={title}
+      className={styles.card}
+      action={
+        <p className={styles.sub}>
+          직전 4분기 실적 + 다음 분기 예측 (상해정도별 건수)
+        </p>
+      }
+    >
       <div className={styles.chart} role="img" aria-label="상해정도별 누적막대">
         {series.map((point) => (
           <div
@@ -104,37 +109,43 @@ export function SeverityStackedCard({
             </span>
             <div
                 className={styles.stack}
-                style={{ height: `${(point.사고건수 / maxTotal) * 100}%` }}
+                style={{ height: `${(point.사고건수 / maxTotal) * 95}%` }}
             >
                 {[...GOV_SEVERITY_KEYS].reverse().map((key) => {
-                    const count = point.경중_건수[key] ?? 0;
-                    const pct =
+                  const count = point.경중_건수[key] ?? 0;
+                  const pct =
                     point.사고건수 > 0 ? (count / point.사고건수) * 100 : 0;
-                    if (pct <= 0) return null;
-                    const showInBar = count > 0;
-                    return (
-                      <div
-                        key={key}
-                        className={styles.seg}
-                        style={{
-                          flexGrow: pct,
-                          background: SEVERITY_COLORS[key] ?? '#94a3b8',
-                          color: SEVERITY_LABEL_COLOR[key] ?? '#fff',
-                        }}
-                        title={`${key}: ${count}건`}
-                      >
-                        {showInBar ? (
-                          <span className={styles.segValue}>{count}</span>
-                        ) : null}
-                      </div>
-                    );
+                  if (count <= 0 || pct <= 0) return null;
+                  // 넓은 구간만 막대 안 숫자, 좁은 구간은 호버로 확인
+                  const showInBar = pct >= 12;
+                  return (
+                    <div
+                      key={key}
+                      className={`${styles.seg} ${key === '사망사고' ? styles.segDeath : ''}`}
+                      style={{
+                        flexGrow: pct,
+                        background: SEVERITY_COLORS[key] ?? '#94a3b8',
+                        color: SEVERITY_LABEL_COLOR[key] ?? '#fff',
+                      }}
+                      title={`${key.replace('사고', '')} ${count}건`}
+                    >
+                      {showInBar ? (
+                        <span className={styles.segValue}>{count}</span>
+                      ) : null}
+                    </div>
+                  );
                 })}
             </div>
             <span className={styles.label}>
-              {formatPeriod(point.분기)}
-              {point.kind === 'forecast' ? (
-                <span className={styles.forecastBadge}>예측</span>
-              ) : null}
+              {(() => {
+                const period = formatPeriod(point.분기);
+                return (
+                  <>
+                    <span>{period.year}</span>
+                    <span>{period.quarter}</span>
+                  </>
+                );
+              })()}
             </span>
           </div>
         ))}

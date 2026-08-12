@@ -1,3 +1,7 @@
+.card {
+  height: 100%;
+}
+
 .hint {
   margin: 0;
   flex: 1;
@@ -8,6 +12,46 @@
   color: var(--color-hint);
   font-size: 13px;
   text-align: center;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 0;
+  padding: 12px;
+  text-align: center;
+}
+
+.emptyIcon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-teal, #0b6b5f) 12%, #fff);
+  color: var(--color-teal, #0b6b5f);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--color-ink);
+  line-height: 1.35;
+}
+
+.emptyDesc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-hint);
+  line-height: 1.45;
 }
 
 .list {

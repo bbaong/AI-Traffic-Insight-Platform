@@ -56,7 +56,7 @@ export function ComparisonCard({
 
   if (!districtName) {
     return (
-      <DashboardCard title={title}>
+      <DashboardCard title={title} className={styles.card}>
         <p className={styles.hint}>지도에서 구·군을 선택하세요.</p>
       </DashboardCard>
     );
@@ -64,7 +64,7 @@ export function ComparisonCard({
 
   if (loading && !data) {
     return (
-      <DashboardCard title={title}>
+      <DashboardCard title={title} className={styles.card}>
         <div className={styles.skeleton} aria-busy="true">
           <span className={styles.hint}>비교 지표를 불러오는 중…</span>
         </div>
@@ -74,7 +74,7 @@ export function ComparisonCard({
 
   if (error && !data) {
     return (
-      <DashboardCard title={title}>
+      <DashboardCard title={title} className={styles.card}>
         <p className={styles.hint} role="alert">
           {errorText(error)}
         </p>
@@ -84,14 +84,29 @@ export function ComparisonCard({
 
   if (!data) {
     return (
-      <DashboardCard title={title}>
+      <DashboardCard title={title} className={styles.card}>
         <p className={styles.hint}>해당 구 데이터가 없습니다</p>
       </DashboardCard>
     );
   }
 
   return (
-    <DashboardCard title={title}>
+    <DashboardCard
+      title={title}
+      className={styles.card}
+      action={
+        <p className={styles.legend}>
+          <span className={styles.legendItem}>
+            <span className={`${styles.swatch} ${styles.barDistrict}`} />
+            {districtName}
+          </span>
+          <span className={styles.legendItem}>
+            <span className={`${styles.swatch} ${styles.barCity}`} />
+            대구시 평균
+          </span>
+        </p>
+      }
+    >
       <ul className={styles.list}>
         {METRICS.map((metric) => {
           const districtVal = data.district[metric.key as MetricKey];
@@ -101,7 +116,7 @@ export function ComparisonCard({
           const down = delta < 0;
           return (
             <li key={metric.key} className={styles.row}>
-              <div className={styles.rowMain}>
+              <div className={styles.main}>
                 <p className={styles.metricLabel}>{metric.label}</p>
                 <div className={styles.bars}>
                   <div className={styles.barLine}>
@@ -111,7 +126,6 @@ export function ComparisonCard({
                         style={{ width: barWidth(districtVal) }}
                       />
                     </span>
-                    <span className={styles.barValue}>{formatPct(districtVal)}</span>
                   </div>
                   <div className={styles.barLine}>
                     <span className={styles.barTrack} aria-hidden="true">
@@ -120,9 +134,12 @@ export function ComparisonCard({
                         style={{ width: barWidth(cityVal) }}
                       />
                     </span>
-                    <span className={styles.barValue}>{formatPct(cityVal)}</span>
                   </div>
                 </div>
+              </div>
+              <div className={styles.values} aria-hidden="true">
+                <span className={styles.barValue}>{formatPct(districtVal)}</span>
+                <span className={styles.barValue}>{formatPct(cityVal)}</span>
               </div>
               <span
                 className={`${styles.delta} ${
@@ -136,22 +153,14 @@ export function ComparisonCard({
         })}
       </ul>
       <div className={styles.axis} aria-hidden="true">
-        <span>0%</span>
-        <span>10%</span>
-        <span>20%</span>
-        <span>30%</span>
-        <span>40%</span>
+        <div className={styles.axisTicks}>
+          <span>0%</span>
+          <span>10%</span>
+          <span>20%</span>
+          <span>30%</span>
+          <span>40%</span>
+        </div>
       </div>
-      <p className={styles.legend}>
-        <span className={styles.legendItem}>
-          <span className={`${styles.swatch} ${styles.barDistrict}`} />
-          {districtName}
-        </span>
-        <span className={styles.legendItem}>
-          <span className={`${styles.swatch} ${styles.barCity}`} />
-          대구시 평균
-        </span>
-      </p>
     </DashboardCard>
   );
 }
