@@ -1,4 +1,4 @@
-import type { LandingRiskLevel } from '../../mocks/data/govDashboard.mock';
+export type LandingRiskLevel = 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
 
 export interface RiskLevelMeta {
   label: string;
@@ -28,6 +28,14 @@ const RISK_LEVEL_META: Record<LandingRiskLevel, RiskLevelMeta> = {
     color: 'var(--color-teal)',
   },
 };
+
+export function scoreToLandingRisk(score: number | null): LandingRiskLevel {
+  if (score == null) return 'MODERATE';
+  if (score >= 35) return 'CRITICAL';
+  if (score >= 28) return 'HIGH';
+  if (score >= 22) return 'MODERATE';
+  return 'LOW';
+}
 
 export function getRiskLevelMeta(level: LandingRiskLevel): RiskLevelMeta {
   return RISK_LEVEL_META[level];

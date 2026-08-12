@@ -33,9 +33,10 @@ export interface GovSuggestionItem {
   desc: string;
 }
 
-/** GET /api/gov/priority-top — 미연결. 페이지에서는 현행 클라이언트 TOP3 유지 */
+/** GET /api/gov/priority-top */
 export interface GovPriorityTopItem {
   rank: number | null;
+  districtId: number;
   district: string;
   score: number | null;
   predictedAccidentCount: number;
@@ -48,7 +49,7 @@ export interface GovPriorityTopData {
   items: GovPriorityTopItem[];
 }
 
-/** GET /api/gov/trend/:districtId — 미연결. 추세는 predict-gov-history 유지 */
+/** GET /api/gov/trend/:districtId */
 export interface GovTrendPoint {
   quarterLabel: string;
   total: number;
@@ -109,7 +110,7 @@ export async function fetchGovSuggestions(
 
 /**
  * GET /api/gov/priority-top?limit=3
- * 미연결: GovDashboard TOP3는 예측 스냅샷 클라이언트 정렬을 유지한다.
+ * 랜딩 Hero 등에서 사용. GovDashboard TOP3는 스냅샷 클라이언트 정렬도 병행.
  */
 export async function fetchGovPriorityTop(
   limit = 3,
@@ -132,8 +133,8 @@ export async function fetchGovPriorityTop(
 
 /**
  * GET /api/gov/trend/:districtId
- * 미연결: 추세 카드는 POST /api/prediction/predict-gov-history (경중 4단)를 쓴다.
- * 단순 분기 합계 폴백이 필요할 때만 사용.
+ * 대시보드 추세 카드는 주로 POST /api/prediction/predict-gov-history 사용.
+ * 단순 분기 합계가 필요할 때 이 API를 쓴다.
  */
 export async function fetchGovTrend(districtId: number): Promise<GovTrendPoint[]> {
   const res = await fetch(`${API_BASE}/api/gov/trend/${districtId}`);

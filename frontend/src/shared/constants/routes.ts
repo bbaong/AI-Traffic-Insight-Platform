@@ -3,7 +3,6 @@ export const ROUTES = {
   LOGIN: '/login',
   SIGNUP: '/signup',
   SIGNUP_FORM: '/signup/form',
-  SIGNUP_COMPLETE: '/signup/complete',
   DASHBOARD_GOV: '/dashboard/gov',
   DASHBOARD_INS: '/dashboard/insurance',
   MYPAGE: '/mypage',

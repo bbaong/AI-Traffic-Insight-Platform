@@ -27,10 +27,6 @@ export function AppRouter() {
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.SIGNUP} element={<SignupRoleGatePage />} />
       <Route path={ROUTES.SIGNUP_FORM} element={<SignupFormEntryPage />} />
-      <Route
-        path={ROUTES.SIGNUP_COMPLETE}
-        element={<Navigate to={ROUTES.LANDING} replace />}
-      />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>

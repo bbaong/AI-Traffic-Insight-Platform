@@ -4,12 +4,6 @@ import type {
   CustomerListItem,
   ReportItem,
 } from '../types/customers';
-import { sleep } from '../utils/sleep';
-import {
-  MOCK_REPORT,
-  mockReportByGrade,
-} from '../mocks/report.mock';
-import { toRiskGrade } from '../constants/insEnums';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
 
@@ -149,17 +143,23 @@ export async function fetchCustomerConsultations(
 }
 
 /**
- * 상담 참고 리포트.
- * TODO: 상담 저장 시 리포트가 함께 저장되는지 확정 후
- *   (a) consultation 응답에 포함되면 consultation.report 사용
- *   (b) 별도 API면 GET /api/consultations/:id/report 로 교체
+ * 상담 참고 리포트 — GET /api/consultations/:id/report
  */
 export async function fetchConsultationReport(
   consultationId: string,
-  riskGrade?: string | null,
+  _riskGrade?: string | null,
 ): Promise<ReportItem[]> {
-  await sleep(200);
-  const byId = MOCK_REPORT[consultationId];
-  if (byId) return byId;
-  return mockReportByGrade(toRiskGrade(riskGrade));
+  const res = await fetch(
+    `${API_BASE}/api/consultations/${encodeURIComponent(consultationId)}/report`,
+  );
+  const json = await readJson<{
+    success?: boolean;
+    message?: string;
+    data?: ReportItem[];
+  }>(res);
+
+  if (!res.ok || json.success !== true || !Array.isArray(json.data)) {
+    throw new Error(json.message ?? '리포트를 불러오지 못했습니다.');
+  }
+  return json.data;
 }

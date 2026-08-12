@@ -174,7 +174,7 @@ export function ReportsPage() {
         <section className={styles.card}>
           <h2 className={styles.cardTitle}>상담 참고 리포트</h2>
           <p className={styles.meta}>
-            대시보드에서 분석 후「상담 참고 리포트 생성」을 눌러 이동해 주세요.{' '}
+            대시보드에서 분석 후 「상담 참고 리포트 생성」을 눌러 이동해 주세요.<br/>{' '}
             <Link className={styles.link} to={dashboardPath}>
               {dashboardLabel}로 이동
             </Link>

@@ -77,6 +77,7 @@ export async function listPriorityTop(limit: number) {
     forecastLabel: latestRun.forecast_label,
     items: items.map((item) => ({
       rank: item.priority_rank,
+      districtId: item.district_id,
       district: item.districts.district_name,
       score:
         item.predicted_severe_rate_pct == null

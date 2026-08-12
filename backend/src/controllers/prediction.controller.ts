@@ -206,14 +206,6 @@ export const predictGovHotspots = async (req: Request, res: Response) => {
   }
 };
 
-/** GET /api/prediction — 예측 요청 테스트 */
-export const getPrediction = async (_req: Request, res: Response) => {
-  return res.status(501).json({
-    success: false,
-    message: '아직 구현되지 않았습니다.',
-  });
-};
-
 /** POST /api/prediction/gov-report-pdf — AI GOV PDF 생성 */
 export const predictGovReportPdf = async (req: Request, res: Response) => {
   try {

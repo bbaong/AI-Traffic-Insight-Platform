@@ -61,21 +61,6 @@ model checklist_items {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model cohort_benchmark_stats {
-  benchmark_id    BigInt                           @id @default(autoincrement()) @db.UnsignedBigInt
-  scope           String                           @default("전국") @db.VarChar(20)
-  dimension       cohort_benchmark_stats_dimension
-  dimension_value String                           @db.VarChar(20)
-  avg_risk_score  Decimal                          @db.Decimal(5, 2)
-  sample_count    Int                              @db.UnsignedInt
-  period_start    DateTime                         @db.Date
-  period_end      DateTime                         @db.Date
-  updated_at      DateTime                         @default(now()) @db.DateTime(0)
-
-  @@index([dimension, dimension_value], map: "idx_benchmark_dim")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model consultation_checklist_answers {
   answer_id       BigInt          @id @default(autoincrement()) @db.UnsignedBigInt
   consultation_id BigInt          @db.UnsignedBigInt
@@ -202,29 +187,6 @@ model district_monthly_trend {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model district_risk_scores {
-  score_id                BigInt                          @id @default(autoincrement()) @db.UnsignedBigInt
-  district_id             Int                             @db.UnsignedInt
-  period_start            DateTime                        @db.Date
-  period_end              DateTime                        @db.Date
-  priority_score          Decimal                         @db.Decimal(5, 2)
-  risk_grade              district_risk_scores_risk_grade
-  rank_in_city            Int?                            @db.UnsignedTinyInt
-  total_accident_count    Int                             @db.UnsignedInt
-  severe_death_count      Int                             @db.UnsignedInt
-  yoy_accident_change_pct Decimal?                        @db.Decimal(5, 2)
-  analysis_summary        String?                         @db.VarChar(255)
-  sample_size             Int?                            @db.UnsignedInt
-  is_low_confidence       Boolean                         @default(false)
-  model_version           String                          @default("district_score_v1") @db.VarChar(30)
-  calculated_at           DateTime                        @default(now()) @db.DateTime(0)
-  districts               districts                       @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_districtscore_district")
-
-  @@index([risk_grade], map: "idx_districtscore_grade")
-  @@index([district_id, period_end], map: "idx_districtscore_period")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model districts {
   district_id                Int                          @id @default(autoincrement()) @db.UnsignedInt
   district_name              String                       @unique(map: "district_name") @db.VarChar(50)
@@ -244,7 +206,6 @@ model districts {
   customer_risk_profiles     customer_risk_profiles[]
   district_benchmark_metrics district_benchmark_metrics[]
   district_monthly_trend     district_monthly_trend[]
-  district_risk_scores       district_risk_scores[]
   gov_forecast_districts     gov_forecast_districts[]
 
   @@index([sido_code], map: "idx_districts_sido_code")
@@ -266,18 +227,6 @@ model reports {
 
   @@index([generated_by], map: "idx_report_generated_by")
   @@index([target_type, target_id], map: "idx_report_target")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model risk_factor_contributions {
-  contribution_id  BigInt                                @id @default(autoincrement()) @db.UnsignedBigInt
-  target_type      risk_factor_contributions_target_type
-  target_id        BigInt                                @db.UnsignedBigInt
-  factor_name      String                                @db.VarChar(50)
-  contribution_pct Decimal                               @db.Decimal(5, 2)
-  display_order    Int                                   @default(0) @db.UnsignedTinyInt
-
-  @@index([target_type, target_id], map: "idx_contribution_target")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -371,19 +320,9 @@ model district_benchmark_metrics {
   @@index([district_id, period_end], map: "idx_benchmark_district_period")
 }
 
-enum risk_factor_contributions_target_type {
-  DISTRICT_SCORE
-  CUSTOMER_PROFILE
-}
-
 enum reports_report_type {
   ADMIN_REFERENCE
   CONSULT_REFERENCE
-}
-
-enum cohort_benchmark_stats_dimension {
-  AGE_GROUP
-  VEHICLE_TYPE
 }
 
 enum reports_target_type {
@@ -426,13 +365,6 @@ enum users_role {
 enum consultations_status {
   IN_PROGRESS
   COMPLETED
-}
-
-enum district_risk_scores_risk_grade {
-  Low
-  Moderate
-  High
-  Critical
 }
 
 enum customer_risk_profiles_gender {
