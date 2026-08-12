@@ -92,6 +92,7 @@
   top: 5px;
 }
 
+/* 가로 1100px↓: 햄버거 표시 → Sidebar 드로어 열기 (AppLayout.tsx 와 동일 breakpoint) */
 @media (max-width: 1100px) {
   .header {
     padding: 0 16px;

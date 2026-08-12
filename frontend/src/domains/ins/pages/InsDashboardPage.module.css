@@ -9,7 +9,7 @@
   box-sizing: border-box;
 }
 
-/* 내용 높이만큼만 차지 → 부족하면 content가 페이지 스크롤 */
+/* 내용 높이만큼만 차지 → 부족하면 AppLayout .content 에서 스크롤 */
 .pageFill {
   flex: none;
   height: auto;

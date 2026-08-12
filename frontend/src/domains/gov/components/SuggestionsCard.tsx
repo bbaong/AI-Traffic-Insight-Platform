@@ -81,9 +81,6 @@ export function SuggestionsCard({
               <p className={styles.itemTitle}>{item.title}</p>
               <p className={styles.desc}>{item.desc}</p>
             </div>
-            <span className={styles.chevron} aria-hidden="true">
-              ›
-            </span>
           </li>
         ))}
       </ul>

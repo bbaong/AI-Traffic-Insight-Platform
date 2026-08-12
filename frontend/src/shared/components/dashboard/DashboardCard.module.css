@@ -20,11 +20,20 @@
   flex-shrink: 0;
 }
 
+.headStart {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
 .title {
   margin: 0;
   font-size: 13px;
   font-weight: var(--font-weight-medium);
   color: var(--color-ink);
+  flex-shrink: 0;
 }
 
 .body {
