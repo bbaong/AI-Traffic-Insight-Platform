@@ -44,15 +44,16 @@ export function SaveSuccessModal({ open, onGoReport, onGoCustomers }: Props) {
           AI 분석 결과를 기반으로 상담 참고 리포트를 확인할 수 있습니다.
         </p>
         <div className={styles.actions}>
-          <button type="button" className={styles.primary} onClick={onGoReport}>
-            리포트 확인하기 →
-          </button>
-          <button
+          
+        <button
             type="button"
             className={styles.secondary}
             onClick={onGoCustomers}
           >
             고객관리로 이동
+          </button>
+          <button type="button" className={styles.primary} onClick={onGoReport}>
+            리포트 확인하기 →
           </button>
         </div>
       </div>
