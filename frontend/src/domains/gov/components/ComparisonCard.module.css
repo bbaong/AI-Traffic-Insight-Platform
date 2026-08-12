@@ -1,0 +1,153 @@
+.hint {
+  margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  color: var(--color-hint);
+  font-size: 13px;
+  text-align: center;
+}
+
+.skeleton {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.rowMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.metricLabel {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.barLine {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 8px;
+}
+
+.barTrack {
+  display: block;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--color-surface-alt, #f3f5f7);
+  overflow: hidden;
+}
+
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  min-width: 0;
+}
+
+.barDistrict {
+  background: var(--color-teal, #0b6b5f);
+}
+
+.barCity {
+  background: #c5cdd6;
+}
+
+.barValue {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-body);
+  text-align: right;
+}
+
+.delta {
+  flex: 0 0 72px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-hint);
+  padding-bottom: 2px;
+}
+
+.deltaUp {
+  color: #c62828;
+}
+
+.deltaDown {
+  color: #2e7d32;
+}
+
+.axis {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  margin: 4px 72px 0 0;
+  padding-right: 48px;
+  font-size: 10px;
+  color: var(--color-hint);
+}
+
+.axis span:not(:first-child) {
+  text-align: center;
+}
+
+.axis span:last-child {
+  text-align: right;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--color-body);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barFill {
+    transition: none;
+  }
+}

@@ -39,9 +39,13 @@ export function SeverityStackedCard({
   loading,
   error,
 }: SeverityStackedCardProps) {
+  const title = regionName
+    ? `사고 추세 및 예측 · ${regionName}`
+    : '사고 추세 및 예측';
+
   if (!regionName) {
     return (
-      <DashboardCard title="사고경중">
+      <DashboardCard title={title}>
         <p className={styles.hint}>지도에서 구·군을 선택하세요.</p>
       </DashboardCard>
     );
@@ -52,7 +56,7 @@ export function SeverityStackedCard({
 
     if (loading && !matched) {
     return (
-    <DashboardCard title={`사고경중${regionName ? ` · ${regionName}` : ''}`}>
+    <DashboardCard title={title}>
         <p className={styles.hint} aria-busy="true">
         분석 중…
         </p>
@@ -62,7 +66,7 @@ export function SeverityStackedCard({
 
     if (error && !matched) {
     return (
-    <DashboardCard title={`사고경중 · ${regionName}`}>
+    <DashboardCard title={title}>
         <p className={styles.hint}>{error}</p>
     </DashboardCard>
     );
@@ -70,7 +74,7 @@ export function SeverityStackedCard({
 
     if (!matched) {
     return (
-    <DashboardCard title={`사고경중 · ${regionName}`}>
+    <DashboardCard title={title}>
         <p className={styles.hint} aria-busy={loading}>
         {loading ? '분석 중…' : '데이터가 없습니다.'}
         </p>
@@ -83,7 +87,7 @@ export function SeverityStackedCard({
   const maxTotal = Math.max(...series.map((p) => p.사고건수), 1);
 
   return (
-    <DashboardCard title={`사고경중 · ${regionName}`}>
+    <DashboardCard title={title}>
       <p className={styles.sub}>
         직전 4분기 실적 + 다음 분기 예측 (상해정도별 건수)
       </p>
@@ -93,7 +97,11 @@ export function SeverityStackedCard({
             key={`${point.kind}-${point.분기}`}
             className={`${styles.col} ${point.kind === 'forecast' ? styles.colForecast : ''}`}
           >
-            <span className={styles.total}>{point.사고건수}</span>
+            <span className={styles.total}>
+              {point.kind === 'forecast'
+                ? `예측 ${point.사고건수.toLocaleString('ko-KR')}`
+                : point.사고건수.toLocaleString('ko-KR')}
+            </span>
             <div
                 className={styles.stack}
                 style={{ height: `${(point.사고건수 / maxTotal) * 100}%` }}

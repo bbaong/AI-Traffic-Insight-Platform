@@ -19,16 +19,17 @@
   .chart {
     display: flex;
     align-items: flex-end;
-    justify-content: space-around;
-    gap: 12px;
+    justify-content: center;
+    gap: 14px;
     flex: 1;
     min-height: 120px;
     padding: 4px 4px 0;
   }
   
   .col {
-    flex: 1;
-    max-width: 88px;
+    flex: 0 0 52px;
+    width: 52px;
+    max-width: 52px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -51,10 +52,10 @@
 
   .colForecast .stack {
     position: relative;
-    max-width: 58px;
-    box-shadow:
-      0 0 0 2px var(--color-teal),
-      0 4px 12px color-mix(in srgb, var(--color-teal) 28%, transparent);
+    max-width: 48px;
+    box-shadow: none;
+    outline: 2px dashed var(--color-teal);
+    outline-offset: 1px;
     opacity: 1;
   }
 

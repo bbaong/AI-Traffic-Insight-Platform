@@ -1,0 +1,100 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.hint {
+  margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 88px;
+  padding: 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-hint);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.table th {
+  text-align: left;
+  padding: 8px 6px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-hint);
+  border-bottom: 0.5px solid var(--color-border-light);
+}
+
+.table td {
+  padding: 10px 6px;
+  color: var(--color-ink);
+  border-bottom: 0.5px solid var(--color-border-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.table tbody tr[role='button'] {
+  cursor: pointer;
+}
+
+.table tbody tr[role='button']:hover {
+  background: var(--color-surface-alt, #f7f9fb);
+}
+
+.table tbody tr[role='button']:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: -2px;
+}
+
+.rowSelected {
+  background: var(--color-page-bg);
+}
+
+.risk {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: var(--font-weight-medium);
+}
+
+.metaHint {
+  margin: 8px 0 0;
+  text-align: right;
+  font-size: 11.5px;
+  color: var(--color-hint);
+}
+
+.reportBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: auto;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--color-teal, #0b6b5f);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.reportBtn:hover {
+  filter: brightness(1.05);
+}
+
+.reportBtn:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reportBtn:hover {
+    filter: none;
+  }
+}
