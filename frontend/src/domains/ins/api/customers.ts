@@ -22,11 +22,16 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 /** GET /api/customers — json.data만 사용 */
-export async function fetchCustomers(q?: string): Promise<CustomerListItem[]> {
+export async function fetchCustomers(
+  q?: string,
+  userId?: number,
+): Promise<CustomerListItem[]> {
+  if (userId == null) throw new Error('로그인이 필요합니다.');
   const url = new URL(`${API_BASE}/api/customers`);
+  url.searchParams.set('userId', String(userId));
   const query = q?.trim();
   if (query) url.searchParams.set('q', query);
-
+  
   const res = await fetch(url.toString());
   const json = await readJson<ApiResponse<CustomerListItem[]>>(res);
 
@@ -48,11 +53,13 @@ export interface HideCustomerResult {
 /** PATCH /api/customers/:id/hide — Soft Delete(목록 숨김) */
 export async function hideCustomer(
   customerId: string,
+  userId: number,
 ): Promise<HideCustomerResult> {
-  const res = await fetch(
+  const url = new URL(
     `${API_BASE}/api/customers/${encodeURIComponent(customerId)}/hide`,
-    { method: 'PATCH' },
   );
+  url.searchParams.set('userId', String(userId));
+  const res = await fetch(url.toString(), { method: 'PATCH' });
   const json = await readJson<ApiResponse<HideCustomerResult>>(res);
 
   if (res.status === 404) {
@@ -68,7 +75,10 @@ export async function hideCustomer(
 }
 
 /** 여러 고객을 순차 숨김. 일부 실패해도 나머지는 진행 */
-export async function hideCustomers(customerIds: string[]): Promise<{
+export async function hideCustomers(
+  customerIds: string[],
+  userId: number,
+): Promise<{
   hiddenIds: string[];
   failed: Array<{ id: string; message: string }>;
 }> {
@@ -77,7 +87,7 @@ export async function hideCustomers(customerIds: string[]): Promise<{
 
   const results = await Promise.allSettled(
     customerIds.map(async (id) => {
-      await hideCustomer(id);
+      await hideCustomer(id, userId);
       return id;
     }),
   );
@@ -104,10 +114,13 @@ export async function hideCustomers(customerIds: string[]): Promise<{
 /** GET /api/customers/:id/consultations */
 export async function fetchCustomerConsultations(
   customerId: string,
+  userId: number,
 ): Promise<ConsultationsResponse> {
-  const res = await fetch(
+  const url = new URL(
     `${API_BASE}/api/customers/${encodeURIComponent(customerId)}/consultations`,
   );
+  url.searchParams.set('userId', String(userId));
+  const res = await fetch(url.toString());
   const json = await readJson<
     {
       success: boolean;

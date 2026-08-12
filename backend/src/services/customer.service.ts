@@ -16,9 +16,13 @@ function toNum(v: unknown): number | null {
 }
 
 /** GET /api/customers — 왼쪽 고객목록 */
-export async function listCustomers(q?: string) {
+export async function listCustomers(q?: string, userId?: number | string) {
   const term = q?.trim() ?? '';
   const digits = term ? digitsOnly(term) : '';
+  if (userId == null || userId === '') {
+    throw new Error('userId(상담원)가 필요합니다.');
+  }
+  const registeredBy = BigInt(userId);
 
   let phoneHash: string | undefined;
   if (digits.length >= 10 && digits.length <= 11) {
@@ -33,6 +37,7 @@ export async function listCustomers(q?: string) {
   const rows = await prisma.customers.findMany({
     where: {
       is_hidden: false,
+      registered_by: registeredBy,
       ...(term
         ? {
             OR: [
@@ -82,11 +87,22 @@ export async function listCustomers(q?: string) {
 }
 
 /** GET /api/customers/:id/consultations — 오른쪽 이력 */
-export async function listCustomerConsultations(customerId: string) {
+export async function listCustomerConsultations(
+  customerId: string,
+  userId?: number | string,
+) {
+  if (userId == null || userId === '') {
+    throw new Error('userId(상담원)가 필요합니다.');
+  }
   const id = BigInt(customerId);
+  const registeredBy = BigInt(userId);
 
-  const customer = await prisma.customers.findUnique({
-    where: { customer_id: id },
+  const customer = await prisma.customers.findFirst({
+    where: {
+      customer_id: id,
+      registered_by: registeredBy,
+      is_hidden: false,
+    },
     select: {
       customer_id: true,
       name: true,
@@ -94,8 +110,8 @@ export async function listCustomerConsultations(customerId: string) {
       is_hidden: true,
     },
   });
-  
-  if (!customer || customer.is_hidden) return null;
+
+  if (!customer) return null;
 
   const consultations = await prisma.consultations.findMany({
     where: { customer_id: id },
@@ -157,11 +173,21 @@ export async function listCustomerConsultations(customerId: string) {
 }
 
 /** PATCH /api/customers/:id/hide — Soft Delete */
-export async function hideCustomer(customerId: string) {
+export async function hideCustomer(
+  customerId: string,
+  userId?: number | string,
+) {
+  if (userId == null || userId === '') {
+    throw new Error('userId(상담원)가 필요합니다.');
+  }
   const id = BigInt(customerId);
+  const registeredBy = BigInt(userId);
 
-  const existing = await prisma.customers.findUnique({
-    where: { customer_id: id },
+  const existing = await prisma.customers.findFirst({
+    where: {
+      customer_id: id,
+      registered_by: registeredBy,
+    },
     select: { customer_id: true, is_hidden: true },
   });
 

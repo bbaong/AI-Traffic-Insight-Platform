@@ -98,7 +98,10 @@ export async function saveConsultation(input: any) {
     const { phoneHash, phoneEnc } = preparePhoneForStorage(customer.phone);
 
     const existing = await tx.customers.findFirst({
-      where: { phone_hash: phoneHash },
+      where: {
+        phone_hash: phoneHash,
+        registered_by: BigInt(userId),
+      },
     });
     const savedCustomer = existing
       ? await tx.customers.update({

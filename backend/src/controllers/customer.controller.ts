@@ -5,15 +5,30 @@ import {
   hideCustomer,
 } from '../services/customer.service';
 
+function parseUserId(req: Request): string | undefined {
+  const q = req.query.userId;
+  if (typeof q === 'string' && q.trim()) return q.trim();
+  const bodyId = (req.body as { userId?: unknown } | undefined)?.userId;
+  if (bodyId != null && String(bodyId).trim()) return String(bodyId).trim();
+  return undefined;
+}
+
 // GET /api/customers
 export const getCustomers = async (req: Request, res: Response) => {
   try {
+    const userId = parseUserId(req);
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId(상담원)가 필요합니다.',
+      });
+    }
     const q =
       typeof req.query.q === 'string' && req.query.q.trim()
         ? req.query.q.trim()
         : undefined;
 
-    const data = await listCustomers(q);
+    const data = await listCustomers(q, userId);
     return res.status(200).json({ success: true, data });
   } catch (error) {
     console.error(error);
@@ -29,7 +44,15 @@ export const getCustomerConsultations = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: '고객 id가 필요합니다.' });
     }
 
-    const result = await listCustomerConsultations(id as string);
+    const userId = parseUserId(req);
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId(상담원)가 필요합니다.',
+      });
+    }
+
+    const result = await listCustomerConsultations(id as string, userId);
     if (!result) {
       return res.status(404).json({
         success: false,
@@ -61,7 +84,16 @@ export const hideCustomerHandler = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, message: '고객 id가 필요합니다.' });
     }
 
-    const data = await hideCustomer(id as string);
+    const userId = parseUserId(req);
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'userId(상담원)가 필요합니다.',
+      });
+    }
+
+    const data = await hideCustomer(id as string, userId);
+    
     if (!data) {
       return res.status(404).json({
         success: false,
