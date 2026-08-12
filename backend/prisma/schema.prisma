@@ -27,17 +27,19 @@ model accident_condition_stats {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model accident_records {
-  record_id         BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
-  district_id       Int                          @db.UnsignedInt
-  accident_date     DateTime                     @db.Date
-  time_of_day       accident_records_time_of_day
-  weather_condition String                       @db.VarChar(20)
-  road_condition    String                       @db.VarChar(20)
-  vehicle_type      String                       @db.VarChar(20)
-  severity          accident_records_severity
-  source            String                       @default("TAAS") @db.VarChar(50)
-  created_at        DateTime                     @default(now()) @db.DateTime(0)
-  districts         districts                    @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_accrecord_district")
+  record_id                BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
+  district_id              Int                          @db.UnsignedInt
+  accident_date            DateTime                     @db.Date
+  time_of_day              accident_records_time_of_day
+  weather_condition        String                       @db.VarChar(20)
+  road_condition           String                       @db.VarChar(20)
+  vehicle_type             String                       @db.VarChar(20)
+  severity                 accident_records_severity
+  accident_type            String?                      @db.VarChar(50)
+  weather_condition_actual String?                      @db.VarChar(20)
+  source                   String                       @default("TAAS") @db.VarChar(50)
+  created_at               DateTime                     @default(now()) @db.DateTime(0)
+  districts                districts                    @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_accrecord_district")
 
   @@index([district_id, accident_date], map: "idx_accrecord_district_date")
 }
@@ -220,20 +222,29 @@ model district_risk_scores {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model districts {
-  district_id              Int                        @id @default(autoincrement()) @db.UnsignedInt
-  district_name            String                     @unique(map: "district_name") @db.VarChar(50)
-  population               Int?                       @db.UnsignedInt
-  registered_vehicle_count Int?                       @db.UnsignedInt
-  avg_daily_traffic        Int?                       @db.UnsignedInt
-  boundary_geojson         String?                    @db.LongText
-  weather_grid_nx          Int?                       @db.UnsignedSmallInt
-  weather_grid_ny          Int?                       @db.UnsignedSmallInt
-  created_at               DateTime                   @default(now()) @db.DateTime(0)
-  accident_condition_stats accident_condition_stats[]
-  accident_records         accident_records[]
-  customer_risk_profiles   customer_risk_profiles[]
-  district_monthly_trend   district_monthly_trend[]
-  district_risk_scores     district_risk_scores[]
+  district_id                Int                          @id @default(autoincrement()) @db.UnsignedInt
+  district_name              String                       @unique(map: "district_name") @db.VarChar(50)
+  sido_code                  String?                      @db.Char(2)
+  sigungu_code               String?                      @db.VarChar(10)
+  sido_name                  String?                      @db.VarChar(20)
+  is_active                  Boolean                      @default(true)
+  population                 Int?                         @db.UnsignedInt
+  registered_vehicle_count   Int?                         @db.UnsignedInt
+  avg_daily_traffic          Int?                         @db.UnsignedInt
+  boundary_geojson           String?                      @db.LongText
+  weather_grid_nx            Int?                         @db.UnsignedSmallInt
+  weather_grid_ny            Int?                         @db.UnsignedSmallInt
+  created_at                 DateTime                     @default(now()) @db.DateTime(0)
+  accident_condition_stats   accident_condition_stats[]
+  accident_records           accident_records[]
+  customer_risk_profiles     customer_risk_profiles[]
+  district_benchmark_metrics district_benchmark_metrics[]
+  district_monthly_trend     district_monthly_trend[]
+  district_risk_scores       district_risk_scores[]
+  gov_forecast_districts     gov_forecast_districts[]
+
+  @@index([sido_code], map: "idx_districts_sido_code")
+  @@index([sigungu_code], map: "idx_districts_sigungu_code")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -298,6 +309,62 @@ model users {
   departments            departments?             @relation(fields: [department_id], references: [department_id], onUpdate: Restrict, map: "fk_users_department")
 
   @@index([department_id], map: "fk_users_department")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model gov_forecast_districts {
+  forecast_id               BigInt            @id @default(autoincrement()) @db.UnsignedBigInt
+  run_id                    BigInt            @db.UnsignedBigInt
+  district_id               Int               @db.UnsignedInt
+  predicted_accident_count  Int               @db.UnsignedInt
+  predicted_severe_rate_pct Decimal?          @db.Decimal(6, 2)
+  predicted_share_pct       Decimal?          @db.Decimal(6, 2)
+  cap_applied               Boolean           @default(false)
+  priority_rank             Int?              @db.UnsignedSmallInt
+  districts                 districts         @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_gov_forecast_district")
+  gov_forecast_runs         gov_forecast_runs @relation(fields: [run_id], references: [run_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_gov_forecast_run")
+
+  @@unique([run_id, district_id], map: "uq_gov_forecast_run_district")
+  @@index([district_id], map: "fk_gov_forecast_district")
+  @@index([run_id, predicted_accident_count], map: "idx_gov_forecast_run_count")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model gov_forecast_runs {
+  run_id                 BigInt                   @id @default(autoincrement()) @db.UnsignedBigInt
+  freq                   gov_forecast_runs_freq   @default(Q)
+  as_of_label            String                   @db.VarChar(10)
+  forecast_label         String?                  @db.VarChar(10)
+  model_version          String                   @db.VarChar(30)
+  scope                  String                   @default("DAEGU") @db.VarChar(20)
+  status                 gov_forecast_runs_status @default(RUNNING)
+  district_count         Int?                     @db.UnsignedInt
+  error_message          String?                  @db.VarChar(500)
+  started_at             DateTime                 @default(now()) @db.DateTime(0)
+  finished_at            DateTime?                @db.DateTime(0)
+  created_at             DateTime                 @default(now()) @db.DateTime(0)
+  gov_forecast_districts gov_forecast_districts[]
+
+  @@index([scope, finished_at], map: "idx_gov_runs_scope_finished")
+  @@index([status, freq, as_of_label], map: "idx_gov_runs_status_freq_asof")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model district_benchmark_metrics {
+  metric_id            BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  district_id          Int?       @db.UnsignedInt
+  period_start         DateTime   @db.Date
+  period_end           DateTime   @db.Date
+  total_accident_count Int        @default(0) @db.UnsignedInt
+  pedestrian_pct       Decimal    @default(0.00) @db.Decimal(5, 2)
+  night_pct            Decimal    @default(0.00) @db.Decimal(5, 2)
+  serious_pct          Decimal    @default(0.00) @db.Decimal(5, 2)
+  signal_violation_pct Decimal    @default(0.00) @db.Decimal(5, 2)
+  rainy_pct            Decimal    @default(0.00) @db.Decimal(5, 2)
+  calculated_at        DateTime   @default(now()) @db.DateTime(0)
+  districts            districts? @relation(fields: [district_id], references: [district_id], onDelete: Cascade, onUpdate: Restrict, map: "fk_benchmark_district")
+
+  @@index([district_id, period_end], map: "idx_benchmark_district_period")
 }
 
 enum risk_factor_contributions_target_type {
@@ -394,4 +461,15 @@ enum consultations_consultation_type {
   CLAIM
   COVERAGE_ANALYSIS
   OTHER
+}
+
+enum gov_forecast_runs_freq {
+  Q
+  H
+}
+
+enum gov_forecast_runs_status {
+  RUNNING
+  SUCCEEDED
+  FAILED
 }
