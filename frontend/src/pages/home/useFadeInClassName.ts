@@ -10,6 +10,7 @@ export function useFadeInClassName(
 ): {
   ref: RefObject<HTMLElement | null>;
   className: string;
+  visible: boolean;
 } {
   const { threshold = 0.15 } = options;
   const ref = useRef<HTMLElement | null>(null);
@@ -46,5 +47,5 @@ export function useFadeInClassName(
     ? `${fadeStyles.fadeIn} ${fadeStyles.fadeInVisible}`
     : fadeStyles.fadeIn;
 
-  return { ref, className };
+  return { ref, className, visible };
 }

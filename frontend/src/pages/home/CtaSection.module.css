@@ -34,9 +34,19 @@
   margin-top: 10px;
 }
 
-.hint {
-  margin: 10px 0 0;
-  font-size: 13.5px;
+.eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-teal);
+}
+
+.note {
+  margin: 16px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
   color: var(--color-cta-hint);
 }
 

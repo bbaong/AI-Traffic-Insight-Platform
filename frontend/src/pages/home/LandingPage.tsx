@@ -3,8 +3,9 @@ import { useLocation } from 'react-router-dom';
 import { Toast } from '../../shared/components/ui/Toast';
 import {
   CtaSection,
-  FeatureSection,
+  GovDetailSection,
   HeroSection,
+  InsDetailSection,
   LandingFooter,
   LandingNav,
   MetricSection,
@@ -32,7 +33,8 @@ export function LandingPage() {
       <main>
         <HeroSection />
         <RoleIntroSection />
-        <FeatureSection />
+        <GovDetailSection />
+        <InsDetailSection />
         <MetricSection />
         <CtaSection />
       </main>

@@ -24,6 +24,19 @@ type Highlight = {
   period: string;
   topFactors: { name: string; contribution: number }[];
 };
+const HERO_STATS = [
+  { value: '121,361', label: '분석에 사용된\n실제 사고 건수' },
+  { value: '9년', label: '2016~2025년\n누적 데이터' },
+  { value: '9개', label: '대구 전 구·군\n커버리지' },
+  { value: '5분', label: '분석부터 PDF\n리포트 발송까지' },
+] as const;
+
+function scrollToId(id: string): void {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
 
 export function HeroSection() {
   const { ref, className } = useFadeInClassName();
@@ -89,6 +102,7 @@ export function HeroSection() {
 
   return (
     <section
+      id="hero"
       ref={ref}
       className={`${styles.section} ${className}`}
       aria-labelledby="hero-heading"
@@ -102,7 +116,7 @@ export function HeroSection() {
 
       <div className={styles.inner}>
         <div className={styles.copy}>
-          <p className={styles.eyebrow}>교통사고 위험 분석 플랫폼</p>
+          <p className={styles.eyebrow}>대구시 교통사고 빅데이터 기반</p>
           <h1 id="hero-heading" className={styles.headline}>
             같은 사고 데이터,
             <br />
@@ -126,9 +140,16 @@ export function HeroSection() {
                 to={ROUTES.LOGIN}
                 className={`${buttonStyles.button} ${buttonStyles.primary}`}
               >
-                서비스 시작하기
+                서비스 시작하기 →
               </Link>
             )}
+            <button
+              type="button"
+              className={`${buttonStyles.button} ${buttonStyles.outline}`}
+              onClick={() => scrollToId('intro')}
+            >
+              서비스 소개 보기
+            </button>
           </div>
         </div>
 
@@ -179,6 +200,21 @@ export function HeroSection() {
             </>
           )}
         </aside>
+        <div className={styles.stats} aria-label="핵심 지표">
+          {HERO_STATS.map((stat) => (
+            <div key={stat.value} className={styles.stat}>
+              <p className={styles.statValue}>{stat.value}</p>
+              <p className={styles.statLabel}>
+                {stat.label.split('\n').map((line) => (
+                  <span key={line}>
+                    {line}
+                    <br />
+                  </span>
+                ))}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
