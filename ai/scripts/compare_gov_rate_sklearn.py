@@ -32,7 +32,7 @@ from sklearn.preprocessing import StandardScaler
 warnings.filterwarnings("ignore", category=UserWarning)
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "scripts" / "gov_v1_0_4.py"
+SCRIPT = ROOT / "scripts" / "archive" / "gov_v1_0_4.py"
 OUT_JSON = ROOT / "docs" / "gov_sklearn_rate_compare.json"
 OUT_MD = ROOT / "docs" / "gov_sklearn_rate_compare.md"
 

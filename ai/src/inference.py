@@ -1,4 +1,4 @@
-"""추론 — InsureGuard AI v1.0.3 (ins_model_v1.0.3.pkl)."""
+"""추론 — InsureGuard AI v1.0.4 (ins_model_v1.0.4.pkl)."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from src.coverage_rules import recommend_coverages
 
 from src import MODEL_DIR
 
-MODEL_PATH = MODEL_DIR / "ins_model_v1.0.3.pkl"
+MODEL_PATH = MODEL_DIR / "ins_model_v1.0.4.pkl"
 
 
 @lru_cache(maxsize=1)
@@ -99,8 +99,8 @@ def predict_from_input(
     }
 
     return {
-    "버전": f"{package.get('name', 'InsureGuard AI')} v{package.get('version', '1.0.3')}",
-    "variant": "ins_v1.0.3",
+    "버전": f"{package.get('name', 'InsureGuard AI')} v{package.get('version', '1.0.4')}",
+    "variant": "ins_v1.0.4",
     "예측등급": risk_level_from_score(risk),
     "위험도": round(risk, 1),
     "등급확률": top3,

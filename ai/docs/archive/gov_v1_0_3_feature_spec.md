@@ -1,9 +1,9 @@
-> 📦 **보관(이전 서빙)** — 현재 서빙은 [gov_v1_0_4_feature_spec.md](../gov_v1_0_4_feature_spec.md) · [목차](../README.md)
+> 📦 **보관(이전 서빙)** — 현재 서빙은 [gov_v1_0_5_feature_spec.md](../gov_v1_0_5_feature_spec.md) · [목차](../README.md)
 
 # GovGuard AI v1.0.3 — 피처 명세서
 
 본 문서는 `scripts/archive/gov_v1_0_3.py` / `models/gov_model_v1.0.3.pkl` 을 설명합니다.
-재현·실험 비교용이며, API 서빙은 **v1.0.4** (`scripts/gov_v1_0_4.py`)입니다.
+재현·실험 비교용이며, API 서빙은 **v1.0.5** (`scripts/gov_v1_0_5.py`)입니다.
 
 > **목적:** 지도·대응 인력 — **어디 사고가 많은가**  
 > **v1.0.2:** EB 중대·반기 보조  

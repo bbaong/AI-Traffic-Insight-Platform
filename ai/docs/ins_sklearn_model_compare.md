@@ -1,6 +1,6 @@
 # InsureGuard — sklearn 알고리즘 비교
 
-> 타깃·피처·클리닝은 **v1.0.3 고정**. 후보만 변경 (sklearn only).
+> 타깃·피처·클리닝은 **v1.0.4 고정**. 후보만 변경 (sklearn only).
 
 ## 설정
 
@@ -17,7 +17,7 @@
 ## 해석 주의
 
 - R²·RMSE·MAE는 **프로파일 스코어카드 재현도**이지 개별 사고 예측력이 아님.
-- 현재 서빙: 회귀 HGBR + 분류 RF×2 (`ins_model_v1.0.3.pkl`).
+- 현재 서빙: 회귀 HGBR + 분류 RF×2 (`ins_model_v1.0.4.pkl`).
 
 ## Split: `random_80_20` (train=91903, test=22976)
 

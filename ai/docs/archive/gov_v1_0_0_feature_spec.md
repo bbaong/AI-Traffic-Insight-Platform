@@ -1,4 +1,4 @@
-> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_4_feature_spec.md](../gov_v1_0_4_feature_spec.md) · [목차](../README.md)
+> 📦 **보관** — 이전 버전입니다. 현재 서빙: [gov_v1_0_5_feature_spec.md](../gov_v1_0_5_feature_spec.md) · [목차](../README.md)
 
 # GovGuard AI v1.0.0 — 피처 명세서
 
@@ -108,4 +108,4 @@ predict_gov_rates(지역="달서구", as_of_연도분기="2025Q2")
 | `models/gov_model_v1.0.0.pkl` | 패키지 저장본 |
 | `src/gov_inference.py` | 서빙용 로드/예측 헬퍼 |
 | `docs/figures/gov_v1_0_0/` | 지역별 분기 사고율 그래프 |
-| `docs/ins_v1_0_3_feature_spec.md` | 보험 모델(참고, 별도 계열) |
+| `docs/ins_v1_0_4_feature_spec.md` | 보험 모델(참고, 별도 계열) |

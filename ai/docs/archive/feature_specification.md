@@ -1,5 +1,5 @@
-> ⚠️ **보관 문서** — 현재 API 서빙(InsureGuard / GovGuard **v1.0.3**)과 무관합니다.  
-> 최신 명세: [ins_v1_0_3_feature_spec.md](../ins_v1_0_3_feature_spec.md), [gov_v1_0_4_feature_spec.md](../gov_v1_0_4_feature_spec.md) · 목차: [README.md](../README.md)
+> ⚠️ **보관 문서** — 현재 API 서빙(InsureGuard **v1.0.4** / GovGuard **v1.0.5**)과 무관합니다.  
+> 최신 명세: [ins_v1_0_4_feature_spec.md](../ins_v1_0_4_feature_spec.md), [gov_v1_0_5_feature_spec.md](../gov_v1_0_5_feature_spec.md) · 목차: [README.md](../README.md)
 
 # 교통사고 예측 모델 피처 명세서 (Feature Specification)
 

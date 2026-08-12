@@ -1,6 +1,6 @@
 {
   "scope": "sklearn_only",
-  "target_version": "ins_v1.0.3",
+  "target_version": "ins_v1.0.4",
   "serving": {
     "regressor": "HistGradientBoostingRegressor",
     "violation_clf": "RandomForestClassifier",

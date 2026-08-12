@@ -55,7 +55,7 @@ def plot_overview() -> None:
     ax.set_xlim(0, 12)
     ax.set_ylim(0, 8)
     ax.axis("off")
-    ax.set_title("InsureGuard v1.0.3 — 검증 실험 설계 개요 (A~C)", fontsize=14, pad=12)
+    ax.set_title("InsureGuard v1.0.4 — 검증 실험 설계 개요 (A~C)", fontsize=14, pad=12)
 
     headers = [
         (0.3, "ref\n현행 학습", "#4C78A8"),

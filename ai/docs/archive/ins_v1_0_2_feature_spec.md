@@ -1,13 +1,13 @@
-> 📦 **보관** — 이전 버전입니다. 현재 서빙: [ins_v1_0_3_feature_spec.md](ins_v1_0_3_feature_spec.md) · [목차](../README.md)
+> 📦 **보관** — 이전 버전입니다. 현재 서빙: [ins_v1_0_4_feature_spec.md](../ins_v1_0_4_feature_spec.md) · [목차](../README.md)
 
 # InsureGuard AI v1.0.2 — 피처 명세서 & R² 해석 가이드
 
 본 문서는 `scripts/archive/ins_v1_0_2.py`로 학습된 **InsureGuard AI v1.0.2**
 (`models/ins_model_v1.0.2.pkl`)의 입력·타깃 정의와 R² 해석을 설명합니다.
 
-> **후속 버전:** 사고 **빈도**를 위험점수에 반영한 변경은 **v1.0.3**  
-> (`scripts/ins_v1_0_3.py`, `docs/ins_v1_0_3_feature_spec.md`)을 참고하세요.  
-> 현재 API 서빙 기본 모델은 v1.0.3입니다.
+> **후속 버전:** 사고 **빈도**는 **v1.0.3**, 군위 2016~ 포함은 **v1.0.4**.  
+> (`scripts/ins_v1_0_4.py`, `docs/ins_v1_0_4_feature_spec.md`)  
+> 현재 API 서빙 기본 모델은 v1.0.4입니다.
 
 > **핵심 한 줄:**  
 > R²가 높은 이유는 “개별 사고의 경중을 잘 맞췄기 때문”이 아니라,  
@@ -86,5 +86,5 @@ R²는 **프로파일 스코어카드 재현도**이지, 개별 사고 예측 �
 |------|------|
 | `scripts/archive/ins_v1_0_2.py` | v1.0.2 학습·추론 |
 | `models/ins_model_v1.0.2.pkl` | v1.0.2 패키지 |
-| `docs/ins_v1_0_3_feature_spec.md` | **빈도 반영** 후속 버전 |
+| `docs/ins_v1_0_4_feature_spec.md` | 현재 서빙 (빈도 + 군위 2016~) |
 | `docs/archive/feature_specification.md` | v1(6피처) 명세서 |

@@ -17,18 +17,18 @@
         │
         ▼
 [AI]  python -m uvicorn app.main:app  (http://localhost:8000)
-  POST /predict      →  InsureGuard v1.0.3
-  POST /predict/gov  →  GovGuard v1.0.4
+  POST /predict      →  InsureGuard v1.0.4
+  POST /predict/gov  →  GovGuard v1.0.5
   GET  /hotspots     →  대구 공식 사고다발 TOP3 (캐시)
   GET  /health
 ```
 
 | 역할 | 현재 서빙 모델 | 학습 스크립트 | 명세 |
 |------|----------------|---------------|------|
-| 보험 | `models/ins_model_v1.0.3.pkl` | `scripts/ins_v1_0_3.py` | `docs/ins_v1_0_3_feature_spec.md` |
-| 지자체 | `models/gov_model_v1.0.4.pkl` | `scripts/gov_v1_0_4.py` | `docs/gov_v1_0_4_feature_spec.md` |
+| 보험 | `models/ins_model_v1.0.4.pkl` | `scripts/ins_v1_0_4.py` | `docs/ins_v1_0_4_feature_spec.md` |
+| 지자체 | `models/gov_model_v1.0.5.pkl` | `scripts/gov_v1_0_5.py` | `docs/gov_v1_0_5_feature_spec.md` |
 
-이전 버전 pkl(`ins_model_v1.0.2.pkl`, `gov_model_v1.0.0`~`1.0.3`)은 보존·비교용입니다.
+이전 버전 pkl(`ins_model_v1.0.2`~`1.0.3`, `gov_model_v1.0.0`~`1.0.4`)은 보존·비교용입니다.
 
 ---
 
@@ -38,8 +38,8 @@
 ai/
 ├── app/                 # FastAPI (main.py, schemas.py)
 ├── src/
-│   ├── inference.py     # InsureGuard 로드·추론 (v1.0.3)
-│   ├── gov_inference.py # GovGuard 로드·추론 (v1.0.4)
+│   ├── inference.py     # InsureGuard 로드·추론 (v1.0.4)
+│   ├── gov_inference.py # GovGuard 로드·추론 (v1.0.5)
 │   ├── hotspots.py      # 공식 다발지역 REST + 파일 캐시
 │   └── preprocess.py    # 인구 join 등 (선택)
 ├── scripts/             # 현재 학습·검증·실험
@@ -89,17 +89,17 @@ PDF가 `cursor-sandbox-cache` / `Executable doesn't exist`로 실패하면 Curso
 
 **GovGuard 서빙**에는 CSV가 필요 없습니다. 필요 파일:
 
-- `models/gov_model_v1.0.4.pkl`
-- `scripts/gov_v1_0_4.py` (자급자족 — `gov_v1_0_3.py` 런타임 의존 없음)
+- `models/gov_model_v1.0.5.pkl`
+- `scripts/gov_v1_0_5.py` (자급자족 — `gov_v1_0_4.py` 런타임 의존 없음)
 
 ### 모델 학습 (pkl 생성)
 
 ```bash
-# 보험 (심각도 70% + 빈도 30%) → models/ins_model_v1.0.3.pkl
-python scripts/ins_v1_0_3.py
+# 보험 (심각도 70% + 빈도 30%, 군위 2016~ 포함) → models/ins_model_v1.0.4.pkl
+python scripts/ins_v1_0_4.py
 
-# 지자체 (share×시전체 + last×2 캡) → models/gov_model_v1.0.4.pkl
-python scripts/gov_v1_0_4.py
+# 지자체 (share×시전체 + last×2 캡, 군위 2016~ 포함) → models/gov_model_v1.0.5.pkl
+python scripts/gov_v1_0_5.py
 ```
 
 `models/*.pkl`이 없으면 API가 **503**을 반환합니다.
@@ -182,7 +182,8 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 |------|------|
 | 입력 (4) | 구군, 연령대, 성별, 차종 |
 | 출력 | 위험도(0~100), 등급, 법규위반 Top3, 사고경중 비율 |
-| v1.0.3 | 프로파일 **심각도 + 빈도** 블렌드 |
+| v1.0.4 | v1.0.3 산식 + **군위 2016.1~2023.6** 포함 |
+| v1.0.3 | 프로파일 **심각도 + 빈도** 블렌드 (`scripts/archive/ins_v1_0_3.py`) |
 | v1.0.2 | 심각도만 (`scripts/archive/ins_v1_0_2.py`) |
 
 ### GovGuard (지자체) — API `POST /predict/gov`
@@ -223,8 +224,8 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 
 ```json
 {
-  "버전": "InsureGuard AI v1.0.3",
-  "variant": "ins_v1.0.3",
+  "버전": "InsureGuard AI v1.0.4",
+  "variant": "ins_v1.0.4",
   "예측등급": "MODERATE",
   "위험도": 33.8,
   "등급확률": { "…법규위반 Top3…" },
@@ -301,7 +302,7 @@ python -c "from src.inference import predict_from_input; print(predict_from_inpu
 python -c "from src.gov_inference import predict_gov_rates; print(predict_gov_rates()[:3])"
 
 # 보험 엄격 검증 A~C
-python scripts/validate_ins_v1_0_3.py
+python scripts/validate_ins_v1_0_4.py
 
 # 지자체 중대율 EB/반기 실험 (보관 스크립트)
 python scripts/archive/gov_severe_experiments.py
