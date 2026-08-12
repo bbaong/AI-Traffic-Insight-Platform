@@ -8,6 +8,7 @@ export interface ConfirmDialogProps {
   detail?: string;
   confirmLabel?: string;
   cancelLabel?: string;
+  busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -20,6 +21,7 @@ export function ConfirmDialog({
   detail,
   confirmLabel = '확인',
   cancelLabel = '취소',
+  busy = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -30,7 +32,7 @@ export function ConfirmDialog({
     document.body.style.overflow = 'hidden';
 
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onCancel();
+      if (e.key === 'Escape' && !busy) onCancel();
     }
     window.addEventListener('keydown', onKey);
 
@@ -38,7 +40,7 @@ export function ConfirmDialog({
       document.body.style.overflow = prev;
       window.removeEventListener('keydown', onKey);
     };
-  }, [open, onCancel]);
+  }, [open, onCancel, busy]);
 
   if (!open) return null;
 
@@ -48,7 +50,8 @@ export function ConfirmDialog({
         type="button"
         className={styles.dim}
         aria-label="닫기"
-        onClick={onCancel}
+        onClick={busy ? undefined : onCancel}
+        disabled={busy}
       />
       <div
         className={styles.panel}
@@ -69,6 +72,7 @@ export function ConfirmDialog({
             type="button"
             className={styles.cancelBtn}
             onClick={onCancel}
+            disabled={busy}
           >
             {cancelLabel}
           </button>
@@ -76,6 +80,7 @@ export function ConfirmDialog({
             type="button"
             className={styles.confirmBtn}
             onClick={onConfirm}
+            disabled={busy}
           >
             {confirmLabel}
           </button>

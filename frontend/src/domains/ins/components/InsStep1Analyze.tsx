@@ -9,6 +9,13 @@ import type { InsPredictData } from '../types/prediction';
 import { AiAnalysisResultCard } from './AiAnalysisResultCard';
 import styles from './insConsultingShared.module.css';
 
+function formatPhoneInput(next: string): string {
+  const digits = next.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+}
+
 type Props = {
   customer: CustomerInfo;
   profile: ProfileInput;
@@ -32,6 +39,12 @@ export function InsStep1Analyze({
   onAnalyze,
   onNext,
 }: Props) {
+  const phoneDigits = customer.phone.replace(/\D/g, '');
+  const canAnalyze =
+    customer.name.trim().length > 0 &&
+    phoneDigits.length >= 10 &&
+    phoneDigits.length <= 11;
+
   return (
     <div className={styles.stepRoot}>
       <div className={styles.grid2}>
@@ -42,7 +55,9 @@ export function InsStep1Analyze({
             <div className={styles.cardBody}>
               <div className={styles.fieldStack}>
                 <label className={styles.field} htmlFor="customer-name">
-                  <span className={styles.fieldLabel}>고객명</span>
+                  <span className={styles.fieldLabel}>
+                    고객명 <span className={styles.requiredMark}>*</span>
+                  </span>
                   <input
                     id="customer-name"
                     className={styles.input}
@@ -52,19 +67,28 @@ export function InsStep1Analyze({
                     }
                     placeholder="홍길동"
                     autoComplete="name"
+                    required
                   />
                 </label>
                 <label className={styles.field} htmlFor="customer-phone">
-                  <span className={styles.fieldLabel}>휴대폰</span>
+                  <span className={styles.fieldLabel}>
+                    휴대폰 번호 <span className={styles.requiredMark}>*</span>
+                  </span>
                   <input
                     id="customer-phone"
                     className={styles.input}
                     value={customer.phone}
                     onChange={(e) =>
-                      onCustomerChange({ ...customer, phone: e.target.value })
+                      onCustomerChange({
+                        ...customer,
+                        phone: formatPhoneInput(e.target.value),
+                      })
                     }
-                    placeholder="010-0000-0000"
+                    placeholder="010-1234-5678"
+                    inputMode="numeric"
                     autoComplete="tel"
+                    maxLength={13}
+                    required
                   />
                 </label>
 
@@ -154,7 +178,7 @@ export function InsStep1Analyze({
                 type="button"
                 className={styles.primaryBtn}
                 onClick={onAnalyze}
-                disabled={analyzeLoading}
+                disabled={analyzeLoading || !canAnalyze}
               >
                 {analyzeLoading ? (
                   <>

@@ -1,16 +1,21 @@
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
+import { createPortal } from 'react-dom';
 import {
   fetchConsultationReport,
   fetchCustomerConsultations,
   fetchCustomers,
+  hideCustomers,
 } from '../api/customers';
 import { ReportDrawer } from '../components/customers/ReportDrawer';
+import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import {
   CONSULTATION_TYPE_META,
   RIDER_BADGE_META,
@@ -24,25 +29,32 @@ import {
   toRiderBadge,
   toRiskGrade,
 } from '../constants/insEnums';
+import { CONSULT_TYPE_OPTIONS } from '../constants/consultTypes';
+import { fetchInsReportPdf } from '../api/reportPdf';
 import type {
+  Consultation,
   ConsultationTypeCode,
   ConsultationsResponse,
   CustomerListItem,
   ReportItem,
 } from '../types/customers';
+import { useAuthStore } from '../../../stores/authStore';
 import styles from './CustomersPage.module.css';
 
 const PAGE_SIZE = 10;
 const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
   [
     { id: 'ALL', label: '전체' },
-    { id: 'NEW', label: '신규' },
-    { id: 'RENEWAL', label: '갱신' },
-    { id: 'CLAIM', label: '클레임' },
-    { id: 'COVERAGE_ANALYSIS', label: '보장분석' },
+    ...CONSULT_TYPE_OPTIONS.map((opt) => ({
+      id: opt.value,
+      label: opt.label,
+    })),
   ];
 
 export function CustomersPage() {
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.userId;
+
   const [query, setQuery] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
   const [fromDate, setFromDate] = useState('');
@@ -50,10 +62,15 @@ export function CustomersPage() {
   const [page, setPage] = useState(1);
 
   const [list, setList] = useState<CustomerListItem[]>([]);
+  const [listNonce, setListNonce] = useState(0);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState<string | null>(null);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(() => new Set());
+  const [hideOpen, setHideOpen] = useState(false);
+  const [hiding, setHiding] = useState(false);
+  const [hideError, setHideError] = useState<string | null>(null);
   const [detail, setDetail] = useState<ConsultationsResponse | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState<string | null>(null);
@@ -74,14 +91,29 @@ export function CustomersPage() {
   }, [query]);
 
   useEffect(() => {
+    if (userId == null) {
+      setList([]);
+      setSelectedId(null);
+      setCheckedIds(new Set());
+      setListLoading(false);
+      setListError('로그인이 필요합니다.');
+      return;
+    }
     let cancelled = false;
     setListLoading(true);
     setListError(null);
-    void fetchCustomers(debouncedQ || undefined)
+    void fetchCustomers(debouncedQ || undefined, userId)
       .then((rows) => {
         if (cancelled) return;
         setList(rows);
         setPage(1);
+        setCheckedIds((prev) => {
+          const next = new Set<string>();
+          for (const id of prev) {
+            if (rows.some((r) => r.customerId === id)) next.add(id);
+          }
+          return next;
+        });
         setSelectedId((prev) => {
           if (prev && rows.some((r) => r.customerId === prev)) return prev;
           return rows[0]?.customerId ?? null;
@@ -91,6 +123,7 @@ export function CustomersPage() {
         if (cancelled) return;
         setList([]);
         setSelectedId(null);
+        setCheckedIds(new Set());
         setListError(
           e instanceof Error ? e.message : '고객 목록을 불러오지 못했습니다.',
         );
@@ -101,10 +134,10 @@ export function CustomersPage() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedQ]);
+  }, [debouncedQ, listNonce, userId]);
 
   useEffect(() => {
-    if (!selectedId) {
+    if (!selectedId || userId == null) {
       setDetail(null);
       setSelectedConsultId(null);
       return;
@@ -112,7 +145,7 @@ export function CustomersPage() {
     let cancelled = false;
     setDetailLoading(true);
     setDetailError(null);
-    void fetchCustomerConsultations(selectedId)
+    void fetchCustomerConsultations(selectedId, userId)
       .then((res) => {
         if (cancelled) return;
         setDetail(res);
@@ -133,7 +166,7 @@ export function CustomersPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedId]);
+  }, [selectedId, userId]);
 
   // TODO: 서버 기간 필터 지원 확인 후 API 파라미터로 이관
   const filteredList = useMemo(() => {
@@ -156,6 +189,68 @@ export function CustomersPage() {
 
   const selectedCustomer =
     list.find((r) => r.customerId === selectedId) ?? detail?.customer ?? null;
+
+  const checkedCustomers = useMemo(
+    () => filteredList.filter((row) => checkedIds.has(row.customerId)),
+    [filteredList, checkedIds],
+  );
+  const allPageChecked =
+    pagedList.length > 0 &&
+    pagedList.every((row) => checkedIds.has(row.customerId));
+  const somePageChecked = pagedList.some((row) => checkedIds.has(row.customerId));
+
+  function toggleChecked(id: string, on: boolean) {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (on) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  function togglePageChecks() {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (allPageChecked) {
+        for (const row of pagedList) next.delete(row.customerId);
+      } else {
+        for (const row of pagedList) next.add(row.customerId);
+      }
+      return next;
+    });
+  }
+
+  async function confirmHide() {
+    if (hiding || checkedCustomers.length === 0 || userId == null) return;
+    setHiding(true);
+    setHideError(null);
+    try {
+      const { hiddenIds, failed } = await hideCustomers(
+        checkedCustomers.map((row) => row.customerId),
+        userId,
+      );
+      if (failed.length === 0) {
+        setCheckedIds(new Set());
+        setHideOpen(false);
+      } else {
+        setCheckedIds(new Set(failed.map((item) => item.id)));
+        setHideError(
+          hiddenIds.length > 0
+            ? `${hiddenIds.length}명은 삭제됐고, ${failed.length}명은 실패했습니다.`
+            : failed[0]?.message ?? '고객을 삭제하지 못했습니다.',
+        );
+        setHideOpen(false);
+      }
+      if (hiddenIds.length > 0) setListNonce((n) => n + 1);
+    } catch (e: unknown) {
+      setHideError(
+        e instanceof Error ? e.message : '고객을 삭제하지 못했습니다.',
+      );
+      setHideOpen(false);
+    } finally {
+      setHiding(false);
+    }
+  }
 
   const filteredConsults = useMemo(() => {
     const rows = detail?.data ?? [];
@@ -184,14 +279,16 @@ export function CustomersPage() {
     setPage(1);
   }
 
-  const openReport = useCallback(async () => {
-    if (!selectedConsult) return;
+  const openReport = useCallback(async (consult?: Consultation) => {
+    const target = consult ?? selectedConsult;
+    if (!target) return;
+    setSelectedConsultId(target.consultationId);
     setReportOpen(true);
     setReportLoading(true);
     try {
       const items = await fetchConsultationReport(
-        selectedConsult.consultationId,
-        selectedConsult.riskGrade,
+        target.consultationId,
+        target.riskGrade,
       );
       setReportItems(items);
     } catch {
@@ -200,6 +297,28 @@ export function CustomersPage() {
       setReportLoading(false);
     }
   }, [selectedConsult]);
+
+  const downloadReportPdf = useCallback(async () => {
+    const c = selectedConsult;
+    const p = c?.profile;
+    if (!c || !p?.region || !p.ageGroup || !p.gender || !p.vehicleType) {
+      throw new Error('프로필 정보가 없어 PDF를 만들 수 없습니다.');
+    }
+    const blob = await fetchInsReportPdf({
+      구군: p.region,
+      연령대: p.ageGroup,
+      성별: genderLabel(p.gender),
+      차종: p.vehicleType,
+      고객명: selectedCustomer?.name,
+      memo: c.memo?.trim() || undefined,
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `상담리포트_${c.consultationId}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [selectedConsult, selectedCustomer?.name]);
 
   const riskPct = Math.min(
     100,
@@ -210,24 +329,25 @@ export function CustomersPage() {
     <div className={styles.page}>
       <div className={styles.filterBar}>
         <label className={styles.searchWrap}>
-          <span className={styles.fieldLabel}>고객명 / 연락처 검색</span>
+          <span className={styles.fieldLabel}>고객명 / 휴대폰 번호 검색</span>
           <span className={styles.searchBox}>
             <SearchIcon />
             <input
               className={styles.searchInput}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="이름 또는 전화번호"
+              placeholder="이름 또는 휴대폰 번호"
             />
           </span>
         </label>
-        <label className={styles.searchWrap}>
+        <label className={styles.dateWrap}>
           <span className={styles.fieldLabel}>최근 상담일</span>
           <div className={styles.dateRow}>
             <input
               type="date"
               className={styles.dateInput}
               value={fromDate}
+              onClick={(e) => e.currentTarget.showPicker?.()}
               onChange={(e) => {
                 setFromDate(e.target.value);
                 setPage(1);
@@ -238,6 +358,7 @@ export function CustomersPage() {
               type="date"
               className={styles.dateInput}
               value={toDate}
+              onClick={(e) => e.currentTarget.showPicker?.()}
               onChange={(e) => {
                 setToDate(e.target.value);
                 setPage(1);
@@ -253,7 +374,26 @@ export function CustomersPage() {
 
       <div className={styles.grid}>
         <section className={styles.listCard} aria-label="고객 목록">
-          <h2 className={styles.cardTitle}>고객 목록</h2>
+          <div className={styles.listHead}>
+            <h2 className={styles.cardTitle}>고객 목록</h2>
+            <button
+              type="button"
+              className={styles.deleteBtn}
+              disabled={checkedCustomers.length === 0 || hiding}
+              onClick={() => {
+                setHideError(null);
+                setHideOpen(true);
+              }}
+            >
+              삭제
+              {checkedCustomers.length > 0 ? ` (${checkedCustomers.length})` : ''}
+            </button>
+          </div>
+          {hideError ? (
+            <p className={styles.error} role="alert">
+              {hideError}
+            </p>
+          ) : null}
           {listLoading ? (
             <p className={styles.hint}>목록을 불러오는 중…</p>
           ) : listError ? (
@@ -267,9 +407,22 @@ export function CustomersPage() {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th className={styles.radioCol} />
+                    <th className={styles.checkCol}>
+                      <input
+                        type="checkbox"
+                        className={styles.check}
+                        checked={allPageChecked}
+                        ref={(el) => {
+                          if (el) {
+                            el.indeterminate = somePageChecked && !allPageChecked;
+                          }
+                        }}
+                        onChange={togglePageChecks}
+                        aria-label="현재 페이지 고객 전체 선택"
+                      />
+                    </th>
                     <th>고객명</th>
-                    <th>연락처</th>
+                    <th>휴대폰 번호</th>
                     <th>최근 상담일</th>
                     <th>상담 수</th>
                   </tr>
@@ -277,18 +430,23 @@ export function CustomersPage() {
                 <tbody>
                   {pagedList.map((row) => {
                     const active = row.customerId === selectedId;
+                    const checked = checkedIds.has(row.customerId);
                     return (
                       <tr
                         key={row.customerId}
                         className={active ? styles.rowActive : ''}
                         onClick={() => setSelectedId(row.customerId)}
                       >
-                        <td className={styles.radioCol}>
-                          <span
-                            className={`${styles.radio} ${
-                              active ? styles.radioOn : ''
-                            }`}
-                            aria-hidden="true"
+                        <td className={styles.checkCol}>
+                          <input
+                            type="checkbox"
+                            className={styles.check}
+                            checked={checked}
+                            onChange={(e) =>
+                              toggleChecked(row.customerId, e.target.checked)
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`${row.name} 선택`}
                           />
                         </td>
                         <td className={styles.nameCell}>{row.name}</td>
@@ -382,7 +540,7 @@ export function CustomersPage() {
                   </div>
                   <div className={styles.infoGrid}>
                     <InfoTile icon={<PersonIcon />} label="고객명" value={selectedCustomer?.name ?? '-'} />
-                    <InfoTile icon={<PhoneIcon />} label="연락처" value={selectedCustomer?.phone ?? '-'} />
+                    <InfoTile icon={<PhoneIcon />} label="휴대폰 번호" value={selectedCustomer?.phone ?? '-'} />
                     <InfoTile icon={<CalendarIcon />} label="연령대" value={profile?.ageGroup ?? '-'} />
                     <InfoTile icon={<GenderIcon />} label="성별" value={genderLabel(profile?.gender)} />
                     <InfoTile icon={<CarIcon />} label="차종" value={profile?.vehicleType ?? '-'} />
@@ -428,6 +586,12 @@ export function CustomersPage() {
                     <p className={styles.hint}>표시할 상담 이력이 없습니다.</p>
                   ) : (
                     <div className={styles.timeline}>
+                      <div className={styles.historyCols} aria-hidden>
+                        <span>일시</span>
+                        <span>상담 유형</span>
+                        <span>메모</span>
+                        <span>리포트</span>
+                      </div>
                       <ul className={styles.consultList}>
                         {filteredConsults.map((c) => {
                           const type = toConsultationType(c.consultationType);
@@ -436,16 +600,27 @@ export function CustomersPage() {
                             : null;
                           const active =
                             c.consultationId === selectedConsult?.consultationId;
+                          const memoText = c.memo?.trim() ?? '';
+                          const memoDate = formatConsultDateTime(
+                            c.consultedAt,
+                          ).slice(0, 10);
                           return (
                             <li key={c.consultationId}>
-                              <button
-                                type="button"
+                              <div
                                 className={`${styles.consultItem} ${
                                   active ? styles.consultActive : ''
                                 }`}
                                 onClick={() =>
                                   setSelectedConsultId(c.consultationId)
                                 }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setSelectedConsultId(c.consultationId);
+                                  }
+                                }}
+                                role="button"
+                                tabIndex={0}
                               >
                                 <span className={styles.consultDot} aria-hidden />
                                 <span className={styles.consultDate}>
@@ -464,7 +639,35 @@ export function CustomersPage() {
                                 >
                                   {consultationTypeLabel(c.consultationType)}
                                 </span>
-                              </button>
+                                <div
+                                  className={styles.iconCell}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onKeyDown={(e) => e.stopPropagation()}
+                                >
+                                  {memoText ? (
+                                    <HistoryMemoPopover
+                                      title={`${memoDate} 상담 메모`}
+                                      body={memoText}
+                                    />
+                                  ) : (
+                                    <span className={styles.emptyCell}>-</span>
+                                  )}
+                                </div>
+                                <div
+                                  className={styles.iconCell}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onKeyDown={(e) => e.stopPropagation()}
+                                >
+                                  <button
+                                    type="button"
+                                    className={styles.iconBtn}
+                                    aria-label={`${memoDate} 상담 리포트`}
+                                    onClick={() => void openReport(c)}
+                                  >
+                                    <ReportIcon />
+                                  </button>
+                                </div>
+                              </div>
                             </li>
                           );
                         })}
@@ -602,7 +805,40 @@ export function CustomersPage() {
         consultation={selectedConsult}
         items={reportItems}
         loading={reportLoading}
+        canDownloadPdf={
+          !!selectedConsult?.profile?.region &&
+          !!selectedConsult.profile.ageGroup &&
+          !!selectedConsult.profile.gender &&
+          !!selectedConsult.profile.vehicleType
+        }
+        onDownloadPdf={downloadReportPdf}
         onClose={() => setReportOpen(false)}
+      />
+      <ConfirmDialog
+        open={hideOpen}
+        title="고객 삭제"
+        message={
+          checkedCustomers.length === 1
+            ? `'${checkedCustomers[0]?.name ?? '선택한 고객'}' 님을 목록에서 삭제하시겠습니까?`
+            : `선택한 ${checkedCustomers.length}명의 고객을 목록에서 삭제하시겠습니까?`
+        }
+        detail={
+          checkedCustomers.length > 1
+            ? `${checkedCustomers
+                .slice(0, 8)
+                .map((row) => row.name)
+                .join(', ')}${checkedCustomers.length > 8 ? ' …' : ''} · 상담 이력은 보관됩니다.`
+            : '상담 이력은 보관되며, 목록에서만 사라집니다.'
+        }
+        confirmLabel={hiding ? '삭제 중…' : '삭제'}
+        cancelLabel="취소"
+        busy={hiding}
+        onConfirm={() => {
+          void confirmHide();
+        }}
+        onCancel={() => {
+          if (!hiding) setHideOpen(false);
+        }}
       />
     </div>
   );
@@ -697,6 +933,147 @@ function PinIcon() {
         strokeLinejoin="round"
       />
       <circle cx="12" cy="11" r="2" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  );
+}
+
+function HistoryMemoPopover({
+  title,
+  body,
+}: {
+  title: string;
+  body: string;
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<number>(0);
+  const [open, setOpen] = useState(false);
+  const [placed, setPlaced] = useState(false);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
+
+  const place = useCallback(() => {
+    const btn = btnRef.current;
+    const pop = popRef.current;
+    if (!btn || !pop) return;
+    const r = btn.getBoundingClientRect();
+    const pad = 8;
+    const gap = 6;
+    const w = pop.offsetWidth;
+    const h = pop.offsetHeight;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+
+    let top = r.bottom + gap;
+    if (top + h > vh - pad) top = r.top - gap - h;
+    if (top < pad) top = pad;
+
+    let left = r.right - w;
+    if (left < pad) left = pad;
+    if (left + w > vw - pad) left = Math.max(pad, vw - pad - w);
+
+    setPos({ top, left });
+    setPlaced(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    place();
+  }, [open, place, title, body]);
+
+  useEffect(() => {
+    if (!open) return;
+    function onMove() {
+      place();
+    }
+    window.addEventListener('resize', onMove);
+    window.addEventListener('scroll', onMove, true);
+    return () => {
+      window.removeEventListener('resize', onMove);
+      window.removeEventListener('scroll', onMove, true);
+    };
+  }, [open, place]);
+
+  function show() {
+    window.clearTimeout(closeTimer.current);
+    setOpen(true);
+  }
+
+  function hide() {
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = window.setTimeout(() => {
+      setOpen(false);
+      setPlaced(false);
+    }, 120);
+  }
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        className={styles.iconBtn}
+        aria-label={title}
+        aria-expanded={open}
+        onMouseEnter={show}
+        onMouseLeave={hide}
+        onFocus={show}
+        onBlur={hide}
+        onClick={(e) => {
+          e.stopPropagation();
+          window.clearTimeout(closeTimer.current);
+          setOpen((v) => !v);
+        }}
+      >
+        <MemoIcon />
+      </button>
+      {open
+        ? createPortal(
+            <div
+              ref={popRef}
+              className={styles.memoPop}
+              role="tooltip"
+              style={{
+                top: pos.top,
+                left: pos.left,
+                visibility: placed ? 'visible' : 'hidden',
+              }}
+              onMouseEnter={show}
+              onMouseLeave={hide}
+            >
+              <p className={styles.memoPopTitle}>{title}</p>
+              <p className={styles.memoPopBody}>{body}</p>
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
+  );
+}
+
+function MemoIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v7A2.5 2.5 0 0 1 16.5 16H12l-4.2 3.2c-.7.5-1.8 0-1.8-.8V16H7.5A2.5 2.5 0 0 1 5 13.5v-7Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ReportIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M7 3.5h7.2L19 8.2V19a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 19V5A1.5 1.5 0 0 1 7.5 3.5H7Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path d="M14 3.5V8h5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M9 12.5h6M9 16h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
 }

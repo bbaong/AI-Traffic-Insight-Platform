@@ -22,11 +22,16 @@ async function readJson<T>(res: Response): Promise<T> {
 }
 
 /** GET /api/customers — json.data만 사용 */
-export async function fetchCustomers(q?: string): Promise<CustomerListItem[]> {
+export async function fetchCustomers(
+  q?: string,
+  userId?: number,
+): Promise<CustomerListItem[]> {
+  if (userId == null) throw new Error('로그인이 필요합니다.');
   const url = new URL(`${API_BASE}/api/customers`);
+  url.searchParams.set('userId', String(userId));
   const query = q?.trim();
   if (query) url.searchParams.set('q', query);
-
+  
   const res = await fetch(url.toString());
   const json = await readJson<ApiResponse<CustomerListItem[]>>(res);
 
@@ -39,13 +44,83 @@ export async function fetchCustomers(q?: string): Promise<CustomerListItem[]> {
   return json.data;
 }
 
+export interface HideCustomerResult {
+  customerId: string;
+  isHidden: boolean;
+  hiddenAt: string | null;
+}
+
+/** PATCH /api/customers/:id/hide — Soft Delete(목록 숨김) */
+export async function hideCustomer(
+  customerId: string,
+  userId: number,
+): Promise<HideCustomerResult> {
+  const url = new URL(
+    `${API_BASE}/api/customers/${encodeURIComponent(customerId)}/hide`,
+  );
+  url.searchParams.set('userId', String(userId));
+  const res = await fetch(url.toString(), { method: 'PATCH' });
+  const json = await readJson<ApiResponse<HideCustomerResult>>(res);
+
+  if (res.status === 404) {
+    throw new Error(json.message ?? '고객을 찾을 수 없습니다.');
+  }
+  if (res.status === 400) {
+    throw new Error(json.message ?? '잘못된 고객입니다.');
+  }
+  if (!res.ok || !json.success || !json.data) {
+    throw new Error(json.message ?? '고객을 삭제하지 못했습니다.');
+  }
+  return json.data;
+}
+
+/** 여러 고객을 순차 숨김. 일부 실패해도 나머지는 진행 */
+export async function hideCustomers(
+  customerIds: string[],
+  userId: number,
+): Promise<{
+  hiddenIds: string[];
+  failed: Array<{ id: string; message: string }>;
+}> {
+  const hiddenIds: string[] = [];
+  const failed: Array<{ id: string; message: string }> = [];
+
+  const results = await Promise.allSettled(
+    customerIds.map(async (id) => {
+      await hideCustomer(id, userId);
+      return id;
+    }),
+  );
+
+  results.forEach((result, i) => {
+    const id = customerIds[i];
+    if (!id) return;
+    if (result.status === 'fulfilled') {
+      hiddenIds.push(id);
+      return;
+    }
+    failed.push({
+      id,
+      message:
+        result.reason instanceof Error
+          ? result.reason.message
+          : '고객을 삭제하지 못했습니다.',
+    });
+  });
+
+  return { hiddenIds, failed };
+}
+
 /** GET /api/customers/:id/consultations */
 export async function fetchCustomerConsultations(
   customerId: string,
+  userId: number,
 ): Promise<ConsultationsResponse> {
-  const res = await fetch(
+  const url = new URL(
     `${API_BASE}/api/customers/${encodeURIComponent(customerId)}/consultations`,
   );
+  url.searchParams.set('userId', String(userId));
+  const res = await fetch(url.toString());
   const json = await readJson<
     {
       success: boolean;

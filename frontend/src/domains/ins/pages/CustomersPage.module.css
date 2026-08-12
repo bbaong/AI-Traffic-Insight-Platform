@@ -54,8 +54,7 @@
   box-shadow: 0 0 0 3px rgb(247 124 52 / 14%);
 }
 
-.searchInput,
-.dateInput {
+.searchInput {
   flex: 1;
   min-width: 0;
   height: 36px;
@@ -67,10 +66,19 @@
   outline: none;
 }
 
+.dateWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 0 0 auto;
+  width: auto;
+}
+
 .dateRow {
   display: flex;
   align-items: center;
   gap: 6px;
+  width: max-content;
   height: 38px;
   padding: 0 8px;
   border: 0.5px solid var(--color-border-strong);
@@ -79,7 +87,16 @@
 }
 
 .dateInput {
-  min-width: 0;
+  width: 128px;
+  flex: none;
+  height: 36px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-ink);
+  outline: none;
+  cursor: pointer;
 }
 
 .tilde {
@@ -203,6 +220,42 @@
   margin-bottom: 4px;
 }
 
+.listHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.listHead .cardTitle {
+  margin-bottom: 0;
+}
+
+.deleteBtn {
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid #e8b4b0;
+  border-radius: 7px;
+  background: #fff;
+  color: #b3261e;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background: #fbe5e3;
+}
+
+.deleteBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .cardTitle {
   margin: 0 0 12px;
   font-size: 13.5px;
@@ -259,24 +312,20 @@
   border-bottom: 1px solid var(--color-divider);
 }
 
-.radioCol {
-  width: 22px;
-  padding-left: 2px !important;
+.checkCol {
+  width: 28px;
+  padding-left: 4px !important;
   padding-right: 2px !important;
+  vertical-align: middle;
 }
 
-.radio {
+.check {
   display: block;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  border: 1.5px solid #c6d0db;
-  box-sizing: border-box;
-}
-
-.radioOn {
-  border-color: var(--color-amber);
-  box-shadow: inset 0 0 0 3.5px var(--color-amber);
+  margin: 0;
+  accent-color: var(--color-amber);
+  cursor: pointer;
 }
 
 .nameCell {
@@ -481,6 +530,21 @@
   overflow: auto;
 }
 
+.historyCols {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(64px, 0.8fr) 36px 36px;
+  gap: 8px;
+  padding: 0 8px 6px 26px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-hint);
+}
+
+.historyCols span:nth-child(3),
+.historyCols span:nth-child(4) {
+  text-align: center;
+}
+
 .consultList {
   list-style: none;
   margin: 0;
@@ -503,10 +567,10 @@
 
 .consultItem {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(64px, 0.8fr) 36px 36px;
   align-items: center;
-  flex-wrap: nowrap;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   margin: 0;
   padding: 8px 8px 8px 12px;
@@ -544,22 +608,91 @@
 }
 
 .typeBadge {
-  flex-shrink: 0;
+  justify-self: start;
   padding: 2px 7px;
   border-radius: 999px;
   font-size: 11px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .consultDate {
-  flex: 1;
   min-width: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: -0.02em;
   color: var(--color-ink);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iconCell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.emptyCell {
+  color: var(--color-hint);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.iconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: #5a6b80;
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: #eef2f6;
+  color: var(--color-ink);
+}
+
+.memoPop {
+  position: fixed;
+  z-index: 1200;
+  width: min(260px, calc(100vw - 16px));
+  max-height: min(280px, calc(100vh - 16px));
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff8d6;
+  border: 1px solid #efe3a8;
+  box-shadow: 0 8px 20px rgb(15 27 45 / 12%);
+  text-align: left;
+  cursor: default;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.memoPopTitle {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-ink);
+  flex-shrink: 0;
+}
+
+.memoPopBody {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--color-body);
+  white-space: pre-wrap;
+  overflow: auto;
+  min-height: 0;
 }
 
 .legend {
@@ -773,12 +906,19 @@
     padding: 12px;
   }
 
-  .searchWrap {
+  .searchWrap,
+  .dateWrap {
     flex: 1 1 100%;
   }
 
   .dateRow {
     width: 100%;
+  }
+
+  .dateInput {
+    flex: 1;
+    width: auto;
+    min-width: 0;
   }
 
   .infoGrid {

@@ -4,10 +4,10 @@ import styles from './SaveSuccessModal.module.css';
 type Props = {
   open: boolean;
   onGoReport: () => void;
-  onNewConsult: () => void;
+  onGoCustomers: () => void;
 };
 
-export function SaveSuccessModal({ open, onGoReport, onNewConsult }: Props) {
+export function SaveSuccessModal({ open, onGoReport, onGoCustomers }: Props) {
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -25,7 +25,7 @@ export function SaveSuccessModal({ open, onGoReport, onNewConsult }: Props) {
         type="button"
         className={styles.dim}
         aria-label="닫기"
-        onClick={onNewConsult}
+        onClick={onGoCustomers}
       />
       <div
         className={styles.panel}
@@ -44,15 +44,16 @@ export function SaveSuccessModal({ open, onGoReport, onNewConsult }: Props) {
           AI 분석 결과를 기반으로 상담 참고 리포트를 확인할 수 있습니다.
         </p>
         <div className={styles.actions}>
-          <button type="button" className={styles.primary} onClick={onGoReport}>
-            리포트 확인하기 →
-          </button>
-          <button
+          
+        <button
             type="button"
             className={styles.secondary}
-            onClick={onNewConsult}
+            onClick={onGoCustomers}
           >
-            새 상담 시작
+            고객관리로 이동
+          </button>
+          <button type="button" className={styles.primary} onClick={onGoReport}>
+            리포트 확인하기 →
           </button>
         </div>
       </div>

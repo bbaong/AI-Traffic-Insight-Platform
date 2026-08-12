@@ -6,6 +6,7 @@ import insuranceRoutes from './routes/insurance';
 import discountRiderRoutes from './routes/discountRider.route';
 import consultationRoutes from './routes/consultation.route';
 import customerRoutes from './routes/customer.route';
+import govRoutes from './routes/gov.route';
 
 const app = express();
 const port = 5000;
@@ -22,6 +23,7 @@ app.use('/api/insurance', insuranceRoutes);
 app.use('/api/discount-riders', discountRiderRoutes);
 app.use('/api/consultations', consultationRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/gov', govRoutes);  
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello, TypeScript with Express!');

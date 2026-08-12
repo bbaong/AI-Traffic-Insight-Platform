@@ -74,7 +74,6 @@ export function InsDashboardPage() {
 
   const [memo, setMemo] = useState('');
   const [memoOpen, setMemoOpen] = useState(false);
-  const [memoSession, setMemoSession] = useState(0);
   const savedMemoRef = useRef('');
   const [consultType, setConsultType] = useState<ConsultType | ''>('');
 
@@ -154,25 +153,9 @@ export function InsDashboardPage() {
     }
   }
 
-  function handleResetAll() {
-    setStep(1);
-    setCustomer({ name: '', phone: '' });
-    setProfile(initialProfile());
-    setPrediction(null);
-    setAnalyzeLoading(false);
-    setAnalyzeError(null);
-    setChecklist(initialChecklist());
-    setTokkResults([]);
-    setTokkLoading(false);
-    setTokkError(null);
-    setMemo('');
-    setMemoOpen(false);
-    setMemoSession((n) => n + 1);
-    savedMemoRef.current = '';
-    setConsultType('');
-    setSaveLoading(false);
-    setSaveError(null);
+  function handleGoCustomers() {
     setSaveSuccessOpen(false);
+    navigate(ROUTES.CUSTOMERS);
   }
 
   /** 기존 confirmGoToReportPage 와 동일 draft 매핑 → 저장 성공 모달로 이관 */
@@ -210,7 +193,11 @@ export function InsDashboardPage() {
   return (
     <div className={`${styles.page} ${styles.pageFill}`}>
       <div className={styles.toolbar}>
-        <InsStepIndicator current={step} onGoTo={setStep} />
+        <InsStepIndicator
+          current={step}
+          step1Done={prediction != null}
+          onGoTo={setStep}
+        />
         <button
           type="button"
           className={`${styles.memoBtn} ${memoOpen ? styles.memoBtnActive : ''}`}
@@ -251,7 +238,6 @@ export function InsDashboardPage() {
       )}
 
       <FloatingMemoPanel
-        key={memoSession}
         open={memoOpen}
         value={memo}
         onChange={setMemo}
@@ -261,7 +247,7 @@ export function InsDashboardPage() {
       <SaveSuccessModal
         open={saveSuccessOpen}
         onGoReport={handleGoReport}
-        onNewConsult={handleResetAll}
+        onGoCustomers={handleGoCustomers}
       />
     </div>
   );

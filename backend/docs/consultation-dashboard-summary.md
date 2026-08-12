@@ -301,27 +301,27 @@ backend/
 ├── prisma/schema.prisma
 ├── docs/consultation-dashboard-summary.md   ← 이 문서
 ├── src/
-│   ├── index.ts
-│   ├── discountRider.ts
-│   ├── riderTexts.ts
+│   ├── index.ts                             # Express 앱 진입점 · 라우터 등록
+│   ├── discountRider.ts                     # 할인특약 5종 배지 판정 룰 엔진
+│   ├── riderTexts.ts                        # 특약별 안내 문구 상수
 │   ├── controllers/
-│   │   ├── prediction.controller.ts
-│   │   ├── insurance.controller.ts
-│   │   ├── discountRider.controller.ts
-│   │   ├── consultation.controller.ts
-│   │   └── customer.controller.ts
+│   │   ├── prediction.controller.ts         # AI 예측 중계 (ins/gov/history/hotspots)
+│   │   ├── insurance.controller.ts          # POST /api/insurance/analyze (골격)
+│   │   ├── discountRider.controller.ts      # POST /api/discount-riders/evaluate
+│   │   ├── consultation.controller.ts       # POST /api/consultations/save
+│   │   └── customer.controller.ts           # 고객·상담 이력 조회 (골격)
 │   ├── routes/
-│   │   ├── prediction.route.ts
-│   │   ├── insurance.ts
-│   │   ├── discountRider.route.ts
-│   │   ├── consultation.route.ts
-│   │   └── customer.route.ts
+│   │   ├── prediction.route.ts              # /api/prediction/*
+│   │   ├── insurance.ts                     # /api/insurance/*
+│   │   ├── discountRider.route.ts           # /api/discount-riders/*
+│   │   ├── consultation.route.ts            # /api/consultations/*
+│   │   └── customer.route.ts                # /api/customers/*
 │   ├── services/
-│   │   ├── aiPredict.service.ts
-│   │   ├── discountRider.service.ts
-│   │   ├── consultationSave.service.ts
-│   │   └── coverageRule.service.ts
-│   └── generated/prisma/
+│   │   ├── aiPredict.service.ts             # AI /predict 호출
+│   │   ├── discountRider.service.ts         # 특약 판정 + 문구 결합
+│   │   ├── consultationSave.service.ts      # 상담 저장 트랜잭션 (유일한 DB 쓰기)
+│   │   └── coverageRule.service.ts          # 6대 담보 추천 (stub)
+│   └── generated/prisma/                    # prisma generate 결과 (수동 수정 X)
 ├── package.json
 ├── tsconfig.json
 └── .env

@@ -1,5 +1,11 @@
 import 'dotenv/config';
 import { PrismaClient } from '../generated/prisma/client';
+import {
+  assertValidMobile,
+  digitsOnly,
+  hashPhone,
+  safeDecryptPhone,
+} from '../utils/phoneCrypto';
 
 const prisma = new PrismaClient();
 
@@ -10,16 +16,37 @@ function toNum(v: unknown): number | null {
 }
 
 /** GET /api/customers — 왼쪽 고객목록 */
-export async function listCustomers(q?: string) {
+export async function listCustomers(q?: string, userId?: number | string) {
+  const term = q?.trim() ?? '';
+  const digits = term ? digitsOnly(term) : '';
+  if (userId == null || userId === '') {
+    throw new Error('userId(상담원)가 필요합니다.');
+  }
+  const registeredBy = BigInt(userId);
+
+  let phoneHash: string | undefined;
+  if (digits.length >= 10 && digits.length <= 11) {
+    try {
+      assertValidMobile(digits);
+      phoneHash = hashPhone(digits);
+    } catch {
+      phoneHash = undefined;
+    }
+  }
+
   const rows = await prisma.customers.findMany({
-    where: q
-      ? {
-          OR: [
-            { name: { contains: q } },
-            { phone_number: { contains: q } },
-          ],
-        }
-      : undefined,
+    where: {
+      is_hidden: false,
+      registered_by: registeredBy,
+      ...(term
+        ? {
+            OR: [
+              { name: { contains: term } },
+              ...(phoneHash ? [{ phone_hash: phoneHash }] : []),
+            ],
+          }
+        : {}),
+    },
     orderBy: { updated_at: 'desc' },
     include: {
       consultations: {
@@ -42,7 +69,7 @@ export async function listCustomers(q?: string) {
     return {
       customerId: c.customer_id.toString(),
       name: c.name,
-      phone: c.phone_number,
+      phone: safeDecryptPhone(c.phone_number),
       consultationCount: c._count.consultations,
       lastConsultedAt: last?.consulted_at?.toISOString() ?? null,
       lastStatus: last?.status ?? null,
@@ -60,15 +87,27 @@ export async function listCustomers(q?: string) {
 }
 
 /** GET /api/customers/:id/consultations — 오른쪽 이력 */
-export async function listCustomerConsultations(customerId: string) {
+export async function listCustomerConsultations(
+  customerId: string,
+  userId?: number | string,
+) {
+  if (userId == null || userId === '') {
+    throw new Error('userId(상담원)가 필요합니다.');
+  }
   const id = BigInt(customerId);
+  const registeredBy = BigInt(userId);
 
-  const customer = await prisma.customers.findUnique({
-    where: { customer_id: id },
+  const customer = await prisma.customers.findFirst({
+    where: {
+      customer_id: id,
+      registered_by: registeredBy,
+      is_hidden: false,
+    },
     select: {
       customer_id: true,
       name: true,
       phone_number: true,
+      is_hidden: true,
     },
   });
 
@@ -95,7 +134,7 @@ export async function listCustomerConsultations(customerId: string) {
     customer: {
       customerId: customer.customer_id.toString(),
       name: customer.name,
-      phone: customer.phone_number,
+      phone: safeDecryptPhone(customer.phone_number),
     },
     consultations: consultations.map((row) => {
       const profile = row.customer_risk_profiles;
@@ -130,5 +169,47 @@ export async function listCustomerConsultations(customerId: string) {
         })),
       };
     }),
+  };
+}
+
+/** PATCH /api/customers/:id/hide — Soft Delete */
+export async function hideCustomer(
+  customerId: string,
+  userId?: number | string,
+) {
+  if (userId == null || userId === '') {
+    throw new Error('userId(상담원)가 필요합니다.');
+  }
+  const id = BigInt(customerId);
+  const registeredBy = BigInt(userId);
+
+  const existing = await prisma.customers.findFirst({
+    where: {
+      customer_id: id,
+      registered_by: registeredBy,
+    },
+    select: { customer_id: true, is_hidden: true },
+  });
+
+  if (!existing) return null;
+
+  const updated = await prisma.customers.update({
+    where: { customer_id: id },
+    data: {
+      is_hidden: true,
+      hidden_at: new Date(),
+      updated_at: new Date(),
+    },
+    select: {
+      customer_id: true,
+      is_hidden: true,
+      hidden_at: true,
+    },
+  });
+
+  return {
+    customerId: updated.customer_id.toString(),
+    isHidden: updated.is_hidden,
+    hiddenAt: updated.hidden_at?.toISOString() ?? null,
   };
 }
