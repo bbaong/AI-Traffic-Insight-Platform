@@ -4,10 +4,10 @@ import styles from './SaveSuccessModal.module.css';
 type Props = {
   open: boolean;
   onGoReport: () => void;
-  onNewConsult: () => void;
+  onGoCustomers: () => void;
 };
 
-export function SaveSuccessModal({ open, onGoReport, onNewConsult }: Props) {
+export function SaveSuccessModal({ open, onGoReport, onGoCustomers }: Props) {
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -25,7 +25,7 @@ export function SaveSuccessModal({ open, onGoReport, onNewConsult }: Props) {
         type="button"
         className={styles.dim}
         aria-label="닫기"
-        onClick={onNewConsult}
+        onClick={onGoCustomers}
       />
       <div
         className={styles.panel}
@@ -50,9 +50,9 @@ export function SaveSuccessModal({ open, onGoReport, onNewConsult }: Props) {
           <button
             type="button"
             className={styles.secondary}
-            onClick={onNewConsult}
+            onClick={onGoCustomers}
           >
-            새 상담 시작
+            고객관리로 이동
           </button>
         </div>
       </div>

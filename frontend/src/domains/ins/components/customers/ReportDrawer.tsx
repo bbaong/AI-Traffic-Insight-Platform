@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import type { Consultation, ReportItem } from '../../types/customers';
 import {
   consultationTypeLabel,
@@ -14,6 +14,8 @@ type Props = {
   consultation: Consultation | null;
   items: ReportItem[];
   loading: boolean;
+  canDownloadPdf?: boolean;
+  onDownloadPdf?: () => Promise<void>;
   onClose: () => void;
 };
 
@@ -23,21 +25,38 @@ export function ReportDrawer({
   consultation,
   items,
   loading,
+  canDownloadPdf = false,
+  onDownloadPdf,
   onClose,
 }: Props) {
+  const [dlOpen, setDlOpen] = useState(false);
+  const [dlLoading, setDlLoading] = useState(false);
+  const [dlError, setDlError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') {
+        if (dlOpen) setDlOpen(false);
+        else onClose();
+      }
     }
     window.addEventListener('keydown', onKey);
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener('keydown', onKey);
     };
-  }, [open, onClose]);
+  }, [open, onClose, dlOpen]);
+
+  useEffect(() => {
+    if (!open) {
+      setDlOpen(false);
+      setDlError(null);
+      setDlLoading(false);
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -112,12 +131,79 @@ export function ReportDrawer({
         </div>
 
         <footer className={styles.foot}>
-          {/* TODO: 리포트 PDF API 확정 후 활성화 */}
-          <button type="button" className={styles.pdfBtn} disabled>
-            리포트 PDF 내려받기
+          <button
+            type="button"
+            className={styles.pdfBtn}
+            onClick={() => {
+              setDlError(null);
+              setDlOpen(true);
+            }}
+          >
+            다운로드
           </button>
         </footer>
       </aside>
+
+      {dlOpen ? (
+        <div className={styles.dlRoot} role="presentation">
+          <button
+            type="button"
+            className={styles.dlDim}
+            aria-label="닫기"
+            onClick={() => setDlOpen(false)}
+          />
+          <div
+            className={styles.dlPanel}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="report-download-title"
+          >
+            <h3 id="report-download-title" className={styles.dlTitle}>
+              다운로드
+            </h3>
+            <p className={styles.dlHint}>파일 형식 선택</p>
+            <div className={styles.dlList}>
+              <button
+                type="button"
+                className={styles.dlItem}
+                disabled={!canDownloadPdf || !onDownloadPdf || dlLoading}
+                onClick={() => {
+                  if (!onDownloadPdf) return;
+                  setDlError(null);
+                  setDlLoading(true);
+                  void onDownloadPdf()
+                    .then(() => setDlOpen(false))
+                    .catch((e: unknown) => {
+                      setDlError(
+                        e instanceof Error
+                          ? e.message
+                          : 'PDF 다운로드에 실패했습니다.',
+                      );
+                    })
+                    .finally(() => setDlLoading(false));
+                }}
+              >
+                PDF (.pdf)
+              </button>
+              <button type="button" className={styles.dlItem} disabled>
+                Excel (.xlsx)
+              </button>
+              <button type="button" className={styles.dlItem} disabled>
+                Word (.docx)
+              </button>
+            </div>
+            {dlError ? <p className={styles.dlError}>{dlError}</p> : null}
+            <p className={styles.dlTodo}>Excel·Word는 추후 지원 예정입니다.</p>
+            <button
+              type="button"
+              className={styles.dlCancel}
+              onClick={() => setDlOpen(false)}
+            >
+              취소
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

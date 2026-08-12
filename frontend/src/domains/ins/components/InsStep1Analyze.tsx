@@ -9,6 +9,21 @@ import type { InsPredictData } from '../types/prediction';
 import { AiAnalysisResultCard } from './AiAnalysisResultCard';
 import styles from './insConsultingShared.module.css';
 
+function formatPhoneInput(next: string, prev: string): string {
+  let digits = next.replace(/\D/g, '').slice(0, 11);
+  const prevDigits = prev.replace(/\D/g, '');
+  if (
+    digits.length === prevDigits.length &&
+    next.length < prev.length &&
+    digits.length > 0
+  ) {
+    digits = digits.slice(0, -1);
+  }
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+}
+
 type Props = {
   customer: CustomerInfo;
   profile: ProfileInput;
@@ -61,9 +76,13 @@ export function InsStep1Analyze({
                     className={styles.input}
                     value={customer.phone}
                     onChange={(e) =>
-                      onCustomerChange({ ...customer, phone: e.target.value })
+                      onCustomerChange({
+                        ...customer,
+                        phone: formatPhoneInput(e.target.value, customer.phone),
+                      })
                     }
-                    placeholder="010-0000-0000"
+                    placeholder="휴대폰 번호(-없이)"
+                    inputMode="numeric"
                     autoComplete="tel"
                   />
                 </label>

@@ -7,23 +7,22 @@ const STEPS = [
 
 type Props = {
   current: 1 | 2;
+  step1Done: boolean;
   onGoTo: (step: 1 | 2) => void;
 };
 
-export function InsStepIndicator({ current, onGoTo }: Props) {
+export function InsStepIndicator({ current, step1Done, onGoTo }: Props) {
   return (
     <nav className={styles.bar} aria-label="상담 단계">
       {STEPS.map((s) => {
-        const done = current > s.id;
+        const done = s.id === 1 && step1Done && current !== 1;
         const isCurrent = current === s.id;
-        const canClick = done || isCurrent;
         return (
           <button
             key={s.id}
             type="button"
             className={`${styles.step} ${isCurrent ? styles.current : ''} ${done ? styles.done : ''}`}
-            onClick={() => canClick && onGoTo(s.id)}
-            disabled={!canClick}
+            onClick={() => onGoTo(s.id)}
             aria-current={isCurrent ? 'step' : undefined}
           >
             {done ? (

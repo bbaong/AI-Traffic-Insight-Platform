@@ -24,7 +24,9 @@ import {
   toRiderBadge,
   toRiskGrade,
 } from '../constants/insEnums';
+import { fetchInsReportPdf } from '../api/reportPdf';
 import type {
+  Consultation,
   ConsultationTypeCode,
   ConsultationsResponse,
   CustomerListItem,
@@ -184,14 +186,16 @@ export function CustomersPage() {
     setPage(1);
   }
 
-  const openReport = useCallback(async () => {
-    if (!selectedConsult) return;
+  const openReport = useCallback(async (consult?: Consultation) => {
+    const target = consult ?? selectedConsult;
+    if (!target) return;
+    setSelectedConsultId(target.consultationId);
     setReportOpen(true);
     setReportLoading(true);
     try {
       const items = await fetchConsultationReport(
-        selectedConsult.consultationId,
-        selectedConsult.riskGrade,
+        target.consultationId,
+        target.riskGrade,
       );
       setReportItems(items);
     } catch {
@@ -200,6 +204,28 @@ export function CustomersPage() {
       setReportLoading(false);
     }
   }, [selectedConsult]);
+
+  const downloadReportPdf = useCallback(async () => {
+    const c = selectedConsult;
+    const p = c?.profile;
+    if (!c || !p?.region || !p.ageGroup || !p.gender || !p.vehicleType) {
+      throw new Error('프로필 정보가 없어 PDF를 만들 수 없습니다.');
+    }
+    const blob = await fetchInsReportPdf({
+      구군: p.region,
+      연령대: p.ageGroup,
+      성별: genderLabel(p.gender),
+      차종: p.vehicleType,
+      고객명: selectedCustomer?.name,
+      memo: c.memo?.trim() || undefined,
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `상담리포트_${c.consultationId}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [selectedConsult, selectedCustomer?.name]);
 
   const riskPct = Math.min(
     100,
@@ -221,13 +247,14 @@ export function CustomersPage() {
             />
           </span>
         </label>
-        <label className={styles.searchWrap}>
+        <label className={styles.dateWrap}>
           <span className={styles.fieldLabel}>최근 상담일</span>
           <div className={styles.dateRow}>
             <input
               type="date"
               className={styles.dateInput}
               value={fromDate}
+              onClick={(e) => e.currentTarget.showPicker?.()}
               onChange={(e) => {
                 setFromDate(e.target.value);
                 setPage(1);
@@ -238,6 +265,7 @@ export function CustomersPage() {
               type="date"
               className={styles.dateInput}
               value={toDate}
+              onClick={(e) => e.currentTarget.showPicker?.()}
               onChange={(e) => {
                 setToDate(e.target.value);
                 setPage(1);
@@ -428,6 +456,12 @@ export function CustomersPage() {
                     <p className={styles.hint}>표시할 상담 이력이 없습니다.</p>
                   ) : (
                     <div className={styles.timeline}>
+                      <div className={styles.historyCols} aria-hidden>
+                        <span>일시</span>
+                        <span>상담 유형</span>
+                        <span>메모</span>
+                        <span>리포트</span>
+                      </div>
                       <ul className={styles.consultList}>
                         {filteredConsults.map((c) => {
                           const type = toConsultationType(c.consultationType);
@@ -436,16 +470,27 @@ export function CustomersPage() {
                             : null;
                           const active =
                             c.consultationId === selectedConsult?.consultationId;
+                          const memoText = c.memo?.trim() ?? '';
+                          const memoDate = formatConsultDateTime(
+                            c.consultedAt,
+                          ).slice(0, 10);
                           return (
                             <li key={c.consultationId}>
-                              <button
-                                type="button"
+                              <div
                                 className={`${styles.consultItem} ${
                                   active ? styles.consultActive : ''
                                 }`}
                                 onClick={() =>
                                   setSelectedConsultId(c.consultationId)
                                 }
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    setSelectedConsultId(c.consultationId);
+                                  }
+                                }}
+                                role="button"
+                                tabIndex={0}
                               >
                                 <span className={styles.consultDot} aria-hidden />
                                 <span className={styles.consultDate}>
@@ -464,7 +509,51 @@ export function CustomersPage() {
                                 >
                                   {consultationTypeLabel(c.consultationType)}
                                 </span>
-                              </button>
+                                <div
+                                  className={styles.iconCell}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onKeyDown={(e) => e.stopPropagation()}
+                                >
+                                  {memoText ? (
+                                    <div className={styles.memoHover}>
+                                      <button
+                                        type="button"
+                                        className={styles.iconBtn}
+                                        aria-label={`${memoDate} 상담 메모`}
+                                      >
+                                        <MemoIcon />
+                                      </button>
+                                      <div
+                                        className={styles.memoPop}
+                                        role="tooltip"
+                                      >
+                                        <p className={styles.memoPopTitle}>
+                                          {memoDate} 상담 메모
+                                        </p>
+                                        <p className={styles.memoPopBody}>
+                                          {memoText}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <span className={styles.emptyCell}>-</span>
+                                  )}
+                                </div>
+                                <div
+                                  className={styles.iconCell}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onKeyDown={(e) => e.stopPropagation()}
+                                >
+                                  <button
+                                    type="button"
+                                    className={styles.iconBtn}
+                                    aria-label={`${memoDate} 상담 리포트`}
+                                    onClick={() => void openReport(c)}
+                                  >
+                                    <ReportIcon />
+                                  </button>
+                                </div>
+                              </div>
                             </li>
                           );
                         })}
@@ -602,6 +691,13 @@ export function CustomersPage() {
         consultation={selectedConsult}
         items={reportItems}
         loading={reportLoading}
+        canDownloadPdf={
+          !!selectedConsult?.profile?.region &&
+          !!selectedConsult.profile.ageGroup &&
+          !!selectedConsult.profile.gender &&
+          !!selectedConsult.profile.vehicleType
+        }
+        onDownloadPdf={downloadReportPdf}
         onClose={() => setReportOpen(false)}
       />
     </div>
@@ -697,6 +793,34 @@ function PinIcon() {
         strokeLinejoin="round"
       />
       <circle cx="12" cy="11" r="2" stroke="currentColor" strokeWidth="1.7" />
+    </svg>
+  );
+}
+
+function MemoIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M5 6.5A2.5 2.5 0 0 1 7.5 4h9A2.5 2.5 0 0 1 19 6.5v7A2.5 2.5 0 0 1 16.5 16H12l-4.2 3.2c-.7.5-1.8 0-1.8-.8V16H7.5A2.5 2.5 0 0 1 5 13.5v-7Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ReportIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M7 3.5h7.2L19 8.2V19a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 19V5A1.5 1.5 0 0 1 7.5 3.5H7Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+      <path d="M14 3.5V8h5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M9 12.5h6M9 16h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
     </svg>
   );
 }
