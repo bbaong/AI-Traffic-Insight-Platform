@@ -5,6 +5,13 @@ import buttonStyles from './landingButtons.module.css';
 import styles from './CtaSection.module.css';
 import { useFadeInClassName } from './useFadeInClassName';
 
+function scrollToId(id: string): void {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
 export function CtaSection() {
   const { ref, className } = useFadeInClassName();
   const user = useAuthStore((s) => s.user);
@@ -18,6 +25,7 @@ export function CtaSection() {
 
   return (
     <section
+      id="cta-section"
       ref={ref}
       className={`${styles.section} ${className}`}
       aria-labelledby="cta-heading"
@@ -25,6 +33,7 @@ export function CtaSection() {
       <div className={styles.inner}>
         {user && dashboardPath ? (
           <>
+            <p className={styles.eyebrow}>다시 이어가기</p>
             <h2 id="cta-heading" className={styles.title}>
               다시 분석을 이어가세요
             </h2>
@@ -39,37 +48,40 @@ export function CtaSection() {
                 내 대시보드 보기
               </Link>
             </div>
-            <p className={styles.hint}>
-              {user.role === 'ROLE_A'
-                ? '지자체 대시보드에서 시군구 위험도를 확인하세요'
-                : '보험 상담 대시보드에서 고객 상담을 이어가세요'}
-            </p>
           </>
         ) : (
           <>
+            <p className={styles.eyebrow}>지금 바로 시작하세요</p>
             <h2 id="cta-heading" className={styles.title}>
-              지금 시작하세요
+              도입이 궁금하신가요?
             </h2>
-            <p className={styles.subtitle}>회원가입은 1분이면 끝납니다.</p>
+            <p className={styles.subtitle}>
+              별도 설치 없이 웹 브라우저로 바로 사용 가능합니다. 도입 문의는
+              무료입니다.
+            </p>
             <div className={styles.actions}>
-              <Link
-                to={ROUTES.LOGIN}
-                className={`${buttonStyles.button} ${buttonStyles.outlineOnDark}`}
-              >
-                로그인
-              </Link>
               <Link
                 to={ROUTES.SIGNUP}
                 className={`${buttonStyles.button} ${buttonStyles.primary}`}
               >
-                회원가입
+                도입 문의하기 →
               </Link>
+              <button
+                type="button"
+                className={`${buttonStyles.button} ${buttonStyles.outlineOnDark}`}
+                onClick={() => scrollToId('intro')}
+              >
+                서비스 다시 보기
+              </button>
             </div>
-            <p className={styles.hint}>
-              가입할 때 지자체 · 보험사 중 업무 유형을 선택합니다
-            </p>
           </>
         )}
+        <p className={styles.note}>
+          데이터 기준: 2016~2025년 대구시 교통사고 통계 (한국도로교통공단 TAAS)
+          <br />
+          본 서비스는 참고 지표이며 보험료 산출·인수 심사의 직접 근거가
+          아닙니다.
+        </p>
       </div>
     </section>
   );

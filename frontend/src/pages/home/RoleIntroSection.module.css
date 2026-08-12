@@ -8,6 +8,16 @@
   margin: 0 auto;
 }
 
+.eyebrow {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-teal);
+  text-align: center;
+}
+
 .title {
   margin: 0 0 10px;
   font-size: 24px;
@@ -17,11 +27,20 @@
 }
 
 .subtitle {
-  margin: 0 0 36px;
+  margin: 0 auto 36px;
+  max-width: 580px;
   font-size: 15px;
   line-height: 1.6;
   color: var(--color-body);
   text-align: center;
+}
+
+.cardGov {
+  border-left: 3px solid var(--color-teal);
+}
+
+.cardIns {
+  border-left: 3px solid var(--color-amber);
 }
 
 .grid {
