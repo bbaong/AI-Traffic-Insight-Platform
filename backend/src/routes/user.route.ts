@@ -7,6 +7,7 @@ import {
   idCheck,
   loginUsers,
   verifyPassword,
+  changeEmail,
 } from '../controllers/user.controller';
 
 const router = Router();
@@ -18,5 +19,6 @@ router.post('/login', loginUsers);
 router.post('/idCheck', idCheck);
 router.post('/verify-password', verifyPassword);
 router.patch('/password', changePassword);
+router.patch('/email', changeEmail);
 
 export default router;

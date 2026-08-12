@@ -203,6 +203,74 @@ export const verifyPassword = async (req: Request, res: Response) => {
   }
 };
 
+// 이메일 변경 (선택 항목 — 빈 문자열이면 null)
+export const changeEmail = async (req: Request, res: Response) => {
+  try {
+    const { user_id, email } = req.body;
+
+    if (user_id == null) {
+      return res.status(400).json({
+        success: false,
+        message: 'user_id는 필수입니다.',
+      });
+    }
+
+    const raw = typeof email === 'string' ? email.trim() : '';
+    const nextEmail = raw === '' ? null : raw;
+
+    if (nextEmail != null) {
+      const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail);
+      if (!ok) {
+        return res.status(400).json({
+          success: false,
+          message: '이메일 형식이 올바르지 않습니다.',
+        });
+      }
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { user_id: BigInt(user_id) },
+    });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: '사용자를 찾을 수 없습니다.',
+      });
+    }
+
+    const prev = user.email?.trim() || null;
+    if (prev === nextEmail) {
+      return res.status(200).json({
+        success: true,
+        message: '변경된 내용이 없습니다.',
+        data: { email: nextEmail, changed: false },
+      });
+    }
+
+    const updated = await prisma.users.update({
+      where: { user_id: user.user_id },
+      data: { email: nextEmail },
+    });
+
+    const message =
+      prev == null && nextEmail != null
+        ? '이메일이 저장되었습니다.'
+        : '이메일이 변경되었습니다.';
+
+    return res.status(200).json({
+      success: true,
+      message,
+      data: { email: updated.email ?? null, changed: true },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: '이메일 변경 실패',
+    });
+  }
+};
+
 //비밀번호 변경
 export const changePassword = async (req: Request, res: Response) => {
   try {

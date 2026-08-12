@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react';
 import { fetchDepartments } from '../../domains/auth/api/signup';
+import { changeEmail } from '../../shared/api/user';
 import { useAuthStore } from '../../stores/authStore';
 import styles from './MyPage.module.css';
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 function formatDateOnly(value: string | null): string | null {
   if (!value) return null;
@@ -69,9 +74,25 @@ function ClockIcon() {
 
 export function MyPage() {
   const user = useAuthStore((s) => s.user);
+  const patchUser = useAuthStore((s) => s.patchUser);
   const [resolvedDeptName, setResolvedDeptName] = useState<string | null>(null);
+  const [email, setEmail] = useState(() => user?.email?.trim() ?? '');
+  const [emailFeedback, setEmailFeedback] = useState<{
+    text: string;
+    tone: 'error' | 'success';
+  } | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const isGov = user?.role === 'ROLE_A';
+
+  useEffect(() => {
+    setEmail(user?.email?.trim() ?? '');
+    setEmailFeedback(null);
+  }, [user?.userId]);
+
+  useEffect(() => {
+    setEmail(user?.email?.trim() ?? '');
+  }, [user?.email]);
 
   // TODO: 서버 로그인 응답에 department_name 추가 필요 (departments join)
   // 현재 auth.ts는 department_name이 오면 매핑하고, 없으면 null.
@@ -127,6 +148,40 @@ export function MyPage() {
   const createdLabel = formatDateOnly(user.createdAt);
   const lastLoginLabel = formatDateTime(user.lastLoginAt);
 
+  const emailInvalid = email.trim() !== '' && !isValidEmail(email.trim());
+  const userId = user.userId;
+
+  async function handleChangeEmail() {
+    if (submitting) return;
+    const trimmed = email.trim();
+    if (trimmed && !isValidEmail(trimmed)) {
+      setEmailFeedback({
+        text: '이메일 형식을 확인해 주세요',
+        tone: 'error',
+      });
+      return;
+    }
+    setEmailFeedback(null);
+    setSubmitting(true);
+    try {
+      const result = await changeEmail({
+        userId,
+        email: trimmed,
+      });
+      if (!result.ok) {
+        setEmailFeedback({ text: result.message, tone: 'error' });
+        return;
+      }
+      patchUser({ email: result.email });
+      setEmailFeedback({
+        text: result.message,
+        tone: result.changed ? 'success' : 'error',
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   const rows: {
     label: string;
     value: string;
@@ -149,11 +204,6 @@ export function MyPage() {
       value: affiliationValue || '미등록',
       muted: !affiliationValue,
     },
-    {
-      label: '이메일',
-      value: user.email?.trim() || '미등록 · 선택 항목',
-      muted: !user.email?.trim(),
-    },
   ];
 
   return (
@@ -175,9 +225,8 @@ export function MyPage() {
           <h3 id="mypage-account-heading" className={styles.cardTitle}>
             계정 정보
           </h3>
-          <p className={styles.cardHint}>조회만 가능 · 수정은 추후 제공</p>
+          <p className={styles.cardHint}>이메일 수정 가능 · 선택 항목</p>
         </div>
-
         <dl className={styles.list}>
           {rows.map((row) => (
             <div key={row.label} className={styles.row}>
@@ -189,7 +238,47 @@ export function MyPage() {
               </dd>
             </div>
           ))}
+
+          <div className={styles.row}>
+            <dt className={styles.label}>이메일</dt>
+            <dd className={styles.value}>
+              <div className={styles.emailEdit}>
+                <input
+                  type="email"
+                  className={`${styles.emailInput}${emailInvalid ? ` ${styles.emailInputInvalid}` : ''}`}
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setEmailFeedback(null);
+                  }}
+                  placeholder="이메일이 등록되지 않았습니다."
+                  autoComplete="email"
+                  aria-invalid={emailInvalid}
+                />
+                <button
+                  type="button"
+                  className={styles.emailBtn}
+                  disabled={submitting || emailInvalid}
+                  onClick={() => void handleChangeEmail()}
+                >
+                  {submitting ? '저장 중…' : '변경'}
+                </button>
+              </div>
+              {emailFeedback || emailInvalid ? (
+                <p
+                  className={
+                    emailFeedback?.tone === 'success'
+                      ? styles.emailSuccess
+                      : styles.emailError
+                  }
+                >
+                  {emailFeedback?.text ?? '이메일 형식을 확인해 주세요'}
+                </p>
+              ) : null}
+            </dd>
+          </div>
         </dl>
+
       </section>
 
       <footer className={styles.meta}>
