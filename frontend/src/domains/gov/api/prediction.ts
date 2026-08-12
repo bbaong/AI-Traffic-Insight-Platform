@@ -29,6 +29,8 @@ export interface GovPredictResult {
   버전: string;
   주기: string;
   지역: string;
+  /** districts.district_id — 스냅샷 행에만 있음. /api/gov/* 호출용 */
+  districtId?: number;
   기준분기?: string;
   예측분기?: string;
   기준반기?: string;
@@ -141,6 +143,7 @@ export function mapForecastToPredictResults(
       버전: run.modelVersion,
       주기: run.freq,
       지역: d.지역,
+      districtId: d.districtId,
       기준분기: run.asOf,
       예측분기: run.forecastLabel ?? undefined,
       예측사고건수: d.예측사고건수,

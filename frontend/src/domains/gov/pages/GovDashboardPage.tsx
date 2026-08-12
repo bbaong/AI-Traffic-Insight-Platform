@@ -1,12 +1,9 @@
-import {
-  AiSummaryCard,
-  DashboardCard,
-  MapCard,
-} from '../../../shared/components/dashboard';
+import { Link } from 'react-router-dom';
+import { MapCard } from '../../../shared/components/dashboard';
 import { useDistrictStore } from '../../../shared/stores/districtStore';
 import { DAEGU_DISTRICTS } from '../../../shared/constants/daeguBoundaries';
-import type { AiSummaryData, PriorityRegionRow, RiskLevel } from '../../../shared/types/dashboard';
-import { getRiskMeta } from '../../../shared/utils/riskMeta';
+import { ROUTES } from '../../../shared/constants/routes';
+import type { PriorityRegionRow, RiskLevel } from '../../../shared/types/dashboard';
 import {
   fetchGovForecasts,
   getPredictedCount,
@@ -18,8 +15,18 @@ import {
   type GovHotspotPoint,
   type GovPredictResult,
 } from '../api/prediction';
+import {
+  GovApiError,
+  fetchGovComparison,
+  fetchGovSuggestions,
+  type GovComparisonData,
+  type GovSuggestionItem,
+} from '../api/govDashboard';
 import { RISK_COLORS, type MapHotspot } from '../../../shared/components/dashboard/MapCard';
+import { ComparisonCard } from '../components/ComparisonCard';
+import { PriorityTop3Card } from '../components/PriorityTop3Card';
 import { SeverityStackedCard } from '../components/SeverityStackedCard';
+import { SuggestionsCard } from '../components/SuggestionsCard';
 import styles from '../../../shared/components/dashboard/GovDashboardPage.module.css';
 import { useState, useEffect, useRef } from 'react';
 
@@ -49,31 +56,15 @@ function formatPeriodLabel(raw?: string | null): string {
   return raw;
 }
 
-function toAiSummary(row: GovPredictResult): AiSummaryData {
-  const total = getAccidentCount(row);
-  const types = row.예측사고유형_퍼센트 ?? {};
-  const factors = Object.entries(types)
-    .sort((a, b) => b[1] - a[1])
-    .map(([name, pct]) => ({
-      name,
-      contribution: Math.round((pct / 100) * total), // % → 건
-    }));
-  return {
-    riskLevel: toRiskLevel(row.중대사고등급),
-    title: `대구광역시 ${row.지역}`,
-    scoreLabel: '우선점검 점수(중대율 %)',
-    score: priorityScore(row),
-    factors,
-    recommendation: `예측기간 ${formatPeriodLabel(row.예측분기)} · 참고 예상사고 ${total}건 · 사고유형은 기준분기 실적 비율`,
-    profileSummary: [
-      formatPeriodLabel(row.기준분기),
-      formatPeriodLabel(row.예측분기),
-    ]
-      .filter((s) => s !== '-')
-      .join(' → '),
-    factorUnit: '건',
-  };
+function govFetchErrorMessage(error: unknown, notFound: string): string {
+  if (error instanceof GovApiError) {
+    if (error.status === 400) return 'id 형식이 올바르지 않습니다.';
+    if (error.status === 404) return notFound;
+    return error.message;
+  }
+  return error instanceof Error ? error.message : '불러오지 못했습니다.';
 }
+
 const GOV_PRED_CACHE_KEY = 'gov:forecasts:Q';
 const GOV_HOTSPOT_CACHE_KEY = 'gov:hotspots';
 /** 프론트: 이 시간 안이면 Backend/AI 다발 API를 다시 치지 않음 */
@@ -127,12 +118,20 @@ export function GovDashboardPage() {
     DAEGU_DISTRICTS.find((d) => d.code === selectedCode)?.name ?? null;
 
   const [riskByCode, setRiskByCode] = useState<Record<string, RiskLevel>>({});
-  const [aiSummary, setAiSummary] = useState<AiSummaryData | null>(null);
   const [allRows, setAllRows] = useState<GovPredictResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [priorityRegions, setPriorityRegions] = useState<PriorityRegionRow[]>([]);
   const [mapExpanded, setMapExpanded] = useState(false);
+
+  const [comparison, setComparison] = useState<GovComparisonData | null>(null);
+  const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [comparisonError, setComparisonError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<GovSuggestionItem[] | null>(
+    null,
+  );
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
 
   const [historyData, setHistoryData] = useState<GovHistoryResponse | null>(null);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -312,135 +311,197 @@ export function GovDashboardPage() {
     };
   }, [selectedName]);
 
+  const selectedDistrictId =
+    allRows.find((r) => r.지역 === selectedName)?.districtId ?? null;
+
+  const periodLabel = (() => {
+    const sample = allRows[0];
+    const from = formatPeriodLabel(sample?.기준분기);
+    const to = formatPeriodLabel(sample?.예측분기);
+    if (from === '-' && to === '-') return '기간 정보 없음';
+    if (to === '-') return from;
+    return `${from} ~ ${to}`;
+  })();
+
   useEffect(() => {
-    if (!allRows.length || !selectedName) {
-      setAiSummary(null);
+    if (!selectedName) {
+      setComparison(null);
+      setComparisonError(null);
+      setComparisonLoading(false);
+      setSuggestions(null);
+      setSuggestionsError(null);
+      setSuggestionsLoading(false);
       return;
     }
-    const row = allRows.find((r) => r.지역 === selectedName);
-    setAiSummary(row ? toAiSummary(row) : null);
-  }, [selectedCode, selectedName, allRows]);
+    if (selectedDistrictId == null) {
+      const ready = allRows.length > 0;
+      setComparison(null);
+      setSuggestions(null);
+      setComparisonError(ready ? '구 식별자를 불러오지 못했습니다.' : null);
+      setSuggestionsError(ready ? '구 식별자를 불러오지 못했습니다.' : null);
+      setComparisonLoading(!ready);
+      setSuggestionsLoading(!ready);
+      return;
+    }
+
+    let cancelled = false;
+    setComparisonLoading(true);
+    setComparisonError(null);
+    setSuggestionsLoading(true);
+    setSuggestionsError(null);
+
+    void fetchGovComparison(selectedDistrictId)
+      .then((data) => {
+        if (cancelled) return;
+        setComparison(data);
+        setComparisonError(null);
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        setComparison(null);
+        setComparisonError(
+          govFetchErrorMessage(e, '해당 구 데이터가 없습니다'),
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setComparisonLoading(false);
+      });
+
+    void fetchGovSuggestions(selectedDistrictId)
+      .then((data) => {
+        if (cancelled) return;
+        setSuggestions(data);
+        setSuggestionsError(null);
+      })
+      .catch((e: unknown) => {
+        if (cancelled) return;
+        setSuggestions(null);
+        setSuggestionsError(
+          govFetchErrorMessage(e, '해당 구 데이터가 없습니다'),
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setSuggestionsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedName, selectedDistrictId, allRows.length]);
 
   return (
-    <div className={`${styles.govGrid} ${mapExpanded ? styles.govGridMapExpanded : ''}`}>
-      <div className={styles.cellMap}>
-        <MapCard
-          title="시군구 중대사고 위험 · 우선점검"
-          riskByCode={riskByCode}
-          hotspots={hotspots}
-          hotspotYear={hotspotYear}
-          mapExpanded={mapExpanded}
-          onToggleMapExpand={() => setMapExpanded((v) => !v)}
-          legend={[
-            { label: '중대율 상위 25%', color: RISK_COLORS.CRITICAL },
-            { label: '상위 25–50%', color: RISK_COLORS.HIGH },
-            { label: '하위 25–50%', color: RISK_COLORS.MODERATE },
-            { label: '중대율 하위 25%', color: RISK_COLORS.LOW },
-          ]}
-        />
+    <div
+      className={`${styles.govPage} ${mapExpanded ? styles.govPageMapExpanded : ''}`}
+    >
+      <div className={styles.toolbar}>
+        <select
+          className={styles.toolbarSelect}
+          value="daegu"
+          aria-label="시도 선택"
+          disabled
+        >
+          <option value="daegu">대구광역시</option>
+        </select>
+        <select
+          className={styles.toolbarSelect}
+          value={selectedCode ?? ''}
+          aria-label="구군 선택"
+          onChange={(e) => setSelectedCode(e.target.value || null)}
+        >
+          <option value="">구·군 선택</option>
+          {DAEGU_DISTRICTS.map((d) => (
+            <option key={d.code} value={d.code}>
+              {d.name}
+            </option>
+          ))}
+        </select>
+        {/* TODO: 기간 필터 API가 생기면 freq/as_of 로 예측을 다시 호출한다. 지금은 스냅샷 라벨 표시 전용. */}
+        <select
+          className={styles.toolbarSelect}
+          value="period"
+          aria-label="기간"
+          disabled
+        >
+          <option value="period">{periodLabel}</option>
+        </select>
+        <Link
+          className={styles.downloadBtn}
+          to={ROUTES.REPORTS}
+          aria-label="상세 리포트로 이동"
+          title="상세 리포트"
+        >
+          <DownloadIcon />
+        </Link>
       </div>
-      
-      <div className={styles.cellSeverity}>
-        <SeverityStackedCard
-          regionName={selectedName}
-          data={historyData}
-          loading={historyLoading && !historyData}
-          error={historyError}
-        />
-      </div>
-  
-      <div
-        className={styles.cellDistrict}
-        hidden={mapExpanded}
-        aria-hidden={mapExpanded}
-      >
-        <DashboardCard title="구별 우선점검 TOP3">
-          <div className={styles.priorityPanel}>
-            {loading ? (
-              <p className={styles.loadingHint} aria-busy="true">
-                분석 중…
-              </p>
-            ) : error ? (
-              <p className={styles.loadingHint}>{error}</p>
-            ) : priorityRegions.length === 0 ? (
-              <p className={styles.loadingHint}>순위 데이터가 없습니다.</p>
-            ) : (
-              <>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th scope="col">순위</th>
-                      <th scope="col">지역</th>
-                      <th scope="col">중대율</th>
-                      <th scope="col">위험</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  {priorityRegions.map((row) => {
-                    const risk = getRiskMeta(row.riskLevel);
-                    const code = DAEGU_DISTRICTS.find(
-                      (d) => d.name === row.regionName,
-                    )?.code;
-                    const selected = code === selectedCode;
 
-                    return (
-                      <tr
-                        key={row.rank}
-                        role={code ? 'button' : undefined}
-                        tabIndex={code ? 0 : undefined}
-                        onClick={() => {
-                          if (code) setSelectedCode(code);
-                        }}
-                        onKeyDown={(e) => {
-                          if (!code) return;
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            setSelectedCode(code);
-                          }
-                        }}
-                        style={{
-                          cursor: code ? 'pointer' : 'default',
-                          background: selected ? 'var(--color-page-bg)' : undefined,
-                        }}
-                      >
-                        <td>{row.rank}</td>
-                        <td>{row.regionName}</td>
-                        <td>{row.score}%</td>
-                        <td>
-                          <span className={styles.risk} style={{ color: risk.colorVar }}>
-                            {risk.label}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  </tbody>
-                </table>
-                <p className={styles.priorityHint}>
-                  예측 중대사고율(%) 높은 순 · TOP3
-                </p>
-              </>
-            )}
-          </div>
-        </DashboardCard>
-      </div>
-  
-      <div className={styles.cellReport}>
-        {aiSummary ? (
-          <AiSummaryCard
-            key={selectedCode ?? 'none'}
-            data={aiSummary}
-            accent="teal"
+      <div className={styles.row1}>
+        <div className={styles.cellMap}>
+          <MapCard
+            title="사고위험 지도 / 우선점검"
+            riskByCode={riskByCode}
+            hotspots={hotspots}
+            hotspotYear={hotspotYear}
+            mapExpanded={mapExpanded}
+            onToggleMapExpand={() => setMapExpanded((v) => !v)}
+            legend={[
+              { label: '중대율 상위 25%', color: RISK_COLORS.CRITICAL },
+              { label: '상위 25–50%', color: RISK_COLORS.HIGH },
+              { label: '하위 25–50%', color: RISK_COLORS.MODERATE },
+              { label: '중대율 하위 25%', color: RISK_COLORS.LOW },
+            ]}
           />
-        ) : (
-          <DashboardCard title="사고유형">
-            <p className={styles.loadingHint}>
-              {loading ? '분석 중…' : '지도에서 구·군을 선택하세요.'}
-            </p>
-          </DashboardCard>
-        )}
+        </div>
+        <div className={styles.cellCompare}>
+          <ComparisonCard
+            districtName={selectedName}
+            data={comparison}
+            loading={comparisonLoading}
+            error={comparisonError}
+          />
+        </div>
+      </div>
+
+      <div className={styles.row2}>
+        <div className={styles.cellTrend}>
+          <SeverityStackedCard
+            regionName={selectedName}
+            data={historyData}
+            loading={historyLoading && !historyData}
+            error={historyError}
+          />
+        </div>
+        <div className={styles.cellSuggest}>
+          <SuggestionsCard
+            data={suggestions}
+            loading={suggestionsLoading}
+            error={suggestionsError}
+          />
+        </div>
+        <div className={styles.cellTop3}>
+          <PriorityTop3Card
+            rows={priorityRegions}
+            selectedCode={selectedCode}
+            loading={loading}
+            error={error}
+            onSelectCode={setSelectedCode}
+          />
+        </div>
       </div>
     </div>
+  );
+}
+
+function DownloadIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M12 4v10m0 0 4-4m-4 4-4-4M5 18h14"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

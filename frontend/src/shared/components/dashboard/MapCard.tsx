@@ -619,9 +619,10 @@ export function MapCard({
             onClick={onToggleMapExpand}
             aria-pressed={mapExpanded}
             aria-label={mapExpanded ? '지도 축소' : '지도 확장'}
-            title={mapExpanded ? '축소' : '확장'}
+            title={mapExpanded ? '지도 축소' : '지도 확장'}
           >
             {mapExpanded ? <MapCollapseIcon /> : <MapExpandIcon />}
+            지도 레이어
           </button>
         ) : null}
 
