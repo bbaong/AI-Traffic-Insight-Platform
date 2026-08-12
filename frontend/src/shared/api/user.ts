@@ -71,3 +71,41 @@ export async function changePassword(payload: {
     message: data.message ?? '비밀번호 변경에 실패했습니다.',
   };
 }
+
+export type ChangeEmailResult =
+  | { ok: true; message: string; email: string | null; changed: boolean }
+  | { ok: false; message: string };
+
+export async function changeEmail(payload: {
+  userId: number;
+  email: string;
+}): Promise<ChangeEmailResult> {
+  const res = await fetch(`${API_BASE}/api/user/email`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: payload.userId,
+      email: payload.email,
+    }),
+  });
+
+  const data = (await res.json().catch(() => ({}))) as {
+    success?: boolean;
+    message?: string;
+    data?: { email?: string | null; changed?: boolean };
+  };
+
+  if (res.ok && data.success === true) {
+    return {
+      ok: true,
+      message: data.message ?? '이메일이 저장되었습니다.',
+      email: data.data?.email ?? null,
+      changed: data.data?.changed ?? true,
+    };
+  }
+
+  return {
+    ok: false,
+    message: data.message ?? '이메일 변경에 실패했습니다.',
+  };
+}
