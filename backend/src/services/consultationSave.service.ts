@@ -254,6 +254,7 @@ export async function saveConsultation(input: any) {
         profile_id: riskProfile.profile_id,
         consultation_type: consultationType,
         memo: memo ?? null,
+        checklist_snapshot: JSON.stringify(checklist ?? {}),
         status: 'COMPLETED',
       },
     });
