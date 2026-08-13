@@ -15,14 +15,16 @@
 
 .title {
   margin: 0;
-  font-size: 26px;
+  font-size: 32px;
   font-weight: var(--font-weight-medium);
+  letter-spacing: -0.03em;
   color: var(--color-surface);
 }
 
 .subtitle {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
+  line-height: 1.65;
   color: var(--color-cta-sub);
 }
 
@@ -32,15 +34,6 @@
   justify-content: center;
   gap: 12px;
   margin-top: 10px;
-}
-
-.eyebrow {
-  margin: 0;
-  font-size: 12px;
-  font-weight: var(--font-weight-medium);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-teal);
 }
 
 .note {
@@ -56,6 +49,6 @@
   }
 
   .title {
-    font-size: 22px;
+    font-size: 24px;
   }
 }

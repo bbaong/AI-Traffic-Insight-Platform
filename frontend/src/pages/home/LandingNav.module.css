@@ -103,13 +103,23 @@
   border: none;
   cursor: pointer;
   border-radius: var(--radius-button);
+  text-decoration: none;
+  white-space: nowrap;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
 }
 
 .anchorLink:hover {
-  color: var(--color-ink);
+  color: var(--color-brand);
 }
 
-@media (max-width: 640px) {
+.anchorLinkActive {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-medium);
+}
+
+@media (max-width: 860px) {
   .nav {
     padding: 12px 16px;
   }

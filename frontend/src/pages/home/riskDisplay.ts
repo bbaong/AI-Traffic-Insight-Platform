@@ -25,7 +25,7 @@ const RISK_LEVEL_META: Record<LandingRiskLevel, RiskLevelMeta> = {
   LOW: {
     label: 'Low',
     icon: '●',
-    color: 'var(--color-teal)',
+    color: 'var(--color-brand)',
   },
 };
 

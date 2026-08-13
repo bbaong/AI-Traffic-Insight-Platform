@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
 import { clearAuthStorage, useAuthStore } from '../../stores/authStore';
 import buttonStyles from './landingButtons.module.css';
@@ -13,6 +13,8 @@ function scrollToId(id: string): void {
 
 export function LandingNav() {
   const user = useAuthStore((s) => s.user);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const dashboardPath =
     user?.role === 'ROLE_A'
@@ -24,6 +26,14 @@ export function LandingNav() {
   function handleLogout(): void {
     clearAuthStorage();
     window.location.replace(ROUTES.LANDING);
+  }
+
+  function goToHomeSection(id: string): void {
+    if (location.pathname === ROUTES.LANDING) {
+      scrollToId(id);
+      return;
+    }
+    navigate({ pathname: ROUTES.LANDING, hash: `#${id}` });
   }
 
   return (
@@ -43,17 +53,26 @@ export function LandingNav() {
           <button
             type="button"
             className={styles.anchorLink}
-            onClick={() => scrollToId('intro')}
+            onClick={() => goToHomeSection('intro')}
           >
             서비스 소개
           </button>
-          <button
-            type="button"
-            className={styles.anchorLink}
-            onClick={() => scrollToId('data')}
+          <NavLink
+            to={ROUTES.LANDING_GOV}
+            className={({ isActive }) =>
+              `${styles.anchorLink} ${isActive ? styles.anchorLinkActive : ''}`
+            }
           >
-            데이터 기준
-          </button>
+            지자체 솔루션
+          </NavLink>
+          <NavLink
+            to={ROUTES.LANDING_INS}
+            className={({ isActive }) =>
+              `${styles.anchorLink} ${isActive ? styles.anchorLinkActive : ''}`
+            }
+          >
+            보험사 솔루션
+          </NavLink>
         </nav>
       </div>
 

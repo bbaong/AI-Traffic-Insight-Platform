@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from '../../shared/layouts/AppLayout';
 import { ROUTES } from '../../shared/constants/routes';
 import { LandingPage } from '../../pages/home/LandingPage';
+import { GovLandingPage } from '../../pages/home/GovLandingPage';
+import { InsLandingPage } from '../../pages/home/InsLandingPage';
 import { LoginPage } from '../../domains/auth/pages/LoginPage';
 import { SignupFormEntryPage } from '../../domains/auth/pages/SignupFormEntryPage';
 import { SignupRoleGatePage } from '../../domains/auth/pages/SignupRoleGatePage';
@@ -24,6 +26,8 @@ export function AppRouter() {
   return (
     <Routes>
       <Route path={ROUTES.LANDING} element={<LandingPage />} />
+      <Route path={ROUTES.LANDING_GOV} element={<GovLandingPage />} />
+      <Route path={ROUTES.LANDING_INS} element={<InsLandingPage />} />
       <Route path={ROUTES.LOGIN} element={<LoginPage />} />
       <Route path={ROUTES.SIGNUP} element={<SignupRoleGatePage />} />
       <Route path={ROUTES.SIGNUP_FORM} element={<SignupFormEntryPage />} />

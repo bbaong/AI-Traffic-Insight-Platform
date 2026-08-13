@@ -155,29 +155,42 @@ const TOP3 = [
   },
 ];
 
-export function GovDetailSection() {
+interface GovDetailSectionProps {
+  hideIntro?: boolean;
+}
+
+export function GovDetailSection({ hideIntro = false }: GovDetailSectionProps) {
   const { ref, className, visible } = useFadeInClassName();
 
   return (
     <section
       id="gov-section"
       ref={ref}
-      className={`${styles.section} ${className}`}
+      className={`${styles.section} ${hideIntro ? styles.compact : ''} ${className}`}
       aria-labelledby="gov-detail-heading"
     >
       <div className={styles.inner}>
-        <div className={styles.header}>
-          <p className={styles.eyebrow}>지자체 — 위험도 분석</p>
-          <h2 id="gov-detail-heading" className={styles.title}>
-            우선순위가 필요한
-            <br />
-            행정 담당자를 위해
-          </h2>
-          <p className={styles.body}>
-            9개 구·군을 동시에 비교하고, AI가 어디를 먼저 점검해야 할지 카드로
-            제안합니다. 회의 자료와 행정 리포트도 즉시 뽑을 수 있습니다.
-          </p>
-        </div>
+        {hideIntro ? (
+          <div className={styles.header}>
+            <p className={styles.eyebrow}>지자체 — 위험도 분석</p>
+            <h2 id="gov-detail-heading" className={styles.title}>
+              한 화면에서 보는 우선점검
+            </h2>
+          </div>
+        ) : (
+          <div className={styles.header}>
+            <p className={styles.eyebrow}>지자체 — 위험도 분석</p>
+            <h2 id="gov-detail-heading" className={styles.title}>
+              우선순위가 필요한
+              <br />
+              행정 담당자를 위해
+            </h2>
+            <p className={styles.body}>
+              9개 구·군을 동시에 비교하고, AI가 어디를 먼저 점검해야 할지 카드로
+              제안합니다. 회의 자료와 행정 리포트도 즉시 뽑을 수 있습니다.
+            </p>
+          </div>
+        )}
 
         <div
           className={`${styles.split} ${visible ? styles.isVisible : ''}`}

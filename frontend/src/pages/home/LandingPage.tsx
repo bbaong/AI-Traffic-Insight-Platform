@@ -3,14 +3,19 @@ import { useLocation } from 'react-router-dom';
 import { Toast } from '../../shared/components/ui/Toast';
 import {
   CtaSection,
-  GovDetailSection,
   HeroSection,
-  InsDetailSection,
   LandingFooter,
   LandingNav,
   MetricSection,
+  ProcessSection,
   RoleIntroSection,
 } from './index';
+
+function scrollToHash(hash: string): void {
+  const id = hash.replace('#', '');
+  if (!id) return;
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 export function LandingPage() {
   const location = useLocation();
@@ -27,15 +32,20 @@ export function LandingPage() {
     return () => window.clearTimeout(t);
   }, [location.state]);
 
+  useEffect(() => {
+    if (!location.hash) return;
+    const t = window.setTimeout(() => scrollToHash(location.hash), 80);
+    return () => window.clearTimeout(t);
+  }, [location.hash]);
+
   return (
     <>
       <LandingNav />
       <main>
         <HeroSection />
         <RoleIntroSection />
-        <GovDetailSection />
-        <InsDetailSection />
         <MetricSection />
+        <ProcessSection />
         <CtaSection />
       </main>
       <LandingFooter />

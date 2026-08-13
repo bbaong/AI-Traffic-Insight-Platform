@@ -4,57 +4,53 @@ import { useFadeInClassName } from './useFadeInClassName';
 const METRICS = [
   {
     value: '18.8%',
-    label: '대구 전체 보행자 사고 비율\n(대구평균 기준선)',
+    label: '보행자 사고',
+    note: '대구 평균',
   },
   {
     value: '40.1%',
-    label: '야간 사고 비율\n일부 구는 42%까지 초과',
+    label: '야간 사고',
+    note: '일부 구는 42%',
   },
   {
     value: '26.1%',
-    label: '중상 이상 사고 비율\n군위군은 47.1%로 최고',
+    label: '중상 이상',
+    note: '군위군 47.1%',
   },
   {
-    value: '67,916',
-    label: '안전운전불이행 건수\n전체 법규위반의 56%',
+    value: '56%',
+    label: '안전운전불이행',
+    note: '법규위반 중 비중',
   },
 ] as const;
 
 export function MetricSection() {
-  const { ref, className } = useFadeInClassName();
+  const { ref, className, visible } = useFadeInClassName();
 
   return (
     <section
       id="data"
       ref={ref}
-      className={`${styles.section} ${className}`}
+      className={`${styles.section} ${className} ${visible ? styles.ready : ''}`}
       aria-labelledby="metric-heading"
     >
       <div className={styles.inner}>
-        <p className={styles.eyebrow}>명확한 정량 수치</p>
         <h2 id="metric-heading" className={styles.title}>
-          객관적 분석 근거
+          수치는 예측의 출발점입니다
         </h2>
         <p className={styles.subtitle}>
-          단순 통계를 넘어 의사결정에 필요한 데이터를 제공합니다. 모든 수치는
-          한국도로교통공단 TAAS 실측 데이터에 근거합니다.
+          한국도로교통공단 TAAS, 2016–2025년 대구시 교통사고 통계.
         </p>
 
-        <div className={styles.grid}>
+        <ul className={styles.row}>
           {METRICS.map((metric) => (
-            <div key={metric.value} className={styles.card}>
+            <li key={metric.label} className={styles.stat}>
               <p className={styles.value}>{metric.value}</p>
-              <p className={styles.label}>
-                {metric.label.split('\n').map((line) => (
-                  <span key={line}>
-                    {line}
-                    <br />
-                  </span>
-                ))}
-              </p>
-            </div>
+              <p className={styles.label}>{metric.label}</p>
+              <p className={styles.note}>{metric.note}</p>
+            </li>
           ))}
-        </div>
+        </ul>
       </div>
     </section>
   );

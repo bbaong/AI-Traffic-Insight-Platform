@@ -1,9 +1,13 @@
 :root {
   /* Brand / semantic */
   --color-navy: #0f1b2d; /* CTA 배경, 헤드라인 */
-  --color-teal: #21adc4; /* Primary, 지자체 · 로고 톤 */
+  --color-teal: #21adc4; /* 지자체 대시보드 */
   --color-teal-bg: #e6f6f9; /* 지자체 틴트 */
   --color-teal-text: #168090; /* 틴트 위 텍스트 */
+  --color-brand: #005ff1; /* ATI 로고 블루 · 랜딩 포인트 */
+  --color-brand-hover: #004de0;
+  --color-brand-text: #0046c7;
+  --color-brand-bg: #eaf1ff;
   --color-amber: #f77c34; /* 보험사 */
   --color-amber-bg: #fef1e8; /* 보험사 틴트 */
   --color-amber-text: #c45a18; /* 앰버 라벨 (랜딩) */
