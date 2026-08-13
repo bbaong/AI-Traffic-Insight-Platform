@@ -1,5 +1,3 @@
-import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { predictIns } from '../api/prediction';
 import { fetchTokkReview } from '../api/tokkReview';
 import { saveConsultation } from '../api/consultation';
@@ -29,6 +27,14 @@ import { useAuthStore } from '../../../stores/authStore';
 import { ROUTES } from '../../../shared/constants/routes';
 import { useInsReportDraftStore } from '../../reports/stores/insReportDraftStore';
 import styles from './InsDashboardPage.module.css';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+
+type DashboardPrefill = {
+  fromCustomers?: boolean;
+  customer?: CustomerInfo;
+  profile?: Partial<ProfileInput>;
+};
 
 function initialChecklist(): ChecklistAnswers {
   return {
@@ -80,6 +86,32 @@ export function InsDashboardPage() {
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccessOpen, setSaveSuccessOpen] = useState(false);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const prefill = location.state as DashboardPrefill | null;
+    if (!prefill?.fromCustomers) return;
+
+    if (prefill.customer) {
+      setCustomer({
+        name: prefill.customer.name ?? '',
+        phone: prefill.customer.phone ?? '',
+      });
+    }
+
+    if (prefill.profile) {
+      setProfile((prev) => ({
+        gender: prefill.profile?.gender || prev.gender,
+        age: prefill.profile?.age || prev.age,
+        vehicle: prefill.profile?.vehicle || prev.vehicle,
+        region: prefill.profile?.region || prev.region,
+      }));
+    }
+
+    // 뒤로가기 시 같은 state로 다시 덮어쓰지 않게 정리
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.state, location.pathname, navigate]);
 
   async function handleAnalyze() {
     setAnalyzeLoading(true);

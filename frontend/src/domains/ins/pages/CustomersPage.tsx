@@ -626,38 +626,36 @@ export function CustomersPage() {
                 </section>
 
                 <section className={`${styles.card} ${styles.historyCard}`}>
-                  <h3 className={styles.cardTitle}>상담 이력</h3>
-                  <div
-                    className={styles.tabs}
-                    role="tablist"
-                    aria-label="상담 유형"
-                  >
-                    {FILTER_TABS.map((tab) => (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={typeFilter === tab.id}
-                        className={`${styles.tab} ${
-                          typeFilter === tab.id ? styles.tabActive : ''
-                        }`}
-                        onClick={() => {
-                          setTypeFilter(tab.id);
-                          const next =
-                            tab.id === 'ALL'
-                              ? detail?.data[0]
-                              : detail?.data.find(
-                                  (c) =>
-                                    toConsultationType(c.consultationType) ===
-                                    tab.id,
-                                );
-                          setSelectedConsultId(next?.consultationId ?? null);
-                        }}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
+                  <div className={styles.historyHead}>
+                    <h3 className={styles.cardTitle}>상담 이력</h3>
+                    <button
+                      type="button"
+                      className={styles.addConsultBtn}
+                      aria-label="새 상담 시작"
+                      title="대시보드에서 새 상담"
+                      disabled={!selectedCustomer}
+                      onClick={() => {
+                        const g = genderLabel(profile?.gender);
+                        navigate(ROUTES.DASHBOARD_INS, {
+                          state: {
+                            fromCustomers: true,
+                            customer: {
+                              name: selectedCustomer?.name ?? '',
+                              phone: selectedCustomer?.phone ?? '',
+                            },
+                            profile: {
+                              gender: g === '남' || g === '여' ? g : '남',
+                              age: profile?.ageGroup ?? '',
+                              vehicle: profile?.vehicleType ?? '',
+                              region: profile?.region ?? '',
+                            },
+                          },
+                        });
+                      }}
+                    >
+                    +
+                  </button>
+                </div>
 
                   {filteredConsults.length === 0 ? (
                     <p className={styles.hint}>표시할 상담 이력이 없습니다.</p>
