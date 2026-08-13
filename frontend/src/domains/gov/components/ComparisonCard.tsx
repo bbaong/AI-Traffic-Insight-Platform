@@ -208,6 +208,7 @@ export function ComparisonCard({
         </div>
       }
     >
+      <p className={styles.periodNote}>2016.10~2025.09 누적 기준</p>
       <div className={styles.fill}>
         <ul className={styles.list}>
           {METRICS.map((metric) => {

@@ -22,6 +22,7 @@ type GovPdfSnapshot = {
   comparison?: GovReportPdfDashboardPayload['comparison'] | null;
   suggestions?: GovReportPdfDashboardPayload['suggestions'] | null;
   severityLatest?: GovReportPdfDashboardPayload['severityLatest'] | null;
+  severitySeries?: GovReportPdfDashboardPayload['severitySeries'] | null; // 추가
 };
 
 /**
@@ -121,6 +122,7 @@ export function ReportsPage() {
             comparison: snapshot.comparison ?? undefined,
             suggestions: snapshot.suggestions ?? undefined,
             severityLatest: snapshot.severityLatest ?? undefined,
+            severitySeries: snapshot.severitySeries ?? undefined, // 추가
           },
         }),
       `행정참고리포트_${selectedName}`,

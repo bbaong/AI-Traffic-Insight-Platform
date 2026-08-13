@@ -1,5 +1,19 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
 
+
+
+/** history + forecast 시계열 (SeverityStackedCard와 동일 순서) */
+export type GovPdfSeveritySeriesPoint = {
+  label: string; // 예: "24년 3분기" 또는 원본 "2024Q3"
+  kind: 'actual' | 'forecast';
+  counts: {
+    사망사고: number;
+    중상사고: number;
+    경상사고: number;
+    부상신고사고: number;
+  };
+};
+
 export interface GovReportPdfDashboardPayload {
   period_label: string;
   top3: Array<{
@@ -21,16 +35,27 @@ export interface GovReportPdfDashboardPayload {
       nightPct: number;
       seriousPct: number;
       signalPct: number;
+      // count는 있으면 막대 옆 표시에 유리 (스냅샷에 이미 올 수 있음)
+      pedestrianCount?: number;
+      nightCount?: number;
+      seriousCount?: number;
+      signalCount?: number;
     };
     cityAvg: {
       pedestrianPct: number;
       nightPct: number;
       seriousPct: number;
       signalPct: number;
+      pedestrianCount?: number;
+      nightCount?: number;
+      seriousCount?: number;
+      signalCount?: number;
     };
   };
   suggestions?: Array<{ title: string; desc: string }>;
   severityLatest?: Array<{ label: string; value: number }>;
+  /** 신규: 경중 추이 차트용 */
+  severitySeries?: GovPdfSeveritySeriesPoint[];
 }
 
 export interface GovReportPdfRequest {

@@ -30,7 +30,6 @@ import {
   toRiskGrade,
 } from '../constants/insEnums';
 import { CONSULT_TYPE_OPTIONS } from '../constants/consultTypes';
-import { fetchInsReportPdf } from '../api/reportPdf';
 import type {
   Consultation,
   ConsultationTypeCode,
@@ -55,6 +54,28 @@ const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
       label: opt.label,
     })),
   ];
+
+  const CUSTOMERS_SELECTION_KEY = 'ins_customers_selection_v1';
+
+type CustomersSelection = {
+  customerId: string;
+  consultationId?: string;
+};
+
+function readCustomersSelection(): CustomersSelection | null {
+  try {
+    const raw = sessionStorage.getItem(CUSTOMERS_SELECTION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CustomersSelection;
+    return parsed.customerId ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCustomersSelection(sel: CustomersSelection) {
+  sessionStorage.setItem(CUSTOMERS_SELECTION_KEY, JSON.stringify(sel));
+}
 
 export function CustomersPage() {
   
@@ -125,6 +146,10 @@ export function CustomersPage() {
         });
         setSelectedId((prev) => {
           if (prev && rows.some((r) => r.customerId === prev)) return prev;
+          const saved = readCustomersSelection();
+          if (saved && rows.some((r) => r.customerId === saved.customerId)) {
+            return saved.customerId;
+          }
           return rows[0]?.customerId ?? null;
         });
       })
@@ -159,7 +184,13 @@ export function CustomersPage() {
         if (cancelled) return;
         setDetail(res);
         setTypeFilter('ALL');
-        setSelectedConsultId(res.data[0]?.consultationId ?? null);
+        const saved = readCustomersSelection();
+        const fromSaved =
+          saved?.consultationId &&
+          res.data.some((c) => c.consultationId === saved.consultationId)
+            ? saved.consultationId
+            : null;
+        setSelectedConsultId(fromSaved ?? res.data[0]?.consultationId ?? null);
       })
       .catch((e: unknown) => {
         if (cancelled) return;
@@ -329,15 +360,20 @@ export function CustomersPage() {
           orgName: user?.orgName ?? undefined,
         }),
       );
+      if (selectedId) {
+        writeCustomersSelection({
+          customerId: selectedId,
+          consultationId: target.consultationId,
+        });
+      }
       navigate(ROUTES.REPORTS);
     },
-    [
-      selectedConsult,
-      selectedCustomer?.name,
-      setInsReportDraft,
-      navigate,
-      user?.orgName,
-    ],
+    [selectedConsult, 
+      selectedCustomer?.name, 
+      selectedId, 
+      setInsReportDraft, 
+      navigate, 
+      user?.orgName]
   );
 
   const riskPct = Math.min(
@@ -455,7 +491,10 @@ export function CustomersPage() {
                       <tr
                         key={row.customerId}
                         className={active ? styles.rowActive : ''}
-                        onClick={() => setSelectedId(row.customerId)}
+                        onClick={() => {
+                          setSelectedId(row.customerId);
+                          writeCustomersSelection({ customerId: row.customerId });
+                        }}
                       >
                         <td className={styles.checkCol}>
                           <input

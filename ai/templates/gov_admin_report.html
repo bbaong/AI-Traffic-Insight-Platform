@@ -42,6 +42,36 @@
       page-break-before: always;
       break-before: page;
     }
+    /* 비교 막대 */
+    .bars { margin-top: 8px; }
+    .bar-row { margin: 0 0 10px; }
+    .bar-label { font-weight: 700; font-size: 11px; margin-bottom: 4px; }
+    .bar-side { margin: 2px 0 4px; }
+    .bar-meta { color: #555; font-size: 10px; margin-bottom: 2px; }
+    .track {
+      height: 8px;
+      background: #eef2f3;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .fill-district { display: block; height: 100%; width: var(--w, 0%); background: #21adc4; }
+.fill-city { display: block; height: 100%; width: var(--w, 0%); background: #9aa5ab; }
+    .legend-inline { font-size: 10px; color: #555; margin: 4px 0 8px; }
+    .legend-dot {
+      display: inline-block; width: 8px; height: 8px;
+      border-radius: 2px; margin: 0 4px 0 10px; vertical-align: middle;
+    }
+    .dot-d { background: #21adc4; }
+    .dot-c { background: #9aa5ab; }
+
+    /* 경중 SVG */
+    .chart-wrap { margin-top: 8px; }
+    .chart-legend { font-size: 10px; margin: 6px 0 0; color: #444; }
+    .chart-legend span { margin-right: 10px; }
+    .swatch {
+      display: inline-block; width: 8px; height: 8px;
+      border-radius: 2px; margin-right: 3px; vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -78,7 +108,39 @@
     </tbody>
   </table>
 
-  {% if comparison %}
+  {% if comparisonBars %}
+  <hr class="divider" />
+  <h2>구·시 비교 지표</h2>
+  <p class="legend-inline">
+    <span class="legend-dot dot-d"></span>{{ district_name }}
+    <span class="legend-dot dot-c"></span>대구 평균
+  </p>
+  <div class="bars">
+    {% for row in comparisonBars %}
+    <div class="bar-row">
+      <div class="bar-label">{{ row.label }}</div>
+      <div class="bar-side">
+        <div class="bar-meta">
+          {{ district_name }} {{ "%.1f"|format(row.district_pct) }}%
+          {% if row.district_count %} ({{ row.district_count }}건){% endif %}
+        </div>
+        <div class="track">
+          <span class="fill-district" style="--w: {{ row.district_bar }}%;"></span>
+        </div>
+      </div>
+      <div class="bar-side">
+        <div class="bar-meta">
+          대구 평균 {{ "%.1f"|format(row.city_pct) }}%
+          {% if row.city_count %} ({{ row.city_count }}건){% endif %}
+        </div>
+        <div class="track">
+          <span class="fill-city" style="--w: {{ row.city_bar }}%;"></span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% elif comparison %}
   <hr class="divider" />
   <h2>구·시 비교 지표</h2>
   <table>
@@ -147,6 +209,60 @@
     <p class="meta">우선점검 점수(중대율 %): {{ "%.1f"|format(selected.severe_rate) }}</p>
     <p class="meta">예상 사고건수: {{ selected.count }}건</p>
 
+    {% if severityChart %}
+      <hr class="divider" />
+      <h2>사고 추세 및 예측 (경중)</h2>
+      <div class="chart-wrap">
+        <svg
+          width="100%"
+          viewBox="0 0 {{ severityChart.width }} {{ severityChart.height }}"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {% for t in severityChart.y_ticks %}
+          <line
+            x1="{{ severityChart.pad_l }}" y1="{{ t.y }}"
+            x2="{{ severityChart.pad_l + severityChart.plot_w }}" y2="{{ t.y }}"
+            stroke="#e2e6e8" stroke-width="1"
+          />
+          <text
+            x="{{ severityChart.pad_l - 6 }}"
+            y="{{ t.y + 3 }}"
+            text-anchor="end"
+            font-size="9"
+            fill="#666"
+          >{{ t.v }}</text>
+          {% endfor %}
+
+          {% for line in severityChart.lines %}
+          <polyline
+            fill="none"
+            stroke="{{ line.color }}"
+            stroke-width="2"
+            points="{{ line.points }}"
+          />
+          {% endfor %}
+
+          {% for lab in severityChart.labels %}
+          <text
+            x="{{ lab.x }}"
+            y="{{ severityChart.height - 10 }}"
+            text-anchor="middle"
+            font-size="9"
+            fill="{{ '#21adc4' if lab.forecast else '#444' }}"
+          >{{ lab.text }}</text>
+          {% endfor %}
+        </svg>
+        <div class="chart-legend">
+          {% for L in severityChart.legend %}
+          <span
+            ><i class="swatch" style="--color: {{ L.color }}"></i
+            >{{ L.key }}</span
+          >
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+    
     <h2>사고유형(기준분기 비율 환산)</h2>
     {% if selected.types %}
       {% for name, cnt in selected.types %}

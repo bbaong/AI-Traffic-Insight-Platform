@@ -310,7 +310,7 @@ export function MapCard({
       if (!selected) return [] as typeof all;
       const name = DAEGU_DISTRICTS.find((d) => d.code === selected)?.name;
       return name
-        ? all.filter((p) => p.region === name || p.name?.includes(name))
+        ? all.filter((p) => p.region === name)
         : [];
     };
   

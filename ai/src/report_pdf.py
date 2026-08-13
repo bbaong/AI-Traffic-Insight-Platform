@@ -173,6 +173,120 @@ def _format_period(raw: str | None) -> str:
         return f"{h.group(1)}년 {half}"
     return str(raw)
 
+_SEVERITY_KEYS = ("사망사고", "중상사고", "경상사고", "부상신고사고")
+_SEVERITY_COLORS = {
+    "사망사고": "#E53935",
+    "중상사고": "#FF8A4C",
+    "경상사고": "#F0B429",
+    "부상신고사고": "#43A047",
+}
+
+_COMPARE_METRICS = (
+    ("보행자 사고", "pedestrianPct", "pedestrianCount"),
+    ("야간 사고", "nightPct", "nightCount"),
+    ("중상 이상", "seriousPct", "seriousCount"),
+    ("신호위반", "signalPct", "signalCount"),
+)
+
+
+def _build_comparison_bars(comparison: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not comparison:
+        return []
+    district = comparison.get("district") or {}
+    city = comparison.get("cityAvg") or {}
+    vals: list[float] = []
+    for _, pct_key, _ in _COMPARE_METRICS:
+        vals.append(float(district.get(pct_key) or 0))
+        vals.append(float(city.get(pct_key) or 0))
+    scale = max(vals) if vals else 1.0
+    if scale <= 0:
+        scale = 1.0
+    rows = []
+    for label, pct_key, count_key in _COMPARE_METRICS:
+        d = float(district.get(pct_key) or 0)
+        c = float(city.get(pct_key) or 0)
+        rows.append(
+            {
+                "label": label,
+                "district_pct": d,
+                "city_pct": c,
+                "district_count": int(district.get(count_key) or 0),
+                "city_count": int(city.get(count_key) or 0),
+                "district_bar": round(d / scale * 100, 1),
+                "city_bar": round(c / scale * 100, 1),
+            }
+        )
+    return rows
+
+def _build_severity_chart(series: list[dict[str, Any]] | None) -> dict[str, Any] | None:
+    if not series:
+        return None
+    w, h = 520, 200
+    pad_l, pad_r, pad_t, pad_b = 36, 24, 16, 36
+    plot_w = w - pad_l - pad_r
+    plot_h = h - pad_t - pad_b
+    n = len(series)
+    max_v = 1.0
+    for p in series:
+        counts = p.get("counts") or {}
+        for k in _SEVERITY_KEYS:
+            max_v = max(max_v, float(counts.get(k) or 0))
+    # nice max (대시보드와 비슷하게)
+    padded = max_v * 1.12
+    step = 10 if padded <= 50 else 25 if padded <= 200 else 50
+    max_y = int(__import__("math").ceil(padded / step) * step)
+
+    def x_at(i: int) -> float:
+        if n <= 1:
+            return pad_l + plot_w / 2
+        return pad_l + (i / (n - 1)) * plot_w
+
+    def y_at(v: float) -> float:
+        return pad_t + plot_h - (v / max_y) * plot_h
+
+    lines = []
+    for key in _SEVERITY_KEYS:
+        pts = []
+        for i, p in enumerate(series):
+            counts = p.get("counts") or {}
+            pts.append(f"{x_at(i):.1f},{y_at(float(counts.get(key) or 0)):.1f}")
+        lines.append(
+            {
+                "key": key,
+                "color": _SEVERITY_COLORS[key],
+                "points": " ".join(pts),
+            }
+        )
+
+    labels = []
+    for i, p in enumerate(series):
+        labels.append(
+            {
+                "x": x_at(i),
+                "text": p.get("label") or "",
+                "forecast": p.get("kind") == "forecast",
+            }
+        )
+
+    ticks = list(range(0, max_y + 1, step if step else 10))
+    if ticks[-1] != max_y:
+        ticks.append(max_y)
+
+    return {
+        "width": w,
+        "height": h,
+        "pad_l": pad_l,
+        "pad_t": pad_t,
+        "plot_w": plot_w,
+        "plot_h": plot_h,
+        "max_y": max_y,
+        "y_ticks": [{"v": t, "y": y_at(t)} for t in ticks],
+        "lines": lines,
+        "labels": labels,
+        "legend": [
+            {"key": k, "color": _SEVERITY_COLORS[k]} for k in _SEVERITY_KEYS
+        ],
+    }
 
 def _pred_count(row: dict[str, Any]) -> int:
     v = row.get("예측사고건수")
@@ -195,6 +309,7 @@ def build_gov_report_pdf(
 ) -> bytes:
     """Build GOV admin PDF from dashboard snapshot, or re-run predict as fallback."""
     if dashboard:
+        comparison = dashboard.get("comparison")
         context = {
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "author_name": (작성자 or "").strip() or "-",
@@ -207,9 +322,13 @@ def build_gov_report_pdf(
                 f"대시보드 스냅샷 기준 · "
                 f"예상사고 {(dashboard.get('selected') or {}).get('count', 0)}건"
             ),
-            "comparison": dashboard.get("comparison"),
+            "comparison": comparison,
+            "comparisonBars": _build_comparison_bars(comparison),
             "suggestions": dashboard.get("suggestions") or [],
             "severityLatest": dashboard.get("severityLatest") or [],
+            "severityChart": _build_severity_chart(
+                dashboard.get("severitySeries")
+            ),
         }
     else:
         rows = predict_gov_rates(지역=None, as_of=as_of, freq=freq)
