@@ -80,9 +80,9 @@ export async function listPriorityTop(limit: number) {
       districtId: item.district_id,
       district: item.districts.district_name,
       score:
-        item.predicted_severe_rate_pct == null
+        item.predicted_share_pct == null
           ? null
-          : Number(item.predicted_severe_rate_pct),
+          : Number(item.predicted_share_pct),
       predictedAccidentCount: item.predicted_accident_count,
       trend: null as string | null,
     })),

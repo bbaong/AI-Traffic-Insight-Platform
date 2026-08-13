@@ -733,7 +733,7 @@ export function MapCard({
           </p>
         ) : null}
 
-        <ul className={styles.legend} aria-label="위험도 범례">
+        {/* <ul className={styles.legend} aria-label="위험도 범례">
           {legend.map((item) => (
             <li key={item.label} className={styles.legendItem}>
               <span
@@ -754,7 +754,7 @@ export function MapCard({
               사고 다발 지역
             </span>
           </li>
-        </ul>
+        </ul> */}
       </div>
     </DashboardCard>
   );

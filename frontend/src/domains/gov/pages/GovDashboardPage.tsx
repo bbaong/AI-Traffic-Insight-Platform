@@ -36,7 +36,7 @@ function getAccidentCount(row: GovPredictResult): number {
 
 /** 우선점검 점수(0~100) = 예측 중대사고율(%) */
 function priorityScore(row: GovPredictResult): number {
-  return Number(row.예측중대사고율_퍼센트.toFixed(1));
+  return Number((row.예측사고율_퍼센트 ?? 0).toFixed(1));
 }
 
 function toRiskLevel(v: string): RiskLevel {
@@ -170,13 +170,13 @@ export function GovDashboardPage() {
       })),
     );
 
-    const rates = rows.map((r) => r.예측중대사고율_퍼센트);
+    const rates = rows.map((r) => r.예측사고율_퍼센트 ?? 0);
     const nextRisk: Record<string, RiskLevel> = {};
     for (const row of rows) {
       const code = DAEGU_DISTRICTS.find((d) => d.name === row.지역)?.code;
       if (code) {
         nextRisk[code] = severeRateToMapLevel(
-          row.예측중대사고율_퍼센트,
+          row.예측사고율_퍼센트 ?? 0,
           rates,
         );
       }
@@ -464,7 +464,7 @@ export function GovDashboardPage() {
       <div className={styles.row1}>
         <div className={styles.cellMap}>
           <MapCard
-            title="사고위험 지도 / 우선점검"
+            title="사고위험 지도 / 우선점검 점수"
             riskByCode={riskByCode}
             hotspots={hotspots}
             hotspotYear={hotspotYear}
