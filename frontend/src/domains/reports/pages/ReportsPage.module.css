@@ -91,12 +91,16 @@
   padding: 0 14px;
   border: none;
   border-radius: 8px;
-  background: var(--accent, #0b6b5f);
+  background: var(--color-teal);
   color: #fff;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+}
+
+:global([data-accent='amber']) .primaryBtn {
+  background: var(--color-amber);
 }
 
 .primaryBtn:disabled {

@@ -118,6 +118,7 @@ def report_gov_pdf(body: GovReportPdfRequest) -> Response:
             freq=body.freq,
             작성자=body.작성자,
             기관=body.기관,
+            dashboard=body.dashboard.model_dump() if body.dashboard else None,
         )
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc

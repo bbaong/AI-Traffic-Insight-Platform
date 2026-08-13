@@ -41,6 +41,11 @@ import type {
 import { useAuthStore } from '../../../stores/authStore';
 import styles from './CustomersPage.module.css';
 
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../../shared/constants/routes';
+import { useInsReportDraftStore } from '../../reports/stores/insReportDraftStore';
+import { consultationToInsReportDraft } from '../utils/buildInsReportDraft';
+
 const PAGE_SIZE = 10;
 const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
   [
@@ -52,6 +57,10 @@ const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
   ];
 
 export function CustomersPage() {
+  
+  const navigate = useNavigate();
+  const setInsReportDraft = useInsReportDraftStore((s) => s.setDraft);
+
   const user = useAuthStore((s) => s.user);
   const userId = user?.userId;
 
@@ -279,46 +288,57 @@ export function CustomersPage() {
     setPage(1);
   }
 
-  const openReport = useCallback(async (consult?: Consultation) => {
-    const target = consult ?? selectedConsult;
-    if (!target) return;
-    setSelectedConsultId(target.consultationId);
-    setReportOpen(true);
-    setReportLoading(true);
-    try {
+  const openReportDrawer = useCallback(
+    async (consult?: Consultation) => {
+      const target = consult ?? selectedConsult;
+      if (!target) return;
+      setSelectedConsultId(target.consultationId);
+      setReportOpen(true);
+      setReportLoading(true);
+      try {
+        const items = await fetchConsultationReport(
+          target.consultationId,
+          target.riskGrade,
+        );
+        setReportItems(items);
+      } catch {
+        setReportItems([]);
+      } finally {
+        setReportLoading(false);
+      }
+    },
+    [selectedConsult],
+  );
+
+  const openHistoryReport = useCallback(
+    async (consult?: Consultation) => {
+      const target = consult ?? selectedConsult;
+      if (!target) return;
+      setSelectedConsultId(target.consultationId);
+  
       const items = await fetchConsultationReport(
         target.consultationId,
         target.riskGrade,
       );
-      setReportItems(items);
-    } catch {
-      setReportItems([]);
-    } finally {
-      setReportLoading(false);
-    }
-  }, [selectedConsult]);
-
-  const downloadReportPdf = useCallback(async () => {
-    const c = selectedConsult;
-    const p = c?.profile;
-    if (!c || !p?.region || !p.ageGroup || !p.gender || !p.vehicleType) {
-      throw new Error('프로필 정보가 없어 PDF를 만들 수 없습니다.');
-    }
-    const blob = await fetchInsReportPdf({
-      구군: p.region,
-      연령대: p.ageGroup,
-      성별: genderLabel(p.gender),
-      차종: p.vehicleType,
-      고객명: selectedCustomer?.name,
-      memo: c.memo?.trim() || undefined,
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `상담리포트_${c.consultationId}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [selectedConsult, selectedCustomer?.name]);
+  
+      setInsReportDraft(
+        consultationToInsReportDraft({
+          consult: target,
+          customerName: selectedCustomer?.name ?? '',
+          reportItems: items,
+          orgName: user?.orgName ?? undefined,
+        }),
+      );
+      navigate(ROUTES.REPORTS);
+    },
+    [
+      selectedConsult,
+      selectedCustomer?.name,
+      setInsReportDraft,
+      navigate,
+      user?.orgName,
+    ],
+  );
 
   const riskPct = Math.min(
     100,
@@ -662,7 +682,7 @@ export function CustomersPage() {
                                     type="button"
                                     className={styles.iconBtn}
                                     aria-label={`${memoDate} 상담 리포트`}
-                                    onClick={() => void openReport(c)}
+                                    onClick={() => void openHistoryReport(c)}
                                   >
                                     <ReportIcon />
                                   </button>
@@ -786,7 +806,7 @@ export function CustomersPage() {
                   <button
                     type="button"
                     className={styles.reportBtn}
-                    onClick={() => void openReport()}
+                    onClick={() => void openReportDrawer()}
                     disabled={!selectedConsult}
                   >
                     상담 참고 리포트
@@ -798,20 +818,12 @@ export function CustomersPage() {
           )}
         </div>
       </div>
-
       <ReportDrawer
         open={reportOpen}
         customerName={selectedCustomer?.name ?? ''}
         consultation={selectedConsult}
         items={reportItems}
         loading={reportLoading}
-        canDownloadPdf={
-          !!selectedConsult?.profile?.region &&
-          !!selectedConsult.profile.ageGroup &&
-          !!selectedConsult.profile.gender &&
-          !!selectedConsult.profile.vehicleType
-        }
-        onDownloadPdf={downloadReportPdf}
         onClose={() => setReportOpen(false)}
       />
       <ConfirmDialog

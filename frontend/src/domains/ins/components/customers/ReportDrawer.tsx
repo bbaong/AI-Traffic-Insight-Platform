@@ -129,19 +129,6 @@ export function ReportDrawer({
             </ul>
           )}
         </div>
-
-        <footer className={styles.foot}>
-          <button
-            type="button"
-            className={styles.pdfBtn}
-            onClick={() => {
-              setDlError(null);
-              setDlOpen(true);
-            }}
-          >
-            다운로드
-          </button>
-        </footer>
       </aside>
 
       {dlOpen ? (

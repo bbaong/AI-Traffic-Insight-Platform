@@ -42,10 +42,17 @@ export function InsConsultReportView({
   const meta = grade ? getInsRiskMeta(grade) : null;
   const titleName = draft.고객명?.trim() || '고객';
 
+  const backTo =
+  draft.source === 'customers' ? ROUTES.CUSTOMERS : ROUTES.DASHBOARD_INS;
+  const backLabel =
+    draft.source === 'customers'
+      ? '← 고객관리로 돌아가기'
+      : '← 대시보드로 돌아가기';
+
   return (
     <div className={styles.page}>
-      <Link className={styles.back} to={ROUTES.DASHBOARD_INS}>
-        ← 대시보드로 돌아가기
+      <Link className={styles.back} to={backTo}>
+        {backLabel}
       </Link>
 
       <header className={styles.header}>

@@ -38,6 +38,10 @@
       color: #666;
       font-size: 10px;
     }
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
   </style>
 </head>
 <body>
@@ -74,27 +78,90 @@
     </tbody>
   </table>
 
+  {% if comparison %}
   <hr class="divider" />
-
-  <h2>선택 지역 AI 요약 · {{ district_name }}</h2>
-  <p><span class="badge">{{ selected.grade }}</span></p>
-  <p class="meta">우선점검 점수(중대율 %): {{ "%.1f"|format(selected.severe_rate) }}</p>
-  <p class="meta">예상 사고건수: {{ selected.count }}건</p>
-
-  <h2>사고유형(기준분기 비율 환산)</h2>
-  {% if selected.types %}
-    {% for name, cnt in selected.types %}
-    <div class="factor">{{ name }}: {{ cnt }}건</div>
-    {% endfor %}
-  {% else %}
-    <p class="meta">유형 데이터 없음</p>
+  <h2>구·시 비교 지표</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>지표</th>
+        <th>{{ district_name }}</th>
+        <th>대구 평균</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>보행자(%)</td>
+        <td>{{ "%.1f"|format(comparison.district.pedestrianPct) }}</td>
+        <td>{{ "%.1f"|format(comparison.cityAvg.pedestrianPct) }}</td>
+      </tr>
+      <tr>
+        <td>야간(%)</td>
+        <td>{{ "%.1f"|format(comparison.district.nightPct) }}</td>
+        <td>{{ "%.1f"|format(comparison.cityAvg.nightPct) }}</td>
+      </tr>
+      <tr>
+        <td>중상·사망(%)</td>
+        <td>{{ "%.1f"|format(comparison.district.seriousPct) }}</td>
+        <td>{{ "%.1f"|format(comparison.cityAvg.seriousPct) }}</td>
+      </tr>
+      <tr>
+        <td>신호(%)</td>
+        <td>{{ "%.1f"|format(comparison.district.signalPct) }}</td>
+        <td>{{ "%.1f"|format(comparison.cityAvg.signalPct) }}</td>
+      </tr>
+    </tbody>
+  </table>
   {% endif %}
 
-  <h2>권고</h2>
-  <p>{{ recommendation }}</p>
+  {% if severityLatest %}
+  <hr class="divider" />
+  <h2>경중 구성 (최근 예측)</h2>
+  <table>
+    <thead><tr><th>구분</th><th>건수/비율</th></tr></thead>
+    <tbody>
+      {% for row in severityLatest %}
+      <tr><td>{{ row.label }}</td><td>{{ row.value }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
 
-  <div class="footer">
-    본 문서는 행정 참고용이며, 처분·정책의 직접 근거가 아닙니다.
+  {% if suggestions %}
+  <hr class="divider" />
+  <h2>우선점검 제안</h2>
+  <table>
+    <thead><tr><th>제안</th><th>설명</th></tr></thead>
+    <tbody>
+      {% for s in suggestions %}
+      <tr><td>{{ s.title }}</td><td>{{ s.desc }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <hr class="divider" />
+  <div class="page-break">
+    <h2>선택 지역 AI 요약 · {{ district_name }}</h2>
+    <p><span class="badge">{{ selected.grade }}</span></p>
+    <p class="meta">우선점검 점수(중대율 %): {{ "%.1f"|format(selected.severe_rate) }}</p>
+    <p class="meta">예상 사고건수: {{ selected.count }}건</p>
+
+    <h2>사고유형(기준분기 비율 환산)</h2>
+    {% if selected.types %}
+      {% for name, cnt in selected.types %}
+      <div class="factor">{{ name }}: {{ cnt }}건</div>
+      {% endfor %}
+    {% else %}
+      <p class="meta">유형 데이터 없음</p>
+    {% endif %}
+
+    <h2>권고</h2>
+    <p>{{ recommendation }}</p>
+
+    <div class="footer">
+      본 문서는 행정 참고용이며, 처분·정책의 직접 근거가 아닙니다.
+    </div>
   </div>
 </body>
 </html>

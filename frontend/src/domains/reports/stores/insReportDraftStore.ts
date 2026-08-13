@@ -15,7 +15,10 @@ export interface InsReportDraft extends InsReportPdfFields {
   /** 시안: 상담 유형 (기본 신규) */
   consultType?: string;
   orgName?: string;
+  /** 어디서 draft를 넣었는지 — 뒤로가기용 */
+  source?: 'dashboard' | 'customers';
 }
+
 
 interface InsReportDraftState {
   draft: InsReportDraft | null;

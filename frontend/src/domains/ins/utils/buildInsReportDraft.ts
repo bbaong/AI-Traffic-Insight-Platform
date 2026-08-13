@@ -40,5 +40,59 @@ export function buildInsReportDraft(
     analyzedAt,
     consultType,
     orgName: orgName || undefined,
+    source: 'dashboard',
+  };
+}
+
+import type { Consultation, ReportItem } from '../types/customers';
+import {
+  consultationTypeLabel,
+  formatConsultDateTime,
+  genderLabel,
+} from '../constants/insEnums';
+
+export function consultationToInsReportDraft(input: {
+  consult: Consultation;
+  customerName: string;
+  reportItems: ReportItem[];
+  orgName?: string;
+}): InsReportDraft {
+  const { consult, customerName, reportItems, orgName } = input;
+  const p = consult.profile;
+  const byKey = Object.fromEntries(
+    consult.checklist.map((a) => [a.itemKey, a.answerValue]),
+  );
+
+  return {
+    구군: p?.region ?? '',
+    연령대: p?.ageGroup ?? '',
+    성별: genderLabel(p?.gender),
+    차종: p?.vehicleType ?? '',
+    고객명: customerName || undefined,
+    memo: consult.memo?.trim() || undefined,
+    예측등급: consult.riskGrade
+      ? String(consult.riskGrade).toUpperCase()
+      : undefined,
+    위험도: consult.riskScore ?? undefined,
+    담보추천: reportItems.map((item) => ({
+      id: item.coverageKey,
+      name: item.coverageName,
+      recommended: item.recommended,
+      script: item.reasonText,
+      reason: item.basisText,
+    })),
+    checklist: {
+      mileage: byKey.mileage ?? '',
+      blackbox: byKey.blackbox ?? '',
+      safedrive: byKey.safedrive ?? '',
+      safedriveService: byKey.safedriveService ?? '',
+      safedriveScore: byKey.safedriveScore ?? '',
+      fcw: byKey.fcw ?? '',
+      ldw: byKey.ldw ?? '',
+    },
+    analyzedAt: formatConsultDateTime(consult.consultedAt),
+    consultType: consultationTypeLabel(consult.consultationType),
+    orgName: orgName || undefined,
+    source: 'customers', 
   };
 }

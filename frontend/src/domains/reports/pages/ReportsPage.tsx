@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchGovReportPdf } from '../../gov/api/reportPdf';
 import { fetchInsReportPdf } from '../../ins/api/reportPdf';
 import { DAEGU_DISTRICTS } from '../../../shared/constants/daeguBoundaries';
 import { ROUTES } from '../../../shared/constants/routes';
@@ -10,6 +9,20 @@ import { useAuthStore } from '../../../stores/authStore';
 import { useInsReportDraftStore } from '../stores/insReportDraftStore';
 import { InsConsultReportView } from '../components/InsConsultReportView';
 import styles from './ReportsPage.module.css';
+import {
+  fetchGovReportPdf,
+  type GovReportPdfDashboardPayload,
+} from '../../gov/api/reportPdf';
+
+type GovPdfSnapshot = {
+  지역: string;
+  period_label: string;
+  top3: GovReportPdfDashboardPayload['top3'];
+  selected: GovReportPdfDashboardPayload['selected'];
+  comparison?: GovReportPdfDashboardPayload['comparison'] | null;
+  suggestions?: GovReportPdfDashboardPayload['suggestions'] | null;
+  severityLatest?: GovReportPdfDashboardPayload['severityLatest'] | null;
+};
 
 /**
  * 역할별 리포트 생성 페이지.
@@ -81,6 +94,19 @@ export function ReportsPage() {
       setPdfError('대시보드에서 구·군을 먼저 선택해 주세요.');
       return;
     }
+    let snapshot: GovPdfSnapshot | null = null;
+    try {
+      const raw = sessionStorage.getItem('gov_pdf_snapshot_v1');
+      snapshot = raw ? (JSON.parse(raw) as GovPdfSnapshot) : null;
+    } catch {
+      snapshot = null;
+    }
+
+    if (!snapshot || snapshot.지역 !== selectedName) {
+      setPdfError('대시보드에서 구·군을 선택한 뒤 다시 시도해 주세요.');
+      return;
+    }
+
     await runPdfJob(
       () =>
         fetchGovReportPdf({
@@ -88,6 +114,14 @@ export function ReportsPage() {
           freq: 'Q',
           작성자: user?.name || undefined,
           기관: user?.orgName || undefined,
+          dashboard: {
+            period_label: snapshot.period_label,
+            top3: snapshot.top3,
+            selected: snapshot.selected,
+            comparison: snapshot.comparison ?? undefined,
+            suggestions: snapshot.suggestions ?? undefined,
+            severityLatest: snapshot.severityLatest ?? undefined,
+          },
         }),
       `행정참고리포트_${selectedName}`,
     );
@@ -193,6 +227,7 @@ export function ReportsPage() {
       )}
   
       <PdfPreviewModal
+        accent={isGov ? 'teal' : 'amber'}
         open={pdfOpen}
         pdfUrl={pdfUrl}
         title={isGov ? '행정 참고 리포트' : '상담 참고 리포트'}
