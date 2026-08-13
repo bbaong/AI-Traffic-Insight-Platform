@@ -1,17 +1,49 @@
 import { DashboardCard } from '../../../shared/components/dashboard';
-import type { GovComparisonData } from '../api/govDashboard';
+import type { ComparisonMetrics, GovComparisonData } from '../api/govDashboard';
+import {
+  barWidthPct,
+  calcBarScaleMax,
+  calcDeltaPctPoints,
+  formatCount,
+  formatDeltaBadge,
+  formatPct1,
+} from '../utils/comparisonFormat';
 import styles from './ComparisonCard.module.css';
 
-const AXIS_MAX = 40;
-
 const METRICS = [
-  { key: 'pedestrianPct', label: '보행자 사고 비율' },
-  { key: 'nightPct', label: '야간 사고 비율' },
-  { key: 'seriousPct', label: '중상 이상 비율' },
-  { key: 'signalPct', label: '신호위반 비율' },
+  {
+    id: 'pedestrian',
+    label: '보행자 사고',
+    pctKey: 'pedestrianPct',
+    countKey: 'pedestrianCount',
+    icon: 'walk',
+  },
+  {
+    id: 'night',
+    label: '야간 사고',
+    pctKey: 'nightPct',
+    countKey: 'nightCount',
+    icon: 'moon',
+  },
+  {
+    id: 'serious',
+    label: '중상 이상',
+    pctKey: 'seriousPct',
+    countKey: 'seriousCount',
+    icon: 'shield',
+  },
+  {
+    id: 'signal',
+    label: '신호위반',
+    pctKey: 'signalPct',
+    countKey: 'signalCount',
+    icon: 'traffic',
+  },
 ] as const;
 
-type MetricKey = (typeof METRICS)[number]['key'];
+type MetricIcon = (typeof METRICS)[number]['icon'];
+type PctKey = (typeof METRICS)[number]['pctKey'];
+type CountKey = (typeof METRICS)[number]['countKey'];
 
 export interface ComparisonCardProps {
   districtName: string | null;
@@ -20,19 +52,58 @@ export interface ComparisonCardProps {
   error?: string | null;
 }
 
-function formatPct(n: number): string {
-  return `${n.toFixed(1)}%`;
+function MetricIconSvg({ name }: { name: MetricIcon }) {
+  const common = {
+    width: 14,
+    height: 14,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 1.8,
+    strokeLinecap: 'round' as const,
+    strokeLinejoin: 'round' as const,
+    'aria-hidden': true as const,
+  };
+
+  if (name === 'walk') {
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="5" r="2" />
+        <path d="M10 22l2-6 2 2 2 4M12 9l-2 4h4l-1 3" />
+      </svg>
+    );
+  }
+  if (name === 'moon') {
+    return (
+      <svg {...common}>
+        <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z" />
+      </svg>
+    );
+  }
+  if (name === 'shield') {
+    return (
+      <svg {...common}>
+        <path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z" />
+        <path d="M12 9v6M9.5 12h5" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...common}>
+      <rect x="7" y="2" width="10" height="20" rx="2" />
+      <circle cx="12" cy="7" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="17" r="1.6" fill="currentColor" stroke="none" />
+    </svg>
+  );
 }
 
-function formatDelta(n: number): string {
-  const abs = Math.abs(n).toFixed(1);
-  if (n > 0) return `↑ ${abs}%p`;
-  if (n < 0) return `↓ ${abs}%p`;
-  return `0.0%p`;
+function readPct(m: ComparisonMetrics, key: PctKey): number {
+  return Number(m[key]) || 0;
 }
 
-function barWidth(pct: number): string {
-  return `${Math.min(100, Math.max(0, (pct / AXIS_MAX) * 100))}%`;
+function readCount(m: ComparisonMetrics, key: CountKey): number {
+  return Number(m[key]) || 0;
 }
 
 function errorText(error: string | null): string {
@@ -40,10 +111,33 @@ function errorText(error: string | null): string {
   if (error.includes('형식이 올바르지') || error.includes('districtId')) {
     return 'id 형식이 올바르지 않습니다.';
   }
-  if (error === '해당 구 데이터가 없습니다' || error.includes('없습니다')) {
-    return '해당 구 데이터가 없습니다';
+  if (
+    error.includes('없습니다') ||
+    error.includes('404') ||
+    error === '해당 구 데이터가 없습니다'
+  ) {
+    return '해당 구의 비교 데이터가 없습니다';
   }
   return error;
+}
+
+function SkeletonRows() {
+  return (
+    <div className={styles.fill}>
+      <ul className={styles.list} aria-busy="true" aria-label="비교 지표 로딩">
+        {METRICS.map((m) => (
+          <li key={m.id} className={`${styles.rowCard} ${styles.skeletonRow}`}>
+            <div className={styles.skelBlock} />
+            <div className={styles.skelMid}>
+              <div className={styles.skelBlock} />
+              <div className={styles.skelBlock} />
+            </div>
+            <div className={styles.skelBadge} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export function ComparisonCard({
@@ -65,9 +159,7 @@ export function ComparisonCard({
   if (loading && !data) {
     return (
       <DashboardCard title={title} className={styles.card}>
-        <div className={styles.skeleton} aria-busy="true">
-          <span className={styles.hint}>비교 지표를 불러오는 중…</span>
-        </div>
+        <SkeletonRows />
       </DashboardCard>
     );
   }
@@ -85,81 +177,135 @@ export function ComparisonCard({
   if (!data) {
     return (
       <DashboardCard title={title} className={styles.card}>
-        <p className={styles.hint}>해당 구 데이터가 없습니다</p>
+        <p className={styles.hint}>해당 구의 비교 데이터가 없습니다</p>
       </DashboardCard>
     );
   }
+
+  const { district, cityAvg } = data;
+  const scaleMax = calcBarScaleMax(
+    METRICS.flatMap((m) => [
+      readPct(district, m.pctKey),
+      readPct(cityAvg, m.pctKey),
+    ]),
+  );
+
+  const districtTotal = formatCount(district.totalCount);
+  const cityTotal = formatCount(cityAvg.totalCount);
 
   return (
     <DashboardCard
       title={title}
       className={styles.card}
       action={
-        <p className={styles.legend}>
-          <span className={styles.legendItem}>
-            <span className={`${styles.swatch} ${styles.barDistrict}`} />
-            {districtName}
+        <div className={styles.totalPills} aria-label="전체 사고 건수 요약">
+          <span className={`${styles.pill} ${styles.pillDistrict}`}>
+            {districtName} 전체 {districtTotal}건
           </span>
-          <span className={styles.legendItem}>
-            <span className={`${styles.swatch} ${styles.barCity}`} />
-            대구시 평균
+          <span className={`${styles.pill} ${styles.pillCity}`}>
+            대구 평균 전체 {cityTotal}건
           </span>
-        </p>
+        </div>
       }
     >
-      <ul className={styles.list}>
-        {METRICS.map((metric) => {
-          const districtVal = data.district[metric.key as MetricKey];
-          const cityVal = data.cityAvg[metric.key as MetricKey];
-          const delta = districtVal - cityVal;
-          const up = delta > 0;
-          const down = delta < 0;
-          return (
-            <li key={metric.key} className={styles.row}>
-              <div className={styles.main}>
-                <p className={styles.metricLabel}>{metric.label}</p>
-                <div className={styles.bars}>
-                  <div className={styles.barLine}>
-                    <span className={styles.barTrack} aria-hidden="true">
+      <div className={styles.fill}>
+        <ul className={styles.list}>
+          {METRICS.map((metric) => {
+            const dPct = readPct(district, metric.pctKey);
+            const cPct = readPct(cityAvg, metric.pctKey);
+            const dCount = readCount(district, metric.countKey);
+            const cCount = readCount(cityAvg, metric.countKey);
+            const delta = calcDeltaPctPoints(dPct, cPct);
+            const up = delta > 0;
+            const down = delta < 0;
+            const dBar = barWidthPct(dPct, scaleMax);
+            const cBar = barWidthPct(cPct, scaleMax);
+            const countTitle =
+              '비율과 전체 건수로 역산한 추정값입니다. 항목 간 합산은 전체와 일치하지 않을 수 있습니다.';
+
+            return (
+              <li key={metric.id} className={styles.rowCard}>
+                <div className={styles.metricHead}>
+                  <span className={styles.iconWrap}>
+                    <MetricIconSvg name={metric.icon} />
+                  </span>
+                  <span className={styles.metricLabel}>{metric.label}</span>
+                </div>
+
+                <div className={styles.compareCols}>
+                  <div className={styles.sideBlock}>
+                    <span className={styles.sideLabel}>{districtName}</span>
+                    <span
+                      className={styles.sideValue}
+                      title={countTitle}
+                    >
+                      {formatPct1(dPct)}{' '}
+                      <span className={styles.countHint}>
+                        ({formatCount(dCount)}건)
+                      </span>
+                    </span>
+                    <span
+                      className={styles.miniTrack}
+                      role="img"
+                      aria-label={`${districtName} ${metric.label} 비율 ${formatPct1(dPct)}`}
+                    >
                       <span
-                        className={`${styles.barFill} ${styles.barDistrict}`}
-                        style={{ width: barWidth(districtVal) }}
+                        className={`${styles.miniFill} ${styles.miniDistrict}`}
+                        style={{ width: `${dBar}%` }}
                       />
                     </span>
                   </div>
-                  <div className={styles.barLine}>
-                    <span className={styles.barTrack} aria-hidden="true">
+
+                  <div className={styles.sideBlock}>
+                    <span className={styles.sideLabel}>대구 평균</span>
+                    <span
+                      className={styles.sideValue}
+                      title={countTitle}
+                    >
+                      {formatPct1(cPct)}{' '}
+                      <span className={styles.countHint}>
+                        ({formatCount(cCount)}건)
+                      </span>
+                    </span>
+                    <span
+                      className={styles.miniTrack}
+                      role="img"
+                      aria-label={`대구 평균 ${metric.label} 비율 ${formatPct1(cPct)}`}
+                    >
                       <span
-                        className={`${styles.barFill} ${styles.barCity}`}
-                        style={{ width: barWidth(cityVal) }}
+                        className={`${styles.miniFill} ${styles.miniCity}`}
+                        style={{ width: `${cBar}%` }}
                       />
                     </span>
                   </div>
                 </div>
-              </div>
-              <div className={styles.values} aria-hidden="true">
-                <span className={styles.barValue}>{formatPct(districtVal)}</span>
-                <span className={styles.barValue}>{formatPct(cityVal)}</span>
-              </div>
-              <span
-                className={`${styles.delta} ${
-                  up ? styles.deltaUp : down ? styles.deltaDown : ''
-                }`}
-              >
-                {formatDelta(delta)}
-              </span>
-            </li>
-          );
-        })}
-      </ul>
-      <div className={styles.axis} aria-hidden="true">
-        <div className={styles.axisTicks}>
-          <span>0%</span>
-          <span>10%</span>
-          <span>20%</span>
-          <span>30%</span>
-          <span>40%</span>
-        </div>
+
+                <span
+                  className={`${styles.deltaBadge} ${
+                    up
+                      ? styles.deltaUp
+                      : down
+                        ? styles.deltaDown
+                        : styles.deltaFlat
+                  }`}
+                  aria-label={
+                    up
+                      ? `대구 평균 대비 ${Math.abs(delta).toFixed(1)}퍼센트포인트 높음`
+                      : down
+                        ? `대구 평균 대비 ${Math.abs(delta).toFixed(1)}퍼센트포인트 낮음`
+                        : '대구 평균과 동일'
+                  }
+                >
+                  {formatDeltaBadge(delta)}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+
+        <p className={styles.unitNote}>
+          (단위: %, %p, 건 · 건수는 비율 역산 추정값)
+        </p>
       </div>
     </DashboardCard>
   );
