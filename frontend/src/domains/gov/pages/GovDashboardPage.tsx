@@ -471,10 +471,10 @@ export function GovDashboardPage() {
             mapExpanded={mapExpanded}
             onToggleMapExpand={() => setMapExpanded((v) => !v)}
             legend={[
-              { label: '중대율 상위 25%', color: RISK_COLORS.CRITICAL },
+              { label: '상위 25%', color: RISK_COLORS.CRITICAL },
               { label: '상위 25–50%', color: RISK_COLORS.HIGH },
               { label: '하위 25–50%', color: RISK_COLORS.MODERATE },
-              { label: '중대율 하위 25%', color: RISK_COLORS.LOW },
+              { label: '하위 25%', color: RISK_COLORS.LOW },
             ]}
           />
         </div>
