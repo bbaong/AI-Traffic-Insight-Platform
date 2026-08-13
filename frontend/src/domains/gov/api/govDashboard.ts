@@ -8,16 +8,24 @@ interface ApiEnvelope<T> {
   limit?: number;
 }
 
-export interface GovBenchmarkMetrics {
+export interface ComparisonMetrics {
   pedestrianPct: number;
   nightPct: number;
   seriousPct: number;
   signalPct: number;
+  pedestrianCount: number;
+  nightCount: number;
+  seriousCount: number;
+  signalCount: number;
+  totalCount: number;
 }
 
+/** @deprecated Use ComparisonMetrics — 하위 호환 별칭 */
+export type GovBenchmarkMetrics = ComparisonMetrics;
+
 export interface GovComparisonData {
-  district: GovBenchmarkMetrics;
-  cityAvg: GovBenchmarkMetrics;
+  district: ComparisonMetrics;
+  cityAvg: ComparisonMetrics;
 }
 
 export type GovSuggestionIcon =

@@ -26,8 +26,11 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 18px 16px;
-  border-bottom: 0.5px solid color-mix(in srgb, var(--color-ink) 8%, transparent);
+  height: var(--header-height);
+  padding: 0 16px;
+  box-sizing: border-box;
+  /* Header 하단선과 동일 높이·색 → 일직선 */
+  border-bottom: 0.5px solid var(--color-border);
   text-decoration: none;
   color: inherit;
   flex-shrink: 0;
@@ -161,11 +164,6 @@
     max-height: 100dvh;
   }
 
-  .brand {
-    padding-top: 14px;
-    padding-bottom: 14px;
-  }
-
   .nav {
     padding-top: 8px;
     padding-bottom: 4px;
@@ -199,10 +197,6 @@
     box-shadow: 4px 0 24px rgb(15 27 45 / 18%);
   }
 
-  .brand {
-    padding-top: 14px;
-    padding-bottom: 14px;
-  }
 
   .nav {
     padding-top: 8px;
