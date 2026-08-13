@@ -8,6 +8,7 @@ import { LoginPage } from '../../domains/auth/pages/LoginPage';
 import { SignupFormEntryPage } from '../../domains/auth/pages/SignupFormEntryPage';
 import { SignupRoleGatePage } from '../../domains/auth/pages/SignupRoleGatePage';
 import { GovDashboardPage } from '../../domains/gov/pages/GovDashboardPage';
+import { GovRegionComparePage } from '../../domains/gov/pages/GovRegionComparePage';
 import { InsDashboardPage } from '../../domains/ins/pages/InsDashboardPage';
 import { DevPolygonPickerPage } from '../../pages/dev/DevPolygonPickerPage';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -36,6 +37,10 @@ export function AppRouter() {
         <Route element={<AppLayout />}>
           <Route element={<RoleRoute allow="ROLE_A" />}>
             <Route path={ROUTES.DASHBOARD_GOV} element={<GovDashboardPage />} />
+            <Route
+              path={ROUTES.DASHBOARD_GOV_COMPARE}
+              element={<GovRegionComparePage />}
+            />
           </Route>
           <Route element={<RoleRoute allow="ROLE_B" />}>
             <Route path={ROUTES.DASHBOARD_INS} element={<InsDashboardPage />} />

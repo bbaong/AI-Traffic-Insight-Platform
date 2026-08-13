@@ -61,17 +61,19 @@ export function AppLayout() {
   }
   
   const title =
-  location.pathname === ROUTES.MYPAGE
-    ? '마이페이지'
-    : location.pathname === ROUTES.REPORTS
-      ? '리포트'
-      : location.pathname === ROUTES.DASHBOARD_INS
-        ? '보험 상담 대시보드'
-        : location.pathname === ROUTES.CUSTOMERS
-          ? '고객관리'
-          : user.role === 'ROLE_A'
-          ? '지자체 대시보드'
-          : '보험사 대시보드';
+    location.pathname === ROUTES.MYPAGE
+      ? '마이페이지'
+      : location.pathname === ROUTES.REPORTS
+        ? '리포트'
+        : location.pathname === ROUTES.DASHBOARD_INS
+          ? '보험 상담 대시보드'
+          : location.pathname === ROUTES.CUSTOMERS
+            ? '고객관리'
+            : location.pathname === ROUTES.DASHBOARD_GOV_COMPARE
+              ? '지역비교'
+              : user.role === 'ROLE_A'
+                ? '지자체 대시보드'
+                : '보험사 대시보드';
 
   return (
     <div
@@ -105,7 +107,9 @@ export function AppLayout() {
               ? ` ${styles.contentIns}`
               : location.pathname === ROUTES.CUSTOMERS
                 ? ` ${styles.contentCustomers}`
-                : ''
+                : location.pathname === ROUTES.DASHBOARD_GOV_COMPARE
+                  ? ` ${styles.contentCompare}`
+                  : ''
           }`}
         >
           <Outlet />

@@ -10,6 +10,7 @@ export interface MenuItem {
 export const SIDEBAR_MENUS: Record<UserRole, MenuItem[]> = {
   ROLE_A: [
     { id: 'dashboard', label: '대시보드', path: ROUTES.DASHBOARD_GOV },
+    { id: 'compare', label: '지역비교', path: ROUTES.DASHBOARD_GOV_COMPARE },
     { id: 'mypage', label: '마이페이지', path: ROUTES.MYPAGE },
     { id: 'reports', label: '리포트', path: ROUTES.REPORTS },
     { id: 'settings', label: '설정', path: ROUTES.SETTINGS },

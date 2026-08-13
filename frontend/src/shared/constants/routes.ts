@@ -6,6 +6,7 @@ export const ROUTES = {
   SIGNUP: '/signup',
   SIGNUP_FORM: '/signup/form',
   DASHBOARD_GOV: '/dashboard/gov',
+  DASHBOARD_GOV_COMPARE: '/dashboard/gov/compare',
   DASHBOARD_INS: '/dashboard/insurance',
   MYPAGE: '/mypage',
   SETTINGS: '/common/settings',

@@ -98,6 +98,10 @@
   overflow: hidden;
 }
 
+.contentCompare {
+  padding: 0;
+}
+
 .backdrop {
   display: none;
 }
@@ -114,6 +118,10 @@
   .contentCustomers {
     padding: 12px 16px 16px;
     overflow: auto;
+  }
+
+  .contentCompare {
+    padding: 0;
   }
 
   .layout > aside {

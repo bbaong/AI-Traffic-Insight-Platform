@@ -12,6 +12,7 @@
   border-radius: 6px;
   overflow: hidden;
   background: var(--color-map-placeholder);
+  cursor: pointer;
 }
 
 .mapContainer {

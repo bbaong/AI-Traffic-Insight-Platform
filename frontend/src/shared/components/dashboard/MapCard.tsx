@@ -60,6 +60,14 @@ export interface MapCardProps {
   hotspots?: MapHotspot[];
   hotspotYear?: number | null;
   onDistrictSelect?: (district: DistrictBoundary) => void;
+  /** 외부 다중 선택. 있으면 스토어 대신 이 코드들로 강조 */
+  selectedCodes?: string[];
+  /** true면 클릭해도 districtStore·줌을 바꾸지 않음 */
+  independentSelection?: boolean;
+  /** 하단 「선택: ○○구」 힌트. independentSelection이면 기본 숨김 */
+  showSelectionHint?: boolean;
+  /** 있으면 위험도 대신 이 색으로 구를 칠함 (지역비교 고정 색) */
+  fillByCode?: Record<string, string>;
 }
 
 const ACCENT = '#21ADC4';
@@ -157,20 +165,45 @@ function largestRing(paths: { lat: number; lng: number }[][]) {
   return best;
 }
 
+function toSelectedCodes(value: string[] | string | null | undefined): string[] {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string' && value) return [value];
+  return [];
+}
+
 function styleFor(
   code: string,
   risk: RiskLevel,
   hovered: string | null,
-  selected: string | null,
+  selectedCodes: string[] | string | null | undefined,
+  fillByCode?: Record<string, string>,
 ) {
-  const fillColor = RISK_COLORS[risk];
-  if (selected === code) {
-    return { ...SELECTED_STROKE, fillColor, zIndex: 5 };
+  const override = fillByCode?.[code];
+  const fillColor = override ?? RISK_COLORS[risk] ?? RISK_COLORS.LOW;
+  const selected = toSelectedCodes(selectedCodes);
+  if (selected.includes(code)) {
+    return {
+      ...SELECTED_STROKE,
+      fillColor,
+      fillOpacity: override ? 0.92 : SELECTED_STROKE.fillOpacity,
+      zIndex: 5,
+    };
   }
   if (hovered === code) {
-    return { ...HOVER_STROKE, fillColor, zIndex: 4 };
+    return {
+      ...HOVER_STROKE,
+      strokeColor: override ?? HOVER_STROKE.strokeColor,
+      fillColor,
+      fillOpacity: override ? 0.78 : HOVER_STROKE.fillOpacity,
+      zIndex: 4,
+    };
   }
-  return { ...BASE_STROKE, fillColor, zIndex: 1 };
+  return {
+    ...BASE_STROKE,
+    fillColor,
+    fillOpacity: override ? 0.48 : BASE_STROKE.fillOpacity,
+    zIndex: 1,
+  };
 }
 
 function MapExpandIcon() {
@@ -210,10 +243,18 @@ export function MapCard({
   onDistrictSelect,
   mapExpanded = false,
   onToggleMapExpand,
+  selectedCodes: selectedCodesProp,
+  independentSelection = false,
+  showSelectionHint,
+  fillByCode,
 }: MapCardProps) {
   const { status, retry } = useKakaoLoader();
   const selectedCode = useDistrictStore((s) => s.selectedCode);
   const setSelectedCode = useDistrictStore((s) => s.setSelectedCode);
+  const selectedCodes =
+    selectedCodesProp ?? (selectedCode ? [selectedCode] : []);
+  const hintVisible =
+    showSelectionHint ?? (!independentSelection && Boolean(selectedCode));
 
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<{
@@ -237,13 +278,19 @@ export function MapCard({
   );
   const hoveredRef = useRef<string | null>(null);
   const selectedRef = useRef<string | null>(null);
+  const selectedCodesRef = useRef<string[]>(selectedCodes);
+  const independentRef = useRef(independentSelection);
   const riskRef = useRef(riskByCode);
   const hotspotsRef = useRef(hotspots);
   const selectCbRef = useRef(onDistrictSelect);
+  const fillByCodeRef = useRef(fillByCode);
   riskRef.current = riskByCode;
   hotspotsRef.current = hotspots;
   selectCbRef.current = onDistrictSelect;
-  selectedRef.current = selectedCode;
+  independentRef.current = independentSelection;
+  selectedCodesRef.current = selectedCodes;
+  selectedRef.current = selectedCodes[selectedCodes.length - 1] ?? null;
+  fillByCodeRef.current = fillByCode;
 
   const clearHotspotOverlay = () => {
     if (hotspotOverlayRef.current) {
@@ -387,13 +434,14 @@ export function MapCard({
     }, 40);
   };
 
-  const applyStyles = (hovered: string | null, selected: string | null) => {
+  const applyStyles = (hovered: string | null, codes: string[]) => {
     for (const layer of layersRef.current) {
       const opts = styleFor(
         layer.district.code,
         layer.risk,
         hovered,
-        selected,
+        codes,
+        fillByCodeRef.current,
       );
       for (const poly of layer.polygons) poly.setOptions(opts);
     }
@@ -494,7 +542,13 @@ export function MapCard({
         for (const district of DAEGU_DISTRICTS) {
           const risk = riskRef.current[district.code] ?? 'LOW';
           const polygons: KakaoPolygon[] = [];
-          const base = styleFor(district.code, risk, null, selectedRef.current);
+          const base = styleFor(
+            district.code,
+            risk,
+            null,
+            selectedCodesRef.current,
+            fillByCodeRef.current,
+          );
 
           for (const ring of district.paths) {
             if (ring.length < 3) continue;
@@ -513,28 +567,24 @@ export function MapCard({
 
             window.kakao.maps.event.addListener(polygon, 'mouseover', () => {
               hoveredRef.current = district.code;
-              applyStyles(district.code, selectedRef.current);
+              applyStyles(district.code, selectedCodesRef.current);
               showLabel(map, district, ring);
             });
 
             window.kakao.maps.event.addListener(polygon, 'mouseout', () => {
               hoveredRef.current = null;
-              applyStyles(null, selectedRef.current);
+              applyStyles(null, selectedCodesRef.current);
               hideLabel();
             });
 
             window.kakao.maps.event.addListener(polygon, 'click', () => {
+              selectCbRef.current?.(district);
+              if (independentRef.current) return;
               focusRingRef.current = ring;
               selectedRef.current = district.code;
+              selectedCodesRef.current = [district.code];
               setSelectedCode(district.code);
-              applyStyles(hoveredRef.current, district.code);
-              console.log('[MapCard] district select', {
-                code: district.code,
-                districtCode: district.districtCode,
-                name: district.name,
-                risk,
-              });
-              selectCbRef.current?.(district);
+              applyStyles(hoveredRef.current, [district.code]);
             });
           }
 
@@ -575,9 +625,10 @@ export function MapCard({
           if (cancelled || mapRef.current !== map) return;
           refreshMapTiles(map);
           const selected = selectedRef.current;
-          const selectedDistrict = selected
-            ? DAEGU_DISTRICTS.find((d) => d.code === selected)
-            : null;
+          const selectedDistrict =
+            !independentRef.current && selected
+              ? DAEGU_DISTRICTS.find((d) => d.code === selected)
+              : null;
           if (selectedDistrict) {
             focusDistrict(map, selectedDistrict);
           } else if (!bounds.isEmpty?.()) {
@@ -611,8 +662,12 @@ export function MapCard({
     for (const layer of layersRef.current) {
       layer.risk = riskByCode[layer.district.code] ?? 'LOW';
     }
-    applyStyles(hoveredRef.current, selectedRef.current);
+    applyStyles(hoveredRef.current, selectedCodesRef.current);
   }, [riskByCode]);
+
+  useEffect(() => {
+    applyStyles(hoveredRef.current, selectedCodesRef.current);
+  }, [fillByCode]);
 
   useEffect(() => {
     hotspotsRef.current = hotspots;
@@ -651,6 +706,7 @@ export function MapCard({
 
     const refresh = () => {
       refreshMapTiles(map);
+      if (independentRef.current) return;
       if (!selectedRef.current || !window.kakao?.maps) return;
       const district = DAEGU_DISTRICTS.find(
         (d) => d.code === selectedRef.current,
@@ -671,8 +727,12 @@ export function MapCard({
   }, [mapExpanded, status]);
 
   useEffect(() => {
-    selectedRef.current = selectedCode;
-    applyStyles(hoveredRef.current, selectedCode);
+    const codes = selectedCodesProp ?? (selectedCode ? [selectedCode] : []);
+    selectedCodesRef.current = codes;
+    selectedRef.current = codes[codes.length - 1] ?? null;
+    applyStyles(hoveredRef.current, codes);
+
+    if (independentSelection) return;
 
     const map = mapRef.current;
     if (!map || !selectedCode || !window.kakao?.maps) return;
@@ -681,7 +741,7 @@ export function MapCard({
     if (!district) return;
 
     focusDistrict(map, district);
-  }, [selectedCode]);
+  }, [selectedCode, selectedCodesProp, independentSelection]);
 
   return (
     <DashboardCard title={title} className={styles.card}>
@@ -725,11 +785,15 @@ export function MapCard({
           </button>
         ) : null}
 
-        {selectedCode ? (
+        {hintVisible ? (
           <p className={styles.selectionHint} aria-live="polite">
             선택:{' '}
-            {DAEGU_DISTRICTS.find((d) => d.code === selectedCode)?.name ??
-              selectedCode}
+            {selectedCodes
+              .map(
+                (code) =>
+                  DAEGU_DISTRICTS.find((d) => d.code === code)?.name ?? code,
+              )
+              .join(', ')}
           </p>
         ) : null}
 
@@ -744,16 +808,16 @@ export function MapCard({
               <span>{item.label}</span>
             </li>
           ))}
-          <li className={styles.legendItem}>
-            <span
-              className={styles.swatchCircle}
-              style={{ borderColor: HOTSPOT_STROKE, background: HOTSPOT_FILL }}
-              aria-hidden="true"
-            />
-            <span>
-              사고 다발 지역
-            </span>
-          </li>
+          {hotspots.length > 0 ? (
+            <li className={styles.legendItem}>
+              <span
+                className={styles.swatchCircle}
+                style={{ borderColor: HOTSPOT_STROKE, background: HOTSPOT_FILL }}
+                aria-hidden="true"
+              />
+              <span>사고 다발 지역</span>
+            </li>
+          ) : null}
         </ul>
       </div>
     </DashboardCard>

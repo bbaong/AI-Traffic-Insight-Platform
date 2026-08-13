@@ -1,0 +1,115 @@
+.card {
+  min-height: 100%;
+}
+
+.info {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid #c5d0dc;
+  color: var(--color-muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  cursor: help;
+}
+
+.banner {
+  margin: 0 0 14px;
+  padding: 11px 16px;
+  border-radius: 999px;
+  background: var(--color-teal);
+  color: #fff;
+  font-size: 14px;
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+  letter-spacing: -0.01em;
+}
+
+.grid {
+  display: grid;
+  gap: 10px;
+  flex: 1;
+}
+
+.unit {
+  --unit-color: #2d9cdb;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--unit-color) 38%, var(--color-border-light));
+  border-radius: 10px;
+  background: #fff;
+}
+
+.name {
+  margin: 0;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--unit-color) 16%, #fff);
+  color: var(--unit-color);
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+.score {
+  margin: 16px 10px 4px;
+  font-size: 28px;
+  font-weight: var(--font-weight-medium);
+  color: var(--unit-color);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.rank {
+  margin: 0 10px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--color-body);
+}
+
+.rank span {
+  color: var(--color-faint);
+}
+
+.rankFirst {
+  color: #d4a017;
+  font-weight: var(--font-weight-medium);
+}
+
+.tags {
+  list-style: none;
+  margin: auto 10px 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.tags li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--unit-color) 14%, #fff);
+  color: color-mix(in srgb, var(--unit-color) 72%, #1b3a4b);
+  font-size: 11px;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+}
