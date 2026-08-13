@@ -112,7 +112,7 @@ export function LoginPage() {
   // 페이지 렌더링
   return (
     <div className={styles.page}>
-      <AuthTopBar label="로그인" />
+      <AuthTopBar />
 
       <main className={styles.main}>
         <div className={styles.card}>
