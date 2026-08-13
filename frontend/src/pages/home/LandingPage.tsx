@@ -10,11 +10,12 @@ import {
   ProcessSection,
   RoleIntroSection,
 } from './index';
+import { scrollToLandingSection } from './scrollToLandingSection';
 
 function scrollToHash(hash: string): void {
   const id = hash.replace('#', '');
   if (!id) return;
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  scrollToLandingSection(id);
 }
 
 export function LandingPage() {

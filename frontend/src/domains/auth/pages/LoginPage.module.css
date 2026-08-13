@@ -117,8 +117,8 @@
 }
 
 .control:focus {
-  border-color: var(--color-teal);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-teal) 18%, transparent);
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 18%, transparent);
 }
 
 .passwordWrap {
@@ -160,7 +160,7 @@
 .checkbox {
   width: 16px;
   height: 16px;
-  accent-color: var(--color-teal);
+  accent-color: var(--color-brand);
   cursor: pointer;
 }
 
@@ -177,7 +177,7 @@
   margin-top: 4px;
   border: none;
   border-radius: 6px;
-  background: var(--color-teal);
+  background: var(--color-brand);
   color: var(--color-surface);
   font-family: inherit;
   font-size: 14.5px;
@@ -186,7 +186,7 @@
 }
 
 .submit:hover:not(:disabled) {
-  background: var(--color-teal-text);
+  background: var(--color-brand-hover);
 }
 
 .submit:disabled {
@@ -216,7 +216,7 @@
 }
 
 .signupLink {
-  color: var(--color-teal);
+  color: var(--color-brand);
   font-weight: var(--font-weight-medium);
   text-decoration: none;
 }

@@ -1,5 +1,5 @@
 .section {
-  background: var(--color-navy);
+  background: #000;
   padding: 88px var(--layout-gutter);
   text-align: center;
 }

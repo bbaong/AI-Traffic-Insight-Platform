@@ -3,14 +3,8 @@ import { ROUTES } from '../../shared/constants/routes';
 import { useAuthStore } from '../../stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './CtaSection.module.css';
+import { scrollToLandingSection } from './scrollToLandingSection';
 import { useFadeInClassName } from './useFadeInClassName';
-
-function scrollToId(id: string): void {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
 
 export function CtaSection() {
   const { ref, className } = useFadeInClassName();
@@ -27,7 +21,7 @@ export function CtaSection() {
 
   function handleSeeIntro(): void {
     if (location.pathname === ROUTES.LANDING) {
-      scrollToId('intro');
+      scrollToLandingSection('intro');
       return;
     }
     navigate({ pathname: ROUTES.LANDING, hash: '#intro' });

@@ -154,7 +154,7 @@ export function SignupGovFormPage() {
 
       <main className={styles.main}>
         <div className={styles.inner}>
-          <SignupStepper currentStep={2} roleLabel="지자체" accent="teal" />
+          <SignupStepper currentStep={2} roleLabel="지자체" />
 
           <form className={styles.form} onSubmit={handleSubmit} noValidate>
             <SignupAccountFields

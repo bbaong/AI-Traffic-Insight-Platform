@@ -5,14 +5,8 @@ import { ROUTES } from '../../shared/constants/routes';
 import { useAuthStore } from '../../stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './HeroSection.module.css';
+import { scrollToLandingSection } from './scrollToLandingSection';
 import { useFadeInClassName } from './useFadeInClassName';
-
-function scrollToId(id: string): void {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
 
 export function HeroSection() {
   const { ref, className } = useFadeInClassName();
@@ -90,7 +84,7 @@ export function HeroSection() {
             <button
               type="button"
               className={`${buttonStyles.button} ${buttonStyles.outline}`}
-              onClick={() => scrollToId('intro')}
+              onClick={() => scrollToLandingSection('intro')}
             >
               서비스 소개 보기
             </button>

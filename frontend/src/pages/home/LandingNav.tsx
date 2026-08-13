@@ -3,13 +3,7 @@ import { ROUTES } from '../../shared/constants/routes';
 import { clearAuthStorage, useAuthStore } from '../../stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './LandingNav.module.css';
-
-function scrollToId(id: string): void {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
+import { scrollToLandingSection } from './scrollToLandingSection';
 
 export function LandingNav() {
   const user = useAuthStore((s) => s.user);
@@ -30,14 +24,14 @@ export function LandingNav() {
 
   function goToHomeSection(id: string): void {
     if (location.pathname === ROUTES.LANDING) {
-      scrollToId(id);
+      scrollToLandingSection(id);
       return;
     }
     navigate({ pathname: ROUTES.LANDING, hash: `#${id}` });
   }
 
   return (
-    <header className={styles.nav}>
+    <header className={styles.nav} data-landing-nav>
       <div className={styles.left}>
         <Link to={ROUTES.LANDING} className={styles.brand} aria-label="AI Traffic Insight 홈">
           <img

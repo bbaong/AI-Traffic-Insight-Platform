@@ -29,10 +29,10 @@ export function RoleIntroSection() {
     <section
       id="intro"
       ref={ref}
-      className={`${styles.section} ${className}`}
+      className={styles.section}
       aria-labelledby="role-intro-heading"
     >
-      <div className={styles.inner}>
+      <div className={`${styles.inner} ${className}`}>
         <h2 id="role-intro-heading" className={styles.title}>
           당신의 업무에는,
           <br />
@@ -45,11 +45,17 @@ export function RoleIntroSection() {
               key={card.to}
               to={card.to}
               className={`${styles.card} ${card.tone === 'gov' ? styles.cardGov : styles.cardIns}`}
+              aria-label={`${card.label} 솔루션 보기`}
             >
               <img src={card.image} alt="" className={styles.cardImage} />
               <div className={styles.cardOverlay} aria-hidden="true" />
               <div className={styles.cardCopy}>
-                <span className={styles.cardLabel}>{card.label}</span>
+                <span className={styles.cardLabel}>
+                  {card.label}
+                  <span className={styles.cardArrow} aria-hidden="true">
+                    ›
+                  </span>
+                </span>
                 <span className={styles.cardRule} aria-hidden="true" />
                 <p className={styles.cardDesc}>{card.desc}</p>
               </div>
