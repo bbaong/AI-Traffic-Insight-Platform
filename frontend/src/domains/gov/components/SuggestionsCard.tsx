@@ -31,7 +31,7 @@ export function SuggestionsCard({
   loading,
   error,
 }: SuggestionsCardProps) {
-  const title = 'AI 우선점검 제안';
+  const title = '우선점검 제안';
 
   if (loading && !data) {
     return (
