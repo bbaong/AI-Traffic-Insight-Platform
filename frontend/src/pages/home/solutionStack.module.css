@@ -1,0 +1,43 @@
+.reveal:not(.in) > :first-child {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+}
+
+.reveal:not(.in) > :last-child {
+  opacity: 0;
+  transform: translate3d(0, 96px, 0) scale(0.96);
+}
+
+.reveal > :first-child {
+  transition:
+    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal > :last-child {
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.12s,
+    transform 1.05s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
+  will-change: transform, opacity;
+}
+
+.in > :first-child,
+.in > :last-child {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 1023px) {
+  .reveal:not(.in) > :last-child {
+    transform: translate3d(0, 56px, 0) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal > :first-child,
+  .reveal > :last-child {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

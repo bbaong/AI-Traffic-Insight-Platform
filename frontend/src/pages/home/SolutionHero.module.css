@@ -1,5 +1,5 @@
 .section {
-  padding: 56px var(--layout-gutter) 40px;
+  padding: 56px var(--layout-gutter) 72px;
 }
 
 .gov {
@@ -76,13 +76,6 @@
   color: var(--color-body);
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 8px;
-}
-
 .preview {
   min-width: 0;
   border-radius: 14px;
@@ -100,7 +93,7 @@
 
 @media (max-width: 1023px) {
   .section {
-    padding: 36px 20px 28px;
+    padding: 36px 20px 56px;
   }
 
   .inner {

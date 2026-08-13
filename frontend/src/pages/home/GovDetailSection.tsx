@@ -1,264 +1,295 @@
-import type { CSSProperties, ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
+import { getRiskMeta } from '../../shared/utils/riskMeta';
 import styles from './GovDetailSection.module.css';
+import { GovLandingMap } from './GovLandingMap';
+import { SolutionChapter } from './SolutionChapter';
 import { useFadeInClassName } from './useFadeInClassName';
 
-function MapIcon() {
-  return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  );
-}
+const ALIAS = {
+  selected: '△△구',
+  second: '□□구',
+  third: '○○군',
+} as const;
 
-function ChartIcon() {
-  return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <line x1="18" y1="20" x2="18" y2="10" />
-      <line x1="12" y1="20" x2="12" y2="4" />
-      <line x1="6" y1="20" x2="6" y2="14" />
-      <path d="M3 20h18" />
-    </svg>
-  );
-}
+const BEFORE_ITEMS = [
+  '구별 사고 자료를 따로 찾아 엑셀로 붙임',
+  '시 평균과 맞춰 보려면 표를 다시 만들어야 함',
+  '다음 분기를 놓고 어디를 먼저 볼지 합의가 늦어짐',
+  '회의 자료는 반나절 넘게 손으로 만듦',
+] as const;
 
-function BulbIcon() {
-  return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M9 18h6" />
-      <path d="M10 22h4" />
-      <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
-    </svg>
-  );
-}
+const AFTER_ITEMS = [
+  '구를 고르면 위험도 지도와 지표가 바로 뜸',
+  '보행·야간·중대·신호를 시 평균과 나란히 봄',
+  '다음 분기 예측과 우선점검 순서가 같이 나옴',
+  '행정 참고 리포트는 버튼 하나로 받음',
+] as const;
 
-function CompareIcon() {
-  return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <rect x="3" y="3" width="7" height="18" rx="1" />
-      <rect x="14" y="8" width="7" height="13" rx="1" />
-    </svg>
-  );
-}
-
-function DocIcon() {
-  return (
-    <svg
-      className={styles.icon}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="8" y1="13" x2="16" y2="13" />
-      <line x1="8" y1="17" x2="13" y2="17" />
-    </svg>
-  );
-}
-
-interface FeatureCard {
-  title: string;
-  body: string;
-  icon: ReactNode;
-}
-
-const FEATURES: FeatureCard[] = [
-  {
-    icon: <MapIcon />,
-    title: '사고위험 지도 / 우선점검',
-    body: '9개 구·군을 5단계 컬러맵으로 시각화. 사고 다발지역을 지도에서 바로 확인합니다.',
-  },
-  {
-    icon: <ChartIcon />,
-    title: '대구 평균 대비 비교',
-    body: '보행자·야간·중상·신호위반 4개 지표를 대구 전체 평균과 나란히 비교합니다.',
-  },
-  {
-    icon: <BulbIcon />,
-    title: 'AI 우선점검 제안',
-    body: '지표가 대구 평균을 초과하면 야간조명·신호체계·보행자보호 등 조치 카드를 자동 생성합니다.',
-  },
-  {
-    icon: <CompareIcon />,
-    title: '지역비교',
-    body: '최대 3개 구를 동시에 비교하고, 인사이트를 자동으로 생성합니다.',
-  },
-  {
-    icon: <DocIcon />,
-    title: '행정 참고 리포트',
-    body: '분석 결과를 PDF로 즉시 다운로드해 회의·보고 자료로 활용합니다.',
-  },
-];
+const FLOW = [
+  { num: '01', title: '지도', body: '구·군 위험도' },
+  { num: '02', title: '비교', body: '시 평균 대비' },
+  { num: '03', title: '추세', body: '다음 분기 예측' },
+  { num: '04', title: '보고', body: '제안·PDF' },
+] as const;
 
 const TOP3 = [
-  {
-    rank: '1위',
-    name: '군위군',
-    badge: 'CRITICAL',
-    meta: '중상이상 비율 47.1% · 예측 건수 38건',
-    accent: 'rank1' as const,
-  },
-  {
-    rank: '2위',
-    name: '남구',
-    badge: 'HIGH',
-    meta: '보행자 사고 비율 21.9%',
-    accent: 'rank2' as const,
-  },
-  {
-    rank: '3위',
-    name: '달성군',
-    badge: 'HIGH',
-    meta: '중상이상 비율 29.8%',
-    accent: 'rank3' as const,
-  },
-];
+  { rank: 1, name: ALIAS.selected, score: 31.2, risk: 'CRITICAL' as const },
+  { rank: 2, name: ALIAS.second, score: 28.6, risk: 'HIGH' as const },
+  { rank: 3, name: ALIAS.third, score: 27.4, risk: 'HIGH' as const },
+] as const;
 
-interface GovDetailSectionProps {
-  hideIntro?: boolean;
+const COMPARE = [
+  { label: '보행자 사고', district: 22.1, city: 18.8, worse: true },
+  { label: '야간 사고', district: 42.0, city: 40.1, worse: true },
+  { label: '중상 이상', district: 28.6, city: 26.1, worse: true },
+  { label: '신호위반', district: 9.4, city: 10.6, worse: false },
+] as const;
+
+const TREND = [
+  { label: '24-4Q', value: 193, forecast: false },
+  { label: '25-1Q', value: 184, forecast: false },
+  { label: '25-2Q', value: 174, forecast: false },
+  { label: '25-3Q', value: 164, forecast: true },
+] as const;
+
+const SUGGESTIONS = [
+  {
+    title: '야간 보행 구간 조명 강화',
+    body: '야간 사고 비율이 시 평균보다 높습니다. 보행 밀집 구간의 야간 조명을 우선 점검하세요.',
+  },
+  {
+    title: '보행자 사고 다발 지점 정비',
+    body: '보행자 사고 비중이 시 평균을 웃돕니다. 횡단보도·과속 단속 지점을 점검하세요.',
+  },
+] as const;
+
+function FadeBlock({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  const { ref, className: fadeClass } = useFadeInClassName({ threshold: 0.12 });
+  return (
+    <div
+      ref={ref as RefObject<HTMLDivElement | null>}
+      className={`${className ?? ''} ${fadeClass}`.trim()}
+    >
+      {children}
+    </div>
+  );
 }
 
-export function GovDetailSection({ hideIntro = false }: GovDetailSectionProps) {
-  const { ref, className, visible } = useFadeInClassName();
+function delta(district: number, city: number): string {
+  const diff = district - city;
+  const sign = diff > 0 ? '↑' : '↓';
+  return `${sign} ${Math.abs(diff).toFixed(1)}p`;
+}
+
+export function GovDetailSection() {
+  const maxTrend = Math.max(...TREND.map((t) => t.value));
 
   return (
-    <section
-      id="gov-section"
-      ref={ref}
-      className={`${styles.section} ${hideIntro ? styles.compact : ''} ${className}`}
-      aria-labelledby="gov-detail-heading"
-    >
-      <div className={styles.inner}>
-        {hideIntro ? (
-          <div className={styles.header}>
-            <p className={styles.eyebrow}>지자체 — 위험도 분석</p>
-            <h2 id="gov-detail-heading" className={styles.title}>
-              한 화면에서 보는 우선점검
-            </h2>
-          </div>
-        ) : (
-          <div className={styles.header}>
-            <p className={styles.eyebrow}>지자체 — 위험도 분석</p>
-            <h2 id="gov-detail-heading" className={styles.title}>
-              우선순위가 필요한
-              <br />
-              행정 담당자를 위해
-            </h2>
-            <p className={styles.body}>
-              9개 구·군을 동시에 비교하고, AI가 어디를 먼저 점검해야 할지 카드로
-              제안합니다. 회의 자료와 행정 리포트도 즉시 뽑을 수 있습니다.
+    <section id="gov-section" aria-label="지자체 솔루션 상세">
+      <div className={styles.beforeAfter}>
+        <div className={styles.beforeAfterInner}>
+          <FadeBlock className={`${styles.baCard} ${styles.baBefore}`}>
+            <p className={styles.baLabel}>보고 준비</p>
+            <ul className={styles.baList}>
+              {BEFORE_ITEMS.map((item) => (
+                <li key={item} className={styles.baItem}>
+                  <span className={styles.baX} aria-hidden="true">
+                    ×
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className={styles.baTime}>
+              반나절
+              <span className={styles.baTimeLabel}>월간 자료 1건</span>
+            </p>
+          </FadeBlock>
+
+          <FadeBlock className={`${styles.baCard} ${styles.baAfter}`}>
+            <p className={styles.baLabel}>같은 보고, ATI에서</p>
+            <ul className={styles.baList}>
+              {AFTER_ITEMS.map((item) => (
+                <li key={item} className={styles.baItem}>
+                  <span className={styles.baChk} aria-hidden="true">
+                    ✓
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <p className={styles.baTime}>
+              약 5분
+              <span className={styles.baTimeLabel}>분석부터 리포트까지</span>
+            </p>
+          </FadeBlock>
+        </div>
+      </div>
+
+      <div className={styles.main}>
+        <FadeBlock className={styles.flow}>
+          {FLOW.map((step, index) => (
+            <div key={step.num} className={styles.flowStep}>
+              {index > 0 ? (
+                <span className={styles.flowLine} aria-hidden="true" />
+              ) : null}
+              <p className={styles.flowNum}>{step.num}</p>
+              <p className={styles.flowTitle}>{step.title}</p>
+              <p className={styles.flowBody}>{step.body}</p>
+            </div>
+          ))}
+        </FadeBlock>
+
+        <SolutionChapter className={styles.chapter}>
+          <div className={styles.copy}>
+            <p className={styles.kicker}>01 · 지도 · 우선점검</p>
+            <h2 className={styles.title}>어디를 먼저 볼지, 지도에서 고릅니다</h2>
+            <p className={styles.lead}>
+              구·군을 위험도 색으로 나눕니다. 한 곳을 고르면 사고 다발 지역과
+              우선점검 순위가 같이 보입니다.
+            </p>
+            <p className={styles.note}>
+              우선점검 점수는 예측 중대사고율 기준입니다.
             </p>
           </div>
-        )}
-
-        <div
-          className={`${styles.split} ${visible ? styles.isVisible : ''}`}
-        >
-          <div className={styles.featureCol}>
-            {FEATURES.map((feature, index) => (
-              <article
-                key={feature.title}
-                className={`${styles.featureCard} ${styles.stagger}`}
-                style={
-                  {
-                    '--stagger-delay': `${index * 160}ms`,
-                  } as CSSProperties
-                }
-              >
-                <div className={styles.featureHead}>
-                  {feature.icon}
-                  <h3 className={styles.cardTitle}>{feature.title}</h3>
-                </div>
-                <p className={styles.cardBody}>{feature.body}</p>
-              </article>
-            ))}
-          </div>
-
-          <aside className={styles.mock} aria-label="우선점검 미리보기">
-            <div
-              className={`${styles.mockHeader} ${styles.stagger}`}
-              style={{ '--stagger-delay': '720ms' } as CSSProperties}
-            >
-              <p className={styles.mockTitle}>우선점검 TOP 3</p>
-              <p className={styles.mockSub}>AI 우선순위 제안</p>
+          <div className={styles.viz}>
+            <div className={styles.vizHead}>
+              <span>사고위험 지도 / 우선점검 점수</span>
+              <span className={styles.pill}>{ALIAS.selected} 선택</span>
             </div>
+            <GovLandingMap selectedLabel={ALIAS.selected} />
+            <p className={styles.groupLabel}>구별 우선점검 TOP3</p>
+            <table className={styles.rankTable}>
+              <thead>
+                <tr>
+                  <th>순위</th>
+                  <th>구·군</th>
+                  <th>중대율</th>
+                  <th>위험</th>
+                </tr>
+              </thead>
+              <tbody>
+                {TOP3.map((item) => {
+                  const risk = getRiskMeta(item.risk);
+                  return (
+                    <tr
+                      key={item.rank}
+                      className={item.rank === 1 ? styles.rankSelected : undefined}
+                    >
+                      <td>{item.rank}</td>
+                      <td>{item.name}</td>
+                      <td>{item.score.toFixed(1)}%</td>
+                      <td style={{ color: risk.colorVar }}>{risk.label}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </SolutionChapter>
 
-            <div className={styles.mockList}>
-              {TOP3.map((item, index) => (
-                <div
-                  key={item.name}
-                  className={`${styles.mockBlock} ${styles[item.accent]} ${styles.stagger}`}
-                  style={
-                    {
-                      '--stagger-delay': `${880 + index * 160}ms`,
-                    } as CSSProperties
-                  }
-                >
-                  <div className={styles.mockRow}>
-                    <span className={styles.mockName}>
-                      <span className={styles.mockRank}>{item.rank}</span>
-                      {item.name}
+        <SolutionChapter className={`${styles.chapter} ${styles.chapterFlip}`}>
+          <div className={styles.copy}>
+            <p className={styles.kicker}>02 · 비교 · 추세</p>
+            <h2 className={styles.title}>시 평균과 다음 분기를 같이 봅니다</h2>
+            <p className={styles.lead}>
+              보행자·야간·중대·신호위반을 대구 평균과 나란히 비교합니다. 분기
+              추세 옆에는 AI 예측이 붙어, 이번 점검이 다음 숫자와 맞는지 볼 수
+              있습니다.
+            </p>
+          </div>
+          <div className={styles.viz}>
+            <div className={styles.vizHead}>
+              <span>{ALIAS.selected} · 시 평균 대비</span>
+              <span className={styles.meta}>예측 포함</span>
+            </div>
+            <div className={styles.compare}>
+              {COMPARE.map((row) => (
+                <div key={row.label} className={styles.compareRow}>
+                  <div className={styles.compareHead}>
+                    <span>{row.label}</span>
+                    <span className={row.worse ? styles.deltaUp : styles.deltaDown}>
+                      {delta(row.district, row.city)}
                     </span>
-                    <span className={styles.badge}>{item.badge}</span>
                   </div>
-                  <p className={styles.mockMeta}>{item.meta}</p>
+                  <div className={styles.dual}>
+                    <div
+                      className={`${styles.barTrack} ${styles.barTeal}`}
+                      style={{ ['--bar' as string]: `${row.district * 2}%` }}
+                    />
+                    <div
+                      className={`${styles.barTrack} ${styles.barMuted}`}
+                      style={{ ['--bar' as string]: `${row.city * 2}%` }}
+                    />
+                  </div>
+                  <div className={styles.compareVals}>
+                    <span>{row.district}%</span>
+                    <span>{row.city}%</span>
+                  </div>
                 </div>
               ))}
             </div>
+            <div className={styles.trend}>
+              {TREND.map((bar) => (
+                <div key={bar.label} className={styles.trendCol}>
+                  <span className={bar.forecast ? styles.trendValTeal : styles.trendVal}>
+                    {bar.value}
+                  </span>
+                  <div
+                    className={bar.forecast ? styles.trendForecast : styles.trendBar}
+                    style={{ height: `${(bar.value / maxTrend) * 72}px` }}
+                  />
+                  <span className={bar.forecast ? styles.trendLabelTeal : styles.trendLabel}>
+                    {bar.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className={styles.legend}>
+              <i className={styles.dotTeal} /> {ALIAS.selected}
+              <i className={styles.dotMuted} /> 시 평균
+              <i className={styles.dotDash} /> 예측
+            </p>
+          </div>
+        </SolutionChapter>
 
-            <div
-              className={`${styles.tipsBlock} ${styles.stagger}`}
-              style={{ '--stagger-delay': '1400ms' } as CSSProperties}
-            >
-              <p className={styles.tipsLabel}>AI 우선점검 제안</p>
-              <div className={styles.tips}>
-                <p className={styles.tip}>야간 보행자 구간 조명 강화 권장</p>
-                <p className={styles.tip}>교차로 신호체계 개선 검토</p>
+        <SolutionChapter className={styles.chapter}>
+          <div className={styles.copy}>
+            <p className={styles.kicker}>03 · 제안 · 리포트</p>
+            <h2 className={styles.title}>점검 이유와 자료를 같이 가져갑니다</h2>
+            <p className={styles.lead}>
+              지표가 시 평균을 넘으면 조명·보행 구간처럼 우선 볼 지점을
+              제안합니다. 같은 화면에서 행정 참고 리포트 PDF를 받을 수 있습니다.
+            </p>
+          </div>
+          <div className={styles.viz}>
+            <div className={styles.vizHead}>
+              <span>우선점검 제안</span>
+              <span className={styles.meta}>행정 참고</span>
+            </div>
+            <ul className={styles.tips}>
+              {SUGGESTIONS.map((item) => (
+                <li key={item.title}>
+                  <strong>{item.title}</strong>
+                  <p>{item.body}</p>
+                </li>
+              ))}
+            </ul>
+            <div className={styles.report}>
+              <span className={styles.reportMark}>PDF</span>
+              <div>
+                <p>행정 참고 리포트</p>
+                <small>지도 · 비교 · 추세 · 우선점검 제안 · 1부</small>
               </div>
             </div>
-          </aside>
-        </div>
+          </div>
+        </SolutionChapter>
       </div>
     </section>
   );

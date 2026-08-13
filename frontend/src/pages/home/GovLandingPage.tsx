@@ -23,7 +23,7 @@ export function GovLandingPage() {
           image={govDashboardImg}
           imageAlt="지자체 대시보드 화면: 사고위험 지도와 우선점검 제안"
         />
-        <GovDetailSection hideIntro />
+        <GovDetailSection />
         <CtaSection />
       </main>
       <LandingFooter />

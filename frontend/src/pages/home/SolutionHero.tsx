@@ -1,7 +1,5 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
-import { useAuthStore } from '../../stores/authStore';
-import buttonStyles from './landingButtons.module.css';
 import styles from './SolutionHero.module.css';
 
 type SolutionTone = 'gov' | 'ins';
@@ -23,15 +21,6 @@ export function SolutionHero({
   image,
   imageAlt,
 }: SolutionHeroProps) {
-  const user = useAuthStore((s) => s.user);
-
-  const dashboardPath =
-    user?.role === 'ROLE_A'
-      ? ROUTES.DASHBOARD_GOV
-      : user?.role === 'ROLE_B'
-        ? ROUTES.DASHBOARD_INS
-        : null;
-
   return (
     <section
       className={`${styles.section} ${tone === 'ins' ? styles.ins : styles.gov}`}
@@ -47,31 +36,6 @@ export function SolutionHero({
             {title}
           </h1>
           <p className={styles.body}>{body}</p>
-          <div className={styles.actions}>
-            {user && dashboardPath ? (
-              <Link
-                to={dashboardPath}
-                className={`${buttonStyles.button} ${buttonStyles.primary}`}
-              >
-                내 대시보드 보기
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to={ROUTES.SIGNUP}
-                  className={`${buttonStyles.button} ${buttonStyles.primary}`}
-                >
-                  도입 문의하기 →
-                </Link>
-                <Link
-                  to={ROUTES.LOGIN}
-                  className={`${buttonStyles.button} ${buttonStyles.outline}`}
-                >
-                  로그인
-                </Link>
-              </>
-            )}
-          </div>
         </div>
 
         <div className={styles.preview}>

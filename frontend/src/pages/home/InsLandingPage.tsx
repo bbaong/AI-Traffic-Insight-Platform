@@ -23,7 +23,7 @@ export function InsLandingPage() {
           image={insDashboardImg}
           imageAlt="보험사 상담 대시보드 화면: 고객 프로필과 AI 분석 결과"
         />
-        <InsDetailSection hideIntro />
+        <InsDetailSection />
         <CtaSection />
       </main>
       <LandingFooter />
