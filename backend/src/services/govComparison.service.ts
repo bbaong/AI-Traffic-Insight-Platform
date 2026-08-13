@@ -14,7 +14,7 @@ function calcCount(pct: number, total: number) {
   return Math.round((pct / 100) * total);
 }
 
-function mapMetricsWithCounts(row: {
+export function mapMetricsWithCounts(row: {
   pedestrian_pct: unknown;
   night_pct: unknown;
   serious_pct: unknown;

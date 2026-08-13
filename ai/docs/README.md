@@ -13,6 +13,10 @@
 | InsureGuard (보험) | `models/ins_model_v1.0.4.pkl` | [ins_v1_0_4_feature_spec.md](ins_v1_0_4_feature_spec.md) | `scripts/ins_v1_0_4.py` |
 | GovGuard (지자체) | `models/gov_model_v1.0.5.pkl` | [gov_v1_0_5_feature_spec.md](gov_v1_0_5_feature_spec.md) | `scripts/gov_v1_0_5.py` |
 
+| 문서 | 설명 |
+|------|------|
+| [gov_region_compare_plan.md](gov_region_compare_plan.md) | 지역비교 종합 위험도·추세·역할 분담 결정 (새 pkl 없이 백엔드 중심). 유형 ETL: `scripts/etl_accident_condition_type.py` |
+
 ---
 
 ## 검증 · 실험 (현재)

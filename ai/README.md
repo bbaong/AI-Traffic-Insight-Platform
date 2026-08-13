@@ -122,6 +122,18 @@ python scripts/batch_gov_forecast.py
 
 선택 환경 변수: `GOV_AS_OF`(예: `2025Q3`), `GOV_FREQ`(`Q`|`H`), `GOV_SCOPE`(기본 `DAEGU`).
 
+#### 사고유형 실적 ETL (`accident_condition_stats`)
+
+지역비교 A안: CSV → `ACCIDENT_TYPE` (`차대차` / `차대사람` / `차량단독`). gov pkl 불필요.
+
+```bash
+python scripts/etl_accident_condition_type.py
+# 미리보기: ETL_DRY_RUN=1 python scripts/etl_accident_condition_type.py
+# 기간 지정: ETL_PERIOD_START=2025-01-01 ETL_PERIOD_END=2025-12-31
+```
+
+기본 기간은 CSV 최신 연도(1/1~12/31). `DATABASE_URL`은 forecast 배치와 동일.
+
 #### 배치 스케줄 (AI ≠ DB 서버 — 권장 운영)
 
 개발자 PC에 Windows 작업 스케줄러를 **등록하지 않습니다.**  
