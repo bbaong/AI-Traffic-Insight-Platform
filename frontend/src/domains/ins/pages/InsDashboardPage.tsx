@@ -177,6 +177,7 @@ export function InsDashboardPage() {
           ? consultTypeLabel(consultType)
           : '신규',
         orgName: user?.orgName ?? undefined,
+        tokkResults,
       }),
     );
     setSaveSuccessOpen(false);

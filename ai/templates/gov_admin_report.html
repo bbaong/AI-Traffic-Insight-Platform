@@ -84,6 +84,7 @@
 
   <hr class="divider" />
 
+  {% if top3 %}
   <h2>우선점검 TOP3</h2>
   <table>
     <thead>
@@ -107,6 +108,7 @@
       {% endfor %}
     </tbody>
   </table>
+  {% endif %}
 
   {% if comparisonBars %}
   <hr class="divider" />
@@ -202,6 +204,7 @@
   </table>
   {% endif %}
 
+  {% if includeSummary %}
   <hr class="divider" />
   <div class="page-break">
     <h2>선택 지역 AI 요약 · {{ district_name }}</h2>
@@ -279,5 +282,6 @@
       본 문서는 행정 참고용이며, 처분·정책의 직접 근거가 아닙니다.
     </div>
   </div>
+  {% endif %}
 </body>
 </html>

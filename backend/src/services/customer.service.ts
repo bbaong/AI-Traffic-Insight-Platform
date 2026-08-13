@@ -1,13 +1,10 @@
-import 'dotenv/config';
-import { PrismaClient } from '../generated/prisma/client';
+import { prisma } from '../lib/prisma';
 import {
   assertValidMobile,
   digitsOnly,
   hashPhone,
   safeDecryptPhone,
 } from '../utils/phoneCrypto';
-
-const prisma = new PrismaClient();
 
 function toNum(v: unknown): number | null {
   if (v == null) return null;

@@ -122,3 +122,53 @@
   margin: 0;
   accent-color: var(--color-amber, #f77c34);
 }
+
+.memoInclude input {
+  margin: 0;
+  accent-color: var(--color-amber, #f77c34);
+}
+
+.sectionChecks {
+  margin: 0 0 1rem;
+  padding: 0;
+  border: none;
+}
+
+.sectionChecks legend {
+  margin: 0 0 0.5rem;
+  padding: 0;
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.sectionChecks .memoInclude {
+  display: flex;
+  margin: 0 0 0.45rem;
+}
+
+.sectionCheckActions {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 0.65rem;
+}
+
+.sectionCheckBtn {
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sectionCheckBtn:hover {
+  background: color-mix(in srgb, var(--color-teal) 12%, transparent);
+}
+
+:global([data-accent='teal']) .memoInclude input {
+  accent-color: var(--color-teal);
+}

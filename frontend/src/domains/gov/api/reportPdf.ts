@@ -1,7 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
 
-
-
 /** history + forecast 시계열 (SeverityStackedCard와 동일 순서) */
 export type GovPdfSeveritySeriesPoint = {
   label: string; // 예: "24년 3분기" 또는 원본 "2024Q3"
@@ -56,6 +54,8 @@ export interface GovReportPdfDashboardPayload {
   severityLatest?: Array<{ label: string; value: number }>;
   /** 신규: 경중 추이 차트용 */
   severitySeries?: GovPdfSeveritySeriesPoint[];
+  /** PDF 2페이지 선택 지역 요약·유형·권고 포함 여부 */
+  includeSummary?: boolean;
 }
 
 export interface GovReportPdfRequest {

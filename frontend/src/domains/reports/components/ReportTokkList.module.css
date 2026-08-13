@@ -1,0 +1,92 @@
+.empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--color-hint, #888);
+  }
+  
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin: 0 0 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .legendItem {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .legendDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border-light, #e2e6e8);
+    border-radius: 8px;
+    background: #fff;
+  }
+  
+  .icon {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    margin-top: 1px;
+  }
+  
+  .main {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  
+  .name {
+    font-size: 13px;
+    font-weight: 650;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .tag {
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px solid;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  
+  .desc {
+    margin: 4px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #666;
+  }

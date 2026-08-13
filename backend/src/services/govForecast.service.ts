@@ -1,7 +1,4 @@
-import 'dotenv/config';
-import { PrismaClient } from '../generated/prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma';
 
 // ============================================================
 // 제안 카드 규칙 (코드 상수로 관리 — DB 테이블 불필요)

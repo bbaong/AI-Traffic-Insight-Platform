@@ -1,16 +1,7 @@
 //src/controllers/user.Controller.ts
-import 'dotenv/config';
 import { Request, Response } from 'express';
-import { PrismaClient } from '../generated/prisma/client';
+import { prisma } from '../lib/prisma';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
-
-const prisma = new PrismaClient();
-
-//bigint string to bigint
-(BigInt.prototype as any).toJSON = function () {
-  return this.toString();
-};
 
 //회원 가입
 export const createUsers = async (req: Request, res: Response) => {

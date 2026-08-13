@@ -37,6 +37,7 @@ import type {
   CustomerListItem,
   ReportItem,
 } from '../types/customers';
+import { fetchTokkReview } from '../api/tokkReview';
 import { useAuthStore } from '../../../stores/authStore';
 import styles from './CustomersPage.module.css';
 
@@ -44,6 +45,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants/routes';
 import { useInsReportDraftStore } from '../../reports/stores/insReportDraftStore';
 import { consultationToInsReportDraft } from '../utils/buildInsReportDraft';
+import { resolveChecklistAnswers } from '../utils/checklistAnswers';
 
 const PAGE_SIZE = 10;
 const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
@@ -346,34 +348,50 @@ export function CustomersPage() {
       const target = consult ?? selectedConsult;
       if (!target) return;
       setSelectedConsultId(target.consultationId);
-  
-      const items = await fetchConsultationReport(
-        target.consultationId,
-        target.riskGrade,
-      );
-  
-      setInsReportDraft(
-        consultationToInsReportDraft({
+
+      try {
+        const items = await fetchConsultationReport(
+          target.consultationId,
+          target.riskGrade,
+        );
+
+        const checklist = resolveChecklistAnswers({
+          rows: target.checklist,
+          riders: target.riders,
+        });
+        const tokkResults =
+          (target.riders?.length ?? 0) > 0
+            ? undefined
+            : await fetchTokkReview(checklist).catch(() => []);
+
+        const draft = consultationToInsReportDraft({
           consult: target,
           customerName: selectedCustomer?.name ?? '',
           reportItems: items,
           orgName: user?.orgName ?? undefined,
-        }),
-      );
-      if (selectedId) {
-        writeCustomersSelection({
-          customerId: selectedId,
-          consultationId: target.consultationId,
+          tokkResults,
         });
+        setInsReportDraft(draft);
+
+        if (selectedId) {
+          writeCustomersSelection({
+            customerId: selectedId,
+            consultationId: target.consultationId,
+          });
+        }
+        navigate(ROUTES.REPORTS);
+      } catch (e) {
+        console.error(e);
       }
-      navigate(ROUTES.REPORTS);
     },
-    [selectedConsult, 
-      selectedCustomer?.name, 
-      selectedId, 
-      setInsReportDraft, 
-      navigate, 
-      user?.orgName]
+    [
+      selectedConsult,
+      selectedCustomer?.name,
+      selectedId,
+      setInsReportDraft,
+      navigate,
+      user?.orgName,
+    ],
   );
 
   const riskPct = Math.min(

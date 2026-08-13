@@ -329,6 +329,7 @@ def build_gov_report_pdf(
             "severityChart": _build_severity_chart(
                 dashboard.get("severitySeries")
             ),
+            "includeSummary": bool(dashboard.get("includeSummary", True)),
         }
     else:
         rows = predict_gov_rates(지역=None, as_of=as_of, freq=freq)
@@ -394,8 +395,11 @@ def build_gov_report_pdf(
             },
             "recommendation": recommendation,
             "comparison": None,
+            "comparisonBars": [],
             "suggestions": [],
             "severityLatest": [],
+            "severityChart": None,
+            "includeSummary": True,
         }
 
     env = Environment(

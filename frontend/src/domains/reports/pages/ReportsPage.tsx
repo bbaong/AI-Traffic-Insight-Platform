@@ -25,6 +25,43 @@ type GovPdfSnapshot = {
   severitySeries?: GovReportPdfDashboardPayload['severitySeries'] | null; // 추가
 };
 
+type GovPdfSections = {
+  top3: boolean;
+  comparison: boolean;
+  severityLatest: boolean;
+  severityChart: boolean;
+  suggestions: boolean;
+  summary: boolean;
+};
+
+const DEFAULT_GOV_SECTIONS: GovPdfSections = {
+  top3: true,
+  comparison: true,
+  severityLatest: true,
+  severityChart: true,
+  suggestions: true,
+  summary: true,
+};
+
+const EMPTY_GOV_SECTIONS: GovPdfSections = {
+  top3: false,
+  comparison: false,
+  severityLatest: false,
+  severityChart: false,
+  suggestions: false,
+  summary: false,
+};
+
+const GOV_SECTION_OPTIONS: Array<{ key: keyof GovPdfSections; label: string }> =
+  [
+    { key: 'top3', label: '우선점검 TOP3' },
+    { key: 'comparison', label: '구·시 비교 지표' },
+    { key: 'severityLatest', label: '경중 구성(표)' },
+    { key: 'severityChart', label: '경중 추이(차트)' },
+    { key: 'suggestions', label: '우선점검 제안' },
+    { key: 'summary', label: '선택 지역 AI 요약' },
+  ];
+
 /**
  * 역할별 리포트 생성 페이지.
  * GOV: districtStore 선택 구·군 / INS: 대시보드에서 넘긴 draft.
@@ -48,6 +85,8 @@ export function ReportsPage() {
   const [pdfError, setPdfError] = useState<string | null>(null);
   const [downloadBase, setDownloadBase] = useState('report');
   const [includeMemo, setIncludeMemo] = useState(true);
+  const [govSections, setGovSections] =
+    useState<GovPdfSections>(DEFAULT_GOV_SECTIONS);
 
   useEffect(() => {
     setIncludeMemo(Boolean(insDraft?.memo));
@@ -117,12 +156,21 @@ export function ReportsPage() {
           기관: user?.orgName || undefined,
           dashboard: {
             period_label: snapshot.period_label,
-            top3: snapshot.top3,
+            top3: govSections.top3 ? snapshot.top3 : [],
             selected: snapshot.selected,
-            comparison: snapshot.comparison ?? undefined,
-            suggestions: snapshot.suggestions ?? undefined,
-            severityLatest: snapshot.severityLatest ?? undefined,
-            severitySeries: snapshot.severitySeries ?? undefined, // 추가
+            comparison: govSections.comparison
+              ? (snapshot.comparison ?? undefined)
+              : undefined,
+            suggestions: govSections.suggestions
+              ? (snapshot.suggestions ?? undefined)
+              : undefined,
+            severityLatest: govSections.severityLatest
+              ? (snapshot.severityLatest ?? undefined)
+              : undefined,
+            severitySeries: govSections.severityChart
+              ? (snapshot.severitySeries ?? undefined)
+              : undefined,
+            includeSummary: govSections.summary,
           },
         }),
       `행정참고리포트_${selectedName}`,
@@ -197,6 +245,40 @@ export function ReportsPage() {
               {pdfError}
             </p>
           ) : null}
+          <fieldset className={styles.sectionChecks}>
+            <legend>PDF에 포함할 항목</legend>
+            <div className={styles.sectionCheckActions}>
+              <button
+                type="button"
+                className={styles.sectionCheckBtn}
+                onClick={() => setGovSections(DEFAULT_GOV_SECTIONS)}
+              >
+                전체 선택
+              </button>
+              <button
+                type="button"
+                className={styles.sectionCheckBtn}
+                onClick={() => setGovSections(EMPTY_GOV_SECTIONS)}
+              >
+                전체 해제
+              </button>
+            </div>
+            {GOV_SECTION_OPTIONS.map(({ key, label }) => (
+              <label key={key} className={styles.memoInclude}>
+                <input
+                  type="checkbox"
+                  checked={govSections[key]}
+                  onChange={(e) =>
+                    setGovSections((s) => ({
+                      ...s,
+                      [key]: e.target.checked,
+                    }))
+                  }
+                />
+                {label}
+              </label>
+            ))}
+          </fieldset>
           <button
             type="button"
             className={styles.primaryBtn}

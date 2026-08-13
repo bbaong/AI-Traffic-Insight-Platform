@@ -71,7 +71,8 @@ class GovPdfDashboardPayload(BaseModel):
     comparison: Optional[Dict[str, Any]] = None
     suggestions: Optional[List[Dict[str, Any]]] = None
     severityLatest: Optional[List[Dict[str, Any]]] = None
-    severitySeries: Optional[List[Dict[str, Any]]] = None  # 추가
+    severitySeries: Optional[List[Dict[str, Any]]] = None
+    includeSummary: bool = True
     
 class GovReportPdfRequest(BaseModel):
     지역: str = Field(..., examples=["수성구"])
