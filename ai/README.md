@@ -3,6 +3,30 @@
 대구 교통사고 데이터 기반 ML 서빙 모듈입니다.  
 **InsureGuard**(보험)와 **GovGuard**(지자체) 두 계열을 FastAPI로 제공합니다.
 
+## 빠른 시작 (5분)
+
+아래 5단계만 실행하면 로컬에서 AI 서버와 PDF 기능까지 바로 확인할 수 있습니다.
+
+```bash
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1          # Windows
+# source .venv/bin/activate           # macOS/Linux
+
+# Windows(cp949)에서 UTF-8 오류가 나면 먼저:
+#   $env:PYTHONUTF8 = "1"
+python -m pip install -r requirements.txt
+
+# PDF 리포트용 Chromium 설치 (uvicorn 실행과 같은 Python 환경)
+$env:PLAYWRIGHT_BROWSERS_PATH = "$env:LOCALAPPDATA\ms-playwright"
+python -m playwright install chromium
+
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+확인:
+- Health: `http://localhost:8000/health`
+- Swagger: `http://localhost:8000/docs`
+
 ## 시스템 연결
 
 ```text
@@ -57,7 +81,7 @@ ai/
 
 ---
 
-## 설치 · 실행
+## 설치 · 실행 (상세)
 
 - Python **3.11+**, 작업 디렉터리: `AI-Traffic-Insight-Platform/ai`
 
@@ -103,6 +127,8 @@ python scripts/gov_v1_0_5.py
 ```
 
 `models/*.pkl`이 없으면 API가 **503**을 반환합니다.
+
+## 운영 배치 (선택)
 
 ### Gov 예측 배치 (DB 스냅샷)
 
@@ -171,7 +197,7 @@ CRON_TZ=Asia/Seoul
 
 분리 배포 체크: AI→MySQL 접속, `districts` 시드, AI에만 cron, 갱신 후 `GET .../gov-forecasts`로 `finished_at` 확인.
 
-### AI 서버 실행
+## AI 서버 실행
 
 ```bash
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -219,6 +245,8 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 | POST | `/predict` | InsureGuard 위험도 |
 | POST | `/predict/gov` | GovGuard 지역 예측 |
 | POST | `/predict/gov/history` | GovGuard 분기 history |
+| POST | `/report/ins-pdf` | 보험 상담 PDF 생성 |
+| POST | `/report/gov-pdf` | 지자체 리포트 PDF 생성 |
 | GET | `/hotspots` | 대구 공식 사고다발 TOP3 (지도 원) |
 
 ### `POST /predict` 요청
@@ -300,7 +328,17 @@ curl "http://localhost:5000/api/prediction/predict-gov-hotspots?year=2025119"
 | `POST …/api/prediction/predict-ins` | `predictIns` | `POST /predict` |
 | `POST …/api/prediction/predict-gov` | `predictGov` | `POST /predict/gov` |
 | `GET  …/api/prediction/predict-gov-hotspots` | `predictGovHotspots` | `GET /hotspots` |
+| `POST …/api/insurance/report-pdf` | `generateInsuranceReportPdf` | `POST /report/ins-pdf` |
+| `POST …/api/prediction/gov-report-pdf` | `generateGovReportPdf` | `POST /report/gov-pdf` |
 | Frontend 지도 원 | `GovDashboardPage` → `MapCard` `hotspots` | `kakao.maps.Circle` |
+
+### PDF 트러블슈팅 (Playwright)
+
+- 에러: `Executable doesn't exist` + `cursor-sandbox-cache` 경로
+  - 원인: Cursor 샌드박스 경로에 Chromium 바이너리가 없어서 발생
+  - 조치: `PLAYWRIGHT_BROWSERS_PATH`를 `%LOCALAPPDATA%\ms-playwright`로 고정 후 `python -m playwright install chromium`
+- 설치 후에도 실패하면 AI 서버(`uvicorn`)를 재시작하세요.
+- 브라우저 경로를 강제로 바꾸려면 `AI_PLAYWRIGHT_BROWSERS_PATH`를 사용하세요.
 
 ---
 

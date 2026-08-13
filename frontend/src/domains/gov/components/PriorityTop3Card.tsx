@@ -83,7 +83,7 @@ export function PriorityTop3Card({
             <thead>
               <tr>
                 <th scope="col">순위</th>
-                <th scope="col">구</th>
+                <th scope="col">구·군</th>
                 <th scope="col">중대율</th>
                 <th scope="col">위험</th>
               </tr>

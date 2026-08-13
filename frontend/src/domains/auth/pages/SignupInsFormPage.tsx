@@ -136,7 +136,7 @@ export function SignupInsFormPage() {
 
       <main className={styles.main}>
         <div className={styles.inner}>
-          <SignupStepper currentStep={2} roleLabel="보험사" accent="amber" />
+          <SignupStepper currentStep={2} roleLabel="보험사" />
 
           <form className={styles.form} onSubmit={handleSubmit} noValidate>
             <SignupAccountFields

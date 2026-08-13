@@ -1,18 +1,14 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
 import { clearAuthStorage, useAuthStore } from '../../stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './LandingNav.module.css';
-
-function scrollToId(id: string): void {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
+import { scrollToLandingSection } from './scrollToLandingSection';
 
 export function LandingNav() {
   const user = useAuthStore((s) => s.user);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const dashboardPath =
     user?.role === 'ROLE_A'
@@ -26,8 +22,16 @@ export function LandingNav() {
     window.location.replace(ROUTES.LANDING);
   }
 
+  function goToHomeSection(id: string): void {
+    if (location.pathname === ROUTES.LANDING) {
+      scrollToLandingSection(id);
+      return;
+    }
+    navigate({ pathname: ROUTES.LANDING, hash: `#${id}` });
+  }
+
   return (
-    <header className={styles.nav}>
+    <header className={styles.nav} data-landing-nav>
       <div className={styles.left}>
         <Link to={ROUTES.LANDING} className={styles.brand} aria-label="AI Traffic Insight 홈">
           <img
@@ -43,17 +47,26 @@ export function LandingNav() {
           <button
             type="button"
             className={styles.anchorLink}
-            onClick={() => scrollToId('intro')}
+            onClick={() => goToHomeSection('intro')}
           >
             서비스 소개
           </button>
-          <button
-            type="button"
-            className={styles.anchorLink}
-            onClick={() => scrollToId('data')}
+          <NavLink
+            to={ROUTES.LANDING_GOV}
+            className={({ isActive }) =>
+              `${styles.anchorLink} ${isActive ? styles.anchorLinkActive : ''}`
+            }
           >
-            데이터 기준
-          </button>
+            지자체 솔루션
+          </NavLink>
+          <NavLink
+            to={ROUTES.LANDING_INS}
+            className={({ isActive }) =>
+              `${styles.anchorLink} ${isActive ? styles.anchorLinkActive : ''}`
+            }
+          >
+            보험사 솔루션
+          </NavLink>
         </nav>
       </div>
 

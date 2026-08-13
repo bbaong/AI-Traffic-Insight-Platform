@@ -64,8 +64,12 @@
   
   .primary {
     border: 0;
-    background: #f77c34;
+    background: var(--color-teal, #21adc4); /* 기본: 지자체 */
     color: #fff;
+  }
+  
+  .primaryAmber {
+    background: var(--color-amber, #f77c34); /* 보험사 */
   }
   
   .primary:disabled {

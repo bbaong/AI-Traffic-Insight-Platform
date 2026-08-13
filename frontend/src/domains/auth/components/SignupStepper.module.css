@@ -2,18 +2,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  --stepper-accent: var(--color-teal);
-  --stepper-accent-hover: var(--color-teal-text);
-}
-
-.accentTeal {
-  --stepper-accent: var(--color-teal);
-  --stepper-accent-hover: var(--color-teal-text);
-}
-
-.accentAmber {
-  --stepper-accent: var(--color-amber);
-  --stepper-accent-hover: var(--color-amber-tint-text);
+  --stepper-accent: var(--color-ink);
+  --stepper-accent-hover: #000;
 }
 
 .track {

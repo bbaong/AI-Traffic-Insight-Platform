@@ -207,6 +207,66 @@
   flex-shrink: 0;
 }
 
+.historyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-bottom: 12px;
+}
+
+.historyHead .cardTitle {
+  margin-bottom: 0;
+}
+
+.addConsultBtn {
+  position: relative;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--color-border, #d0d5dd);
+  background: #fff;
+  color: #5a6b80;
+  font-size: 0;
+  line-height: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.addConsultBtn::before,
+.addConsultBtn::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: currentColor;
+  border-radius: 1px;
+  transform: translate(-50%, -50%);
+}
+
+.addConsultBtn::before {
+  width: 7px;
+  height: 1.25px;
+}
+
+.addConsultBtn::after {
+  width: 1.25px;
+  height: 7px;
+}
+
+.addConsultBtn:hover:not(:disabled) {
+  background: #f5f7fa;
+  border-color: #b8c0cc;
+  color: #334155;
+}
+
+.addConsultBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .riskCard {
   flex-shrink: 0;
   padding-bottom: 12px;

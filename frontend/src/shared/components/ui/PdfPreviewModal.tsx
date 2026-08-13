@@ -8,6 +8,7 @@ interface Props {
   downloading?: boolean;
   onClose: () => void;
   onDownload: () => void;
+  accent?: 'teal' | 'amber';
 }
 
 export function PdfPreviewModal({
@@ -15,6 +16,7 @@ export function PdfPreviewModal({
   pdfUrl,
   title = '상담 참고 리포트',
   downloading = false,
+  accent = 'teal',
   onClose,
   onDownload,
 }: Props) {
@@ -48,7 +50,7 @@ export function PdfPreviewModal({
           <div className={styles.actions}>
             <button
               type="button"
-              className={styles.primary}
+              className={accent === 'amber' ? `${styles.primary} ${styles.primaryAmber}` : styles.primary}
               onClick={onDownload}
               disabled={!pdfUrl || downloading}
             >

@@ -2,8 +2,9 @@ import { Link } from 'react-router-dom';
 import { ROUTES } from '../../../shared/constants/routes';
 import { getInsRiskMeta, toRiskGrade } from '../../ins/utils/riskMeta';
 import type { InsReportDraft } from '../stores/insReportDraftStore';
-import { ReportCoverageGrid } from './ReportCoverageGrid';
 import styles from './InsConsultReportView.module.css';
+import { ReportCoverageGrid } from './ReportCoverageGrid';
+import { ReportTokkList } from './ReportTokkList';
 
 const SUMMARY_ROWS: {
   key: keyof NonNullable<InsReportDraft['checklist']>;
@@ -15,6 +16,23 @@ const SUMMARY_ROWS: {
   { key: 'fcw', label: '전방충돌방지장치' },
   { key: 'ldw', label: '차선이탈경고장치' },
 ];
+
+function formatChecklistValue(
+  draft: InsReportDraft,
+  key: (typeof SUMMARY_ROWS)[number]['key'],
+): string {
+  const c = draft.checklist;
+  if (!c) return '-';
+  const raw = c[key]?.trim() ?? '';
+  if (!raw) return '-';
+  if (key === 'safedrive' && raw === '이용 중') {
+    const parts = [raw];
+    if (c.safedriveService?.trim()) parts.push(c.safedriveService.trim());
+    if (c.safedriveScore?.trim()) parts.push(`${c.safedriveScore.trim()}점`);
+    return parts.join(' · ');
+  }
+  return raw;
+}
 
 type Props = {
   draft: InsReportDraft;
@@ -42,10 +60,17 @@ export function InsConsultReportView({
   const meta = grade ? getInsRiskMeta(grade) : null;
   const titleName = draft.고객명?.trim() || '고객';
 
+  const backTo =
+  draft.source === 'customers' ? ROUTES.CUSTOMERS : ROUTES.DASHBOARD_INS;
+  const backLabel =
+    draft.source === 'customers'
+      ? '← 고객관리로 돌아가기'
+      : '← 대시보드로 돌아가기';
+
   return (
     <div className={styles.page}>
-      <Link className={styles.back} to={ROUTES.DASHBOARD_INS}>
-        ← 대시보드로 돌아가기
+      <Link className={styles.back} to={backTo}>
+        {backLabel}
       </Link>
 
       <header className={styles.header}>
@@ -119,10 +144,14 @@ export function InsConsultReportView({
               </div>
             </div>
           </section>
-
           <section className={styles.panel}>
             <h2 className={styles.sectionTitle}>표준 6대 담보 추천 결과</h2>
             <ReportCoverageGrid items={draft.담보추천 ?? []} />
+          </section>
+
+          <section className={styles.panel}>
+            <h2 className={styles.sectionTitle}>맞춤 특약 검토 결과</h2>
+            <ReportTokkList items={draft.tokkResults ?? []} />
           </section>
         </div>
 
@@ -132,7 +161,7 @@ export function InsConsultReportView({
             {SUMMARY_ROWS.map(({ key, label }) => (
               <div key={key} className={styles.summaryRow}>
                 <dt>{label}</dt>
-                <dd>{draft.checklist?.[key] || '-'}</dd>
+                <dd>{formatChecklistValue(draft, key)}</dd>
               </div>
             ))}
             <div className={styles.summaryRow}>

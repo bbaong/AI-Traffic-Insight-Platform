@@ -1,20 +1,16 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
 import { useAuthStore } from '../../stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './CtaSection.module.css';
+import { scrollToLandingSection } from './scrollToLandingSection';
 import { useFadeInClassName } from './useFadeInClassName';
-
-function scrollToId(id: string): void {
-  const el = document.getElementById(id);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-}
 
 export function CtaSection() {
   const { ref, className } = useFadeInClassName();
   const user = useAuthStore((s) => s.user);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const dashboardPath =
     user?.role === 'ROLE_A'
@@ -22,6 +18,14 @@ export function CtaSection() {
       : user?.role === 'ROLE_B'
         ? ROUTES.DASHBOARD_INS
         : null;
+
+  function handleSeeIntro(): void {
+    if (location.pathname === ROUTES.LANDING) {
+      scrollToLandingSection('intro');
+      return;
+    }
+    navigate({ pathname: ROUTES.LANDING, hash: '#intro' });
+  }
 
   return (
     <section
@@ -33,7 +37,6 @@ export function CtaSection() {
       <div className={styles.inner}>
         {user && dashboardPath ? (
           <>
-            <p className={styles.eyebrow}>다시 이어가기</p>
             <h2 id="cta-heading" className={styles.title}>
               다시 분석을 이어가세요
             </h2>
@@ -43,7 +46,7 @@ export function CtaSection() {
             <div className={styles.actions}>
               <Link
                 to={dashboardPath}
-                className={`${buttonStyles.button} ${buttonStyles.primary}`}
+                className={`${buttonStyles.button} ${buttonStyles.primaryOnDark}`}
               >
                 내 대시보드 보기
               </Link>
@@ -51,25 +54,20 @@ export function CtaSection() {
           </>
         ) : (
           <>
-            <p className={styles.eyebrow}>지금 바로 시작하세요</p>
             <h2 id="cta-heading" className={styles.title}>
-              도입이 궁금하신가요?
+              지금 바로 시작하세요
             </h2>
-            <p className={styles.subtitle}>
-              별도 설치 없이 웹 브라우저로 바로 사용 가능합니다. 도입 문의는
-              무료입니다.
-            </p>
             <div className={styles.actions}>
               <Link
-                to={ROUTES.SIGNUP}
-                className={`${buttonStyles.button} ${buttonStyles.primary}`}
+                to={ROUTES.LOGIN}
+                className={`${buttonStyles.button} ${buttonStyles.primaryOnDark}`}
               >
-                도입 문의하기 →
+                서비스 시작하기 →
               </Link>
               <button
                 type="button"
                 className={`${buttonStyles.button} ${buttonStyles.outlineOnDark}`}
-                onClick={() => scrollToId('intro')}
+                onClick={handleSeeIntro}
               >
                 서비스 다시 보기
               </button>

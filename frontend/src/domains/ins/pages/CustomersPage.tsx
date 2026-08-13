@@ -30,7 +30,6 @@ import {
   toRiskGrade,
 } from '../constants/insEnums';
 import { CONSULT_TYPE_OPTIONS } from '../constants/consultTypes';
-import { fetchInsReportPdf } from '../api/reportPdf';
 import type {
   Consultation,
   ConsultationTypeCode,
@@ -38,8 +37,15 @@ import type {
   CustomerListItem,
   ReportItem,
 } from '../types/customers';
+import { fetchTokkReview } from '../api/tokkReview';
 import { useAuthStore } from '../../../stores/authStore';
 import styles from './CustomersPage.module.css';
+
+import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../../shared/constants/routes';
+import { useInsReportDraftStore } from '../../reports/stores/insReportDraftStore';
+import { consultationToInsReportDraft } from '../utils/buildInsReportDraft';
+import { resolveChecklistAnswers } from '../utils/checklistAnswers';
 
 const PAGE_SIZE = 10;
 const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
@@ -51,7 +57,33 @@ const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
     })),
   ];
 
+  const CUSTOMERS_SELECTION_KEY = 'ins_customers_selection_v1';
+
+type CustomersSelection = {
+  customerId: string;
+  consultationId?: string;
+};
+
+function readCustomersSelection(): CustomersSelection | null {
+  try {
+    const raw = sessionStorage.getItem(CUSTOMERS_SELECTION_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CustomersSelection;
+    return parsed.customerId ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCustomersSelection(sel: CustomersSelection) {
+  sessionStorage.setItem(CUSTOMERS_SELECTION_KEY, JSON.stringify(sel));
+}
+
 export function CustomersPage() {
+  
+  const navigate = useNavigate();
+  const setInsReportDraft = useInsReportDraftStore((s) => s.setDraft);
+
   const user = useAuthStore((s) => s.user);
   const userId = user?.userId;
 
@@ -116,6 +148,10 @@ export function CustomersPage() {
         });
         setSelectedId((prev) => {
           if (prev && rows.some((r) => r.customerId === prev)) return prev;
+          const saved = readCustomersSelection();
+          if (saved && rows.some((r) => r.customerId === saved.customerId)) {
+            return saved.customerId;
+          }
           return rows[0]?.customerId ?? null;
         });
       })
@@ -150,7 +186,13 @@ export function CustomersPage() {
         if (cancelled) return;
         setDetail(res);
         setTypeFilter('ALL');
-        setSelectedConsultId(res.data[0]?.consultationId ?? null);
+        const saved = readCustomersSelection();
+        const fromSaved =
+          saved?.consultationId &&
+          res.data.some((c) => c.consultationId === saved.consultationId)
+            ? saved.consultationId
+            : null;
+        setSelectedConsultId(fromSaved ?? res.data[0]?.consultationId ?? null);
       })
       .catch((e: unknown) => {
         if (cancelled) return;
@@ -279,46 +321,78 @@ export function CustomersPage() {
     setPage(1);
   }
 
-  const openReport = useCallback(async (consult?: Consultation) => {
-    const target = consult ?? selectedConsult;
-    if (!target) return;
-    setSelectedConsultId(target.consultationId);
-    setReportOpen(true);
-    setReportLoading(true);
-    try {
-      const items = await fetchConsultationReport(
-        target.consultationId,
-        target.riskGrade,
-      );
-      setReportItems(items);
-    } catch {
-      setReportItems([]);
-    } finally {
-      setReportLoading(false);
-    }
-  }, [selectedConsult]);
+  const openReportDrawer = useCallback(
+    async (consult?: Consultation) => {
+      const target = consult ?? selectedConsult;
+      if (!target) return;
+      setSelectedConsultId(target.consultationId);
+      setReportOpen(true);
+      setReportLoading(true);
+      try {
+        const items = await fetchConsultationReport(
+          target.consultationId,
+          target.riskGrade,
+        );
+        setReportItems(items);
+      } catch {
+        setReportItems([]);
+      } finally {
+        setReportLoading(false);
+      }
+    },
+    [selectedConsult],
+  );
 
-  const downloadReportPdf = useCallback(async () => {
-    const c = selectedConsult;
-    const p = c?.profile;
-    if (!c || !p?.region || !p.ageGroup || !p.gender || !p.vehicleType) {
-      throw new Error('프로필 정보가 없어 PDF를 만들 수 없습니다.');
-    }
-    const blob = await fetchInsReportPdf({
-      구군: p.region,
-      연령대: p.ageGroup,
-      성별: genderLabel(p.gender),
-      차종: p.vehicleType,
-      고객명: selectedCustomer?.name,
-      memo: c.memo?.trim() || undefined,
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `상담리포트_${c.consultationId}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [selectedConsult, selectedCustomer?.name]);
+  const openHistoryReport = useCallback(
+    async (consult?: Consultation) => {
+      const target = consult ?? selectedConsult;
+      if (!target) return;
+      setSelectedConsultId(target.consultationId);
+
+      try {
+        const items = await fetchConsultationReport(
+          target.consultationId,
+          target.riskGrade,
+        );
+
+        const checklist = resolveChecklistAnswers({
+          rows: target.checklist,
+          riders: target.riders,
+        });
+        const tokkResults =
+          (target.riders?.length ?? 0) > 0
+            ? undefined
+            : await fetchTokkReview(checklist).catch(() => []);
+
+        const draft = consultationToInsReportDraft({
+          consult: target,
+          customerName: selectedCustomer?.name ?? '',
+          reportItems: items,
+          orgName: user?.orgName ?? undefined,
+          tokkResults,
+        });
+        setInsReportDraft(draft);
+
+        if (selectedId) {
+          writeCustomersSelection({
+            customerId: selectedId,
+            consultationId: target.consultationId,
+          });
+        }
+        navigate(ROUTES.REPORTS);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+    [
+      selectedConsult,
+      selectedCustomer?.name,
+      selectedId,
+      setInsReportDraft,
+      navigate,
+      user?.orgName,
+    ],
+  );
 
   const riskPct = Math.min(
     100,
@@ -435,7 +509,10 @@ export function CustomersPage() {
                       <tr
                         key={row.customerId}
                         className={active ? styles.rowActive : ''}
-                        onClick={() => setSelectedId(row.customerId)}
+                        onClick={() => {
+                          setSelectedId(row.customerId);
+                          writeCustomersSelection({ customerId: row.customerId });
+                        }}
                       >
                         <td className={styles.checkCol}>
                           <input
@@ -549,38 +626,36 @@ export function CustomersPage() {
                 </section>
 
                 <section className={`${styles.card} ${styles.historyCard}`}>
-                  <h3 className={styles.cardTitle}>상담 이력</h3>
-                  <div
-                    className={styles.tabs}
-                    role="tablist"
-                    aria-label="상담 유형"
-                  >
-                    {FILTER_TABS.map((tab) => (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={typeFilter === tab.id}
-                        className={`${styles.tab} ${
-                          typeFilter === tab.id ? styles.tabActive : ''
-                        }`}
-                        onClick={() => {
-                          setTypeFilter(tab.id);
-                          const next =
-                            tab.id === 'ALL'
-                              ? detail?.data[0]
-                              : detail?.data.find(
-                                  (c) =>
-                                    toConsultationType(c.consultationType) ===
-                                    tab.id,
-                                );
-                          setSelectedConsultId(next?.consultationId ?? null);
-                        }}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
+                  <div className={styles.historyHead}>
+                    <h3 className={styles.cardTitle}>상담 이력</h3>
+                    <button
+                      type="button"
+                      className={styles.addConsultBtn}
+                      aria-label="새 상담 시작"
+                      title="대시보드에서 새 상담"
+                      disabled={!selectedCustomer}
+                      onClick={() => {
+                        const g = genderLabel(profile?.gender);
+                        navigate(ROUTES.DASHBOARD_INS, {
+                          state: {
+                            fromCustomers: true,
+                            customer: {
+                              name: selectedCustomer?.name ?? '',
+                              phone: selectedCustomer?.phone ?? '',
+                            },
+                            profile: {
+                              gender: g === '남' || g === '여' ? g : '남',
+                              age: profile?.ageGroup ?? '',
+                              vehicle: profile?.vehicleType ?? '',
+                              region: profile?.region ?? '',
+                            },
+                          },
+                        });
+                      }}
+                    >
+                    +
+                  </button>
+                </div>
 
                   {filteredConsults.length === 0 ? (
                     <p className={styles.hint}>표시할 상담 이력이 없습니다.</p>
@@ -662,7 +737,7 @@ export function CustomersPage() {
                                     type="button"
                                     className={styles.iconBtn}
                                     aria-label={`${memoDate} 상담 리포트`}
-                                    onClick={() => void openReport(c)}
+                                    onClick={() => void openHistoryReport(c)}
                                   >
                                     <ReportIcon />
                                   </button>
@@ -786,7 +861,7 @@ export function CustomersPage() {
                   <button
                     type="button"
                     className={styles.reportBtn}
-                    onClick={() => void openReport()}
+                    onClick={() => void openReportDrawer()}
                     disabled={!selectedConsult}
                   >
                     상담 참고 리포트
@@ -798,20 +873,12 @@ export function CustomersPage() {
           )}
         </div>
       </div>
-
       <ReportDrawer
         open={reportOpen}
         customerName={selectedCustomer?.name ?? ''}
         consultation={selectedConsult}
         items={reportItems}
         loading={reportLoading}
-        canDownloadPdf={
-          !!selectedConsult?.profile?.region &&
-          !!selectedConsult.profile.ageGroup &&
-          !!selectedConsult.profile.gender &&
-          !!selectedConsult.profile.vehicleType
-        }
-        onDownloadPdf={downloadReportPdf}
         onClose={() => setReportOpen(false)}
       />
       <ConfirmDialog

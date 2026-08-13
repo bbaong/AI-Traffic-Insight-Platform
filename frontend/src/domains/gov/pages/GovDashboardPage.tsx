@@ -12,6 +12,8 @@ import {
   type GovHistoryResponse,
   type GovHotspotPoint,
   type GovPredictResult,
+  toSeveritySeries,
+  GOV_SEVERITY_KEYS,
 } from '../api/prediction';
 import {
   GovApiError,
@@ -65,6 +67,8 @@ function govFetchErrorMessage(error: unknown, notFound: string): string {
 
 const GOV_PRED_CACHE_KEY = 'gov:forecasts:Q';
 const GOV_HOTSPOT_CACHE_KEY = 'gov:hotspots';
+/** ReportsPage PDF — 대시보드 스냅샷 (재추론 스킵) */
+const GOV_PDF_SNAPSHOT_KEY = 'gov_pdf_snapshot_v1';
 /** 프론트: 이 시간 안이면 Backend/AI 다발 API를 다시 치지 않음 */
 const GOV_HOTSPOT_CLIENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const historySessionKey = (region: string) => `gov:history:${region}:4`;
@@ -389,6 +393,93 @@ export function GovDashboardPage() {
     };
   }, [selectedName, selectedDistrictId, allRows.length]);
 
+  // PDF용 대시보드 스냅샷 — ReportsPage에서 sessionStorage로 읽음
+  useEffect(() => {
+    if (!selectedName || !allRows.length || !priorityRegions.length) return;
+
+    const selected = allRows.find((r) => r.지역 === selectedName);
+    if (!selected) return;
+
+    const total = getAccidentCount(selected);
+    const types = selected.예측사고유형_퍼센트 ?? {};
+    const typeItems = Object.entries(types)
+      .map(
+        ([name, pct]) =>
+          [name, Math.round((Number(pct) / 100) * total)] as [string, number],
+      )
+      .sort((a, b) => b[1] - a[1]);
+
+    const from = formatPeriodLabel(selected.기준분기);
+    const to = formatPeriodLabel(selected.예측분기);
+    const period_label =
+      from === '-' && to === '-'
+        ? '-'
+        : to === '-'
+          ? from
+          : `${from} → ${to}`;
+
+    const severityLatest =
+    historyData?.지역 === selectedName && historyData.forecast?.경중_건수
+      ? GOV_SEVERITY_KEYS.map((label) => ({
+          label,
+          value: Number(historyData.forecast.경중_건수[label] ?? 0),
+        }))
+      : undefined;
+
+    // ▼ 추가: 차트용 시계열
+    const severitySeries =
+    historyData?.지역 === selectedName
+      ? toSeveritySeries(historyData).map((p) => {
+          const q = /^(\d{4})Q([1-4])$/i.exec(p.분기);
+          const label = q
+            ? `${q[1].slice(2)}년 ${q[2]}분기`
+            : p.분기;
+          return {
+            label,
+            kind: p.kind,
+            counts: {
+              사망사고: Number(p.경중_건수['사망사고'] ?? 0),
+              중상사고: Number(p.경중_건수['중상사고'] ?? 0),
+              경상사고: Number(p.경중_건수['경상사고'] ?? 0),
+              부상신고사고: Number(p.경중_건수['부상신고사고'] ?? 0),
+            },
+          };
+        })
+      : undefined;
+
+      writeSessionJson(GOV_PDF_SNAPSHOT_KEY, {
+        지역: selectedName,
+        period_label,
+        top3: priorityRegions.map((r) => ({
+          rank: r.rank,
+          region: r.regionName,
+          severe_rate: r.score,
+          count: r.accidentCount,
+          grade: r.riskLevel,
+        })),
+        selected: {
+          grade: selected.중대사고등급,
+          severe_rate: Number(selected.예측중대사고율_퍼센트.toFixed(1)),
+          count: total,
+          types: typeItems,
+        },
+        comparison: comparison ?? undefined, // district/cityAvg 전체 객체 유지 (count 포함 OK)
+        suggestions: suggestions?.map((s) => ({
+          title: s.title,
+          desc: s.desc,
+        })),
+        severityLatest,
+        severitySeries, // ▼ 추가
+      });
+  }, [
+    selectedName,
+    allRows,
+    priorityRegions,
+    comparison,
+    suggestions,
+    historyData,
+  ]);
+
   return (
     <div
       className={`${styles.govPage} ${mapExpanded ? styles.govPageMapExpanded : ''}`}
@@ -402,7 +493,6 @@ export function GovDashboardPage() {
             hotspotYear={hotspotYear}
             mapExpanded={mapExpanded}
             onToggleMapExpand={() => setMapExpanded((v) => !v)}
-            showRegionFilters
             legend={[
               { label: '상위 25%', color: RISK_COLORS.CRITICAL },
               { label: '상위 25–50%', color: RISK_COLORS.HIGH },

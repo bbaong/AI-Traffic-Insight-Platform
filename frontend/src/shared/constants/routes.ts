@@ -1,5 +1,7 @@
 export const ROUTES = {
   LANDING: '/',
+  LANDING_GOV: '/solutions/gov',
+  LANDING_INS: '/solutions/ins',
   LOGIN: '/login',
   SIGNUP: '/signup',
   SIGNUP_FORM: '/signup/form',

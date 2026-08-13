@@ -60,8 +60,6 @@ export interface MapCardProps {
   hotspots?: MapHotspot[];
   hotspotYear?: number | null;
   onDistrictSelect?: (district: DistrictBoundary) => void;
-  /** GOV 대시보드: 시도·구군 선택을 지도 카드 상단에 표시 */
-  showRegionFilters?: boolean;
 }
 
 const ACCENT = '#21ADC4';
@@ -212,7 +210,6 @@ export function MapCard({
   onDistrictSelect,
   mapExpanded = false,
   onToggleMapExpand,
-  showRegionFilters = false,
 }: MapCardProps) {
   const { status, retry } = useKakaoLoader();
   const selectedCode = useDistrictStore((s) => s.selectedCode);
@@ -313,7 +310,7 @@ export function MapCard({
       if (!selected) return [] as typeof all;
       const name = DAEGU_DISTRICTS.find((d) => d.code === selected)?.name;
       return name
-        ? all.filter((p) => p.region === name || p.name?.includes(name))
+        ? all.filter((p) => p.region === name)
         : [];
     };
   
@@ -687,37 +684,7 @@ export function MapCard({
   }, [selectedCode]);
 
   return (
-    <DashboardCard
-      title={title}
-      className={styles.card}
-      action={
-        showRegionFilters ? (
-          <div className={styles.regionFilters}>
-            <select
-              className={styles.regionSelect}
-              value="daegu"
-              aria-label="시도 선택"
-              disabled
-            >
-              <option value="daegu">대구광역시</option>
-            </select>
-            <select
-              className={styles.regionSelect}
-              value={selectedCode ?? ''}
-              aria-label="구군 선택"
-              onChange={(e) => setSelectedCode(e.target.value || null)}
-            >
-              <option value="">구·군 선택</option>
-              {DAEGU_DISTRICTS.map((d) => (
-                <option key={d.code} value={d.code}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : undefined
-      }
-    >
+    <DashboardCard title={title} className={styles.card}>
       <div className={styles.mapWrap}>
         {status === 'loading' ? (
           <div className={styles.stateBox} aria-busy="true">

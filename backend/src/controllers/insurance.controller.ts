@@ -1,16 +1,22 @@
 import { Request, Response } from 'express';
-import { predictRisk } from '../services/aiPredict.service';
-
-const AI_BASE = process.env.AI_SERVICE_URL ?? 'http://localhost:8000';
+import { ok, fail } from '../lib/http';
+import {
+  AiHttpError,
+  predictRisk,
+  fetchInsReportPdf,
+} from '../services/aiPredict.service';
 
 // POST /api/insurance/analyze — DB 쓰기 없음
 export const analyzeInsurance = async (req: Request, res: Response) => {
   try {
     const data = await predictRisk(req.body);
-    return res.status(200).json({ success: true, data });
+    return ok(res, data);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ success: false, message: '분석 실패' });
+    if (error instanceof AiHttpError) {
+      return fail(res, error.status, '분석 실패', error.detail);
+    }
+    return fail(res, 500, '분석 실패');
   }
 };
 
@@ -19,28 +25,10 @@ export const reportPdfInsurance = async (req: Request, res: Response) => {
   try {
     const { 구군, 연령대, 성별, 차종 } = req.body ?? {};
     if (!구군 || !연령대 || !성별 || !차종) {
-      return res.status(400).json({
-        success: false,
-        message: '구군, 연령대, 성별, 차종은 필수입니다.',
-      });
+      return fail(res, 400, '구군, 연령대, 성별, 차종은 필수입니다.');
     }
 
-    const aiRes = await fetch(`${AI_BASE}/report/ins-pdf`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body),
-    });
-
-    if (!aiRes.ok) {
-      const detail = await aiRes.text();
-      return res.status(502).json({
-        success: false,
-        message: 'AI PDF 생성 실패',
-        error: detail,
-      });
-    }
-
-    const buf = Buffer.from(await aiRes.arrayBuffer());
+    const buf = await fetchInsReportPdf(req.body);
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
@@ -49,10 +37,9 @@ export const reportPdfInsurance = async (req: Request, res: Response) => {
     return res.send(buf);
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      success: false,
-      message: 'PDF 요청 실패',
-      error: String(error),
-    });
+    if (error instanceof AiHttpError) {
+      return fail(res, error.status, 'AI PDF 생성 실패', error.detail);
+    }
+    return fail(res, 500, 'PDF 요청 실패', error);
   }
 };

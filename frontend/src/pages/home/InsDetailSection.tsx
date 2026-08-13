@@ -32,14 +32,18 @@ const FLOW_STEPS = [
   },
 ] as const;
 
-export function InsDetailSection() {
+interface InsDetailSectionProps {
+  hideIntro?: boolean;
+}
+
+export function InsDetailSection({ hideIntro = false }: InsDetailSectionProps) {
   const { ref, className } = useFadeInClassName();
 
   return (
     <section
       id="ins-section"
       ref={ref}
-      className={`${styles.section} ${className}`}
+      className={`${styles.section} ${hideIntro ? styles.compact : ''} ${className}`}
       aria-labelledby="ins-detail-heading"
     >
       <div className={styles.inner}>
@@ -96,17 +100,28 @@ export function InsDetailSection() {
         </aside>
 
         <div className={styles.text}>
-          <p className={styles.eyebrow}>보험사 — 상담 워크플로</p>
-          <h2 id="ins-detail-heading" className={styles.title}>
-            상담 준비 20분을
-            <br />
-            5분으로
-          </h2>
-          <p className={styles.body}>
-            고객 조건을 입력하면 AI가 위험도 점수·법규위반 성향·담보 추천·할인특약
-            판정을 한꺼번에 완성합니다. 저장 버튼 하나로 고객 이력과 PDF
-            리포트까지.
-          </p>
+          {hideIntro ? (
+            <>
+              <p className={styles.eyebrow}>보험사 — 상담 워크플로</p>
+              <h2 id="ins-detail-heading" className={styles.title}>
+                상담에 바로 쓰는 기능
+              </h2>
+            </>
+          ) : (
+            <>
+              <p className={styles.eyebrow}>보험사 — 상담 워크플로</p>
+              <h2 id="ins-detail-heading" className={styles.title}>
+                상담 준비 20분을
+                <br />
+                5분으로
+              </h2>
+              <p className={styles.body}>
+                고객 조건을 입력하면 AI가 위험도 점수·법규위반 성향·담보 추천·할인특약
+                판정을 한꺼번에 완성합니다. 저장 버튼 하나로 고객 이력과 PDF
+                리포트까지.
+              </p>
+            </>
+          )}
           <ul className={styles.list}>
             {HIGHLIGHTS.map((item) => (
               <li key={item}>{item}</li>

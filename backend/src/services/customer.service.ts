@@ -1,13 +1,10 @@
-import 'dotenv/config';
-import { PrismaClient } from '../generated/prisma/client';
+import { prisma } from '../lib/prisma';
 import {
   assertValidMobile,
   digitsOnly,
   hashPhone,
   safeDecryptPhone,
 } from '../utils/phoneCrypto';
-
-const prisma = new PrismaClient();
 
 function toNum(v: unknown): number | null {
   if (v == null) return null;
@@ -139,6 +136,19 @@ export async function listCustomerConsultations(
     consultations: consultations.map((row) => {
       const profile = row.customer_risk_profiles;
 
+      // DB에는 JSON 문자열로 저장됨 → 프론트용 객체로 파싱
+      let checklistSnapshot: Record<string, string> | null = null;
+      if (row.checklist_snapshot) {
+        try {
+          checklistSnapshot = JSON.parse(row.checklist_snapshot) as Record<
+            string,
+            string
+          >;
+        } catch {
+          checklistSnapshot = null;
+        }
+      }
+
       return {
         consultationId: row.consultation_id.toString(),
         consultationType: row.consultation_type,
@@ -167,6 +177,7 @@ export async function listCustomerConsultations(
           itemLabel: a.checklist_items.item_label,
           answerValue: a.answer_value,
         })),
+        checklistSnapshot,
       };
     }),
   };

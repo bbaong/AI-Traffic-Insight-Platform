@@ -15,42 +15,48 @@
   white-space: nowrap;
 }
 
-/* 로고 톤 채움 + 흰 글자 */
 .primary {
-  background: var(--color-teal);
+  background: var(--color-ink);
   color: var(--color-surface);
-  border-color: var(--color-teal);
+  border-color: var(--color-ink);
 }
 
 .primary:hover {
-  background: var(--color-teal-text);
-  border-color: var(--color-teal-text);
+  background: #000;
+  border-color: #000;
 }
 
-/* 흰 배경 + 로고톤 글자/테두리 */
 .outline {
   background: var(--color-surface);
-  color: var(--color-teal);
-  border-color: var(--color-teal);
+  color: var(--color-ink);
+  border-color: var(--color-ink);
 }
 
 .outline:hover {
-  background: var(--color-teal-bg);
-  border-color: var(--color-teal-text);
-  color: var(--color-teal-text);
+  background: var(--color-surface-alt);
 }
 
-/* 다크 CTA: 흰 버튼 + 로고톤 글자 */
 .outlineOnDark {
-  background: var(--color-surface);
-  color: var(--color-teal);
+  background: transparent;
+  color: var(--color-surface);
   border-color: var(--color-surface);
 }
 
 .outlineOnDark:hover {
-  background: var(--color-teal-bg);
-  border-color: var(--color-teal-bg);
-  color: var(--color-teal-text);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-color: var(--color-surface);
+}
+
+.primaryOnDark {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-color: var(--color-surface);
+}
+
+.primaryOnDark:hover {
+  background: #f0f0f0;
+  border-color: #f0f0f0;
 }
 
 @media (prefers-reduced-motion: reduce) {

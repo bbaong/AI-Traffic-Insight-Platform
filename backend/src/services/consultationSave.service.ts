@@ -1,17 +1,10 @@
 // 상담 대시보드 저장 (유일한 DB 쓰기)
 
-// export async function saveConsultation(_input: unknown) {
-//   // TODO: AI 재추론 → 담보 재계산 → 고객 upsert → profile/consultation/answers/riders 트랜잭션 저장
-//   return null;
-// }
-
-import 'dotenv/config';
-import { PrismaClient } from '../generated/prisma/client';
+import { prisma } from '../lib/prisma';
+import type { PrismaClient } from '../generated/prisma/client';
 import { predictRisk } from './aiPredict.service';
 import { evaluateDiscountRiders } from './discountRider.service';
 import { preparePhoneForStorage } from '../utils/phoneCrypto';
-
-const prisma = new PrismaClient();
 
 const BADGE_MAP = {
   검토권장: 'REVIEW_RECOMMENDED',
@@ -24,6 +17,117 @@ const CHECKLIST_KEYS = [
   'mileage', 'blackbox', 'safedrive',
   'safedriveService', 'safedriveScore', 'fcw', 'ldw',
 ] as const;
+
+/** FE camelCase → DB item_key 후보 (시드가 snake_case여도 저장되도록) */
+const CHECKLIST_KEY_CANDIDATES: Record<(typeof CHECKLIST_KEYS)[number], string[]> = {
+  mileage: ['mileage', 'annual_mileage'],
+  blackbox: ['blackbox'],
+  safedrive: ['safedrive'],
+  safedriveService: ['safedriveService', 'safedrive_service'],
+  safedriveScore: ['safedriveScore', 'safedrive_score'],
+  fcw: ['fcw'],
+  ldw: ['ldw', 'ldws'],
+};
+
+const CHECKLIST_ITEM_DEFS: Record<
+  (typeof CHECKLIST_KEYS)[number],
+  {
+    item_label: string;
+    input_type: 'SINGLE_CHOICE' | 'NUMBER';
+    options: string | null;
+    parent_item_key: string | null;
+    trigger_value: string | null;
+    display_order: number;
+  }
+> = {
+  mileage: {
+    item_label: '연간 예상 주행거리',
+    input_type: 'SINGLE_CHOICE',
+    options:
+      '["5,000km 이하","5,000 ~ 10,000km","10,000 ~ 15,000km","15,000km 이상"]',
+    parent_item_key: null,
+    trigger_value: null,
+    display_order: 1,
+  },
+  blackbox: {
+    item_label: '블랙박스 장착',
+    input_type: 'SINGLE_CHOICE',
+    options: '["미장착","일반형 고정 장착","상시녹화형 장착"]',
+    parent_item_key: null,
+    trigger_value: null,
+    display_order: 2,
+  },
+  safedrive: {
+    item_label: '안전운전점수 서비스',
+    input_type: 'SINGLE_CHOICE',
+    options: '["이용 중","미이용"]',
+    parent_item_key: null,
+    trigger_value: null,
+    display_order: 3,
+  },
+  safedriveService: {
+    item_label: '안전운전점수 서비스명',
+    input_type: 'SINGLE_CHOICE',
+    options: null,
+    parent_item_key: 'safedrive',
+    trigger_value: '이용 중',
+    display_order: 4,
+  },
+  safedriveScore: {
+    item_label: '안전운전점수',
+    input_type: 'NUMBER',
+    options: null,
+    parent_item_key: 'safedrive',
+    trigger_value: '이용 중',
+    display_order: 5,
+  },
+  fcw: {
+    item_label: '전방충돌방지장치',
+    input_type: 'SINGLE_CHOICE',
+    options: '["출고 시 장착","미장착","확인 필요"]',
+    parent_item_key: null,
+    trigger_value: null,
+    display_order: 6,
+  },
+  ldw: {
+    item_label: '차선이탈경고장치',
+    input_type: 'SINGLE_CHOICE',
+    options: '["출고 시 장착","미장착","확인 필요"]',
+    parent_item_key: null,
+    trigger_value: null,
+    display_order: 7,
+  },
+};
+
+async function ensureChecklistItems(
+  tx: Omit<
+    PrismaClient,
+    '$connect' | '$disconnect' | '$on' | '$transaction' | '$extends' | '$use'
+  >,
+) {
+  for (const key of CHECKLIST_KEYS) {
+    const def = CHECKLIST_ITEM_DEFS[key];
+    await tx.checklist_items.upsert({
+      where: { item_key: key },
+      create: {
+        item_key: key,
+        item_label: def.item_label,
+        input_type: def.input_type,
+        options: def.options,
+        allow_unknown: true,
+        parent_item_key: def.parent_item_key,
+        trigger_value: def.trigger_value,
+        is_rider_judgment: true,
+        display_order: def.display_order,
+        is_active: true,
+      },
+      update: {
+        is_active: true,
+        item_label: def.item_label,
+      },
+    });
+  }
+}
 
 function mapGender(g: string) {
   return g === '여' || g === 'FEMALE' ? 'FEMALE' : 'MALE';
@@ -150,21 +254,34 @@ export async function saveConsultation(input: any) {
         profile_id: riskProfile.profile_id,
         consultation_type: consultationType,
         memo: memo ?? null,
+        checklist_snapshot: JSON.stringify(checklist ?? {}),
         status: 'COMPLETED',
       },
     });
 
-    // 6) checklist answers (item_key로 item_id 조회)
+    // 6) checklist items 보장 후 답변 저장
+    await ensureChecklistItems(tx);
     const items = await tx.checklist_items.findMany({
-      where: { item_key: { in: [...CHECKLIST_KEYS] }, is_active: true },
+      where: { is_active: true },
     });
     const itemByKey = new Map(items.map((i) => [i.item_key, i.item_id]));
 
     for (const key of CHECKLIST_KEYS) {
       const value = checklist?.[key];
       if (value == null || value === '') continue;
-      const itemId = itemByKey.get(key);
-      if (!itemId) continue; // 시드에 item_key 없으면 skip
+      let itemId: number | undefined;
+      for (const candidate of CHECKLIST_KEY_CANDIDATES[key]) {
+        const found = itemByKey.get(candidate);
+        if (found != null) {
+          itemId = found;
+          break;
+        }
+      }
+      if (itemId == null) {
+        // ensureChecklistItems 후에도 없으면 camelCase 키로 재조회
+        itemId = itemByKey.get(key);
+      }
+      if (itemId == null) continue;
       await tx.consultation_checklist_answers.create({
         data: {
           consultation_id: consultation.consultation_id,

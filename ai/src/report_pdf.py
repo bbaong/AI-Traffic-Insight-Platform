@@ -18,6 +18,26 @@ from src.inference import predict_from_input
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = ROOT / "templates"
 
+_playwright = None
+_browser = None
+
+def _get_browser():
+    global _playwright, _browser
+    browsers_dir = _configure_playwright_browsers_path()
+    exe = _find_chromium_executable(browsers_dir)
+    if _browser is not None and _browser.is_connected():
+        return _browser
+    from playwright.sync_api import sync_playwright
+    _playwright = sync_playwright().start()
+    if exe is not None:
+        _browser = _playwright.chromium.launch(
+            executable_path=str(exe),
+            headless=True,
+        )
+    else:
+        _browser = _playwright.chromium.launch(headless=True)
+    return _browser
+
 
 def _stable_browsers_dir() -> Path:
     override = (os.environ.get("AI_PLAYWRIGHT_BROWSERS_PATH") or "").strip()
@@ -72,45 +92,31 @@ def _render_html(context: dict[str, Any]) -> str:
 
 
 def _html_to_pdf_bytes(html: str) -> bytes:
-    browsers_dir = _configure_playwright_browsers_path()
-    exe = _find_chromium_executable(browsers_dir)
     try:
-        with sync_playwright() as p:
-            if exe is not None:
-                browser = p.chromium.launch(
-                    executable_path=str(exe),
-                    headless=True,
-                )
-            else:
-                browser = p.chromium.launch(headless=True)
-            try:
-                page = browser.new_page()
-                page.set_content(html, wait_until="networkidle")
-                pdf = page.pdf(
-                    format="A4",
-                    print_background=True,
-                    margin={
-                        "top": "12mm",
-                        "bottom": "12mm",
-                        "left": "12mm",
-                        "right": "12mm",
-                    },
-                )
-            finally:
-                browser.close()
-    except PlaywrightError as exc:
-        msg = str(exc)
-        if "Executable doesn't exist" in msg or "playwright install" in msg.lower():
+        browser = _get_browser()
+        page = browser.new_page()
+        try:
+            page.set_content(html, wait_until="load")
+            return page.pdf(
+                format="A4",
+                print_background=True,
+                margin={
+                    "top": "12mm",
+                    "bottom": "12mm",
+                    "left": "12mm",
+                    "right": "12mm",
+                },
+            )
+        finally:
+            page.close()
+    except PlaywrightError as e:
+        msg = str(e)
+        if "Executable doesn't exist" in msg or "chromium" in msg.lower():
             raise RuntimeError(
                 "Playwright Chromium이 없습니다. "
-                f"브라우저 경로: {browsers_dir}\n"
-                "외부 터미널(같은 Python)에서:\n"
-                f'  set PLAYWRIGHT_BROWSERS_PATH={browsers_dir}\n'
-                "  python -m playwright install chromium\n"
-                "설치 후 AI(uvicorn)를 재시작하세요."
-            ) from exc
+                "`python -m playwright install chromium` 후 AI 서버를 재시작하세요."
+            ) from e
         raise
-    return pdf
 
 def build_ins_report_pdf(
     *,
@@ -167,6 +173,120 @@ def _format_period(raw: str | None) -> str:
         return f"{h.group(1)}년 {half}"
     return str(raw)
 
+_SEVERITY_KEYS = ("사망사고", "중상사고", "경상사고", "부상신고사고")
+_SEVERITY_COLORS = {
+    "사망사고": "#E53935",
+    "중상사고": "#FF8A4C",
+    "경상사고": "#F0B429",
+    "부상신고사고": "#43A047",
+}
+
+_COMPARE_METRICS = (
+    ("보행자 사고", "pedestrianPct", "pedestrianCount"),
+    ("야간 사고", "nightPct", "nightCount"),
+    ("중상 이상", "seriousPct", "seriousCount"),
+    ("신호위반", "signalPct", "signalCount"),
+)
+
+
+def _build_comparison_bars(comparison: dict[str, Any] | None) -> list[dict[str, Any]]:
+    if not comparison:
+        return []
+    district = comparison.get("district") or {}
+    city = comparison.get("cityAvg") or {}
+    vals: list[float] = []
+    for _, pct_key, _ in _COMPARE_METRICS:
+        vals.append(float(district.get(pct_key) or 0))
+        vals.append(float(city.get(pct_key) or 0))
+    scale = max(vals) if vals else 1.0
+    if scale <= 0:
+        scale = 1.0
+    rows = []
+    for label, pct_key, count_key in _COMPARE_METRICS:
+        d = float(district.get(pct_key) or 0)
+        c = float(city.get(pct_key) or 0)
+        rows.append(
+            {
+                "label": label,
+                "district_pct": d,
+                "city_pct": c,
+                "district_count": int(district.get(count_key) or 0),
+                "city_count": int(city.get(count_key) or 0),
+                "district_bar": round(d / scale * 100, 1),
+                "city_bar": round(c / scale * 100, 1),
+            }
+        )
+    return rows
+
+def _build_severity_chart(series: list[dict[str, Any]] | None) -> dict[str, Any] | None:
+    if not series:
+        return None
+    w, h = 520, 200
+    pad_l, pad_r, pad_t, pad_b = 36, 24, 16, 36
+    plot_w = w - pad_l - pad_r
+    plot_h = h - pad_t - pad_b
+    n = len(series)
+    max_v = 1.0
+    for p in series:
+        counts = p.get("counts") or {}
+        for k in _SEVERITY_KEYS:
+            max_v = max(max_v, float(counts.get(k) or 0))
+    # nice max (대시보드와 비슷하게)
+    padded = max_v * 1.12
+    step = 10 if padded <= 50 else 25 if padded <= 200 else 50
+    max_y = int(__import__("math").ceil(padded / step) * step)
+
+    def x_at(i: int) -> float:
+        if n <= 1:
+            return pad_l + plot_w / 2
+        return pad_l + (i / (n - 1)) * plot_w
+
+    def y_at(v: float) -> float:
+        return pad_t + plot_h - (v / max_y) * plot_h
+
+    lines = []
+    for key in _SEVERITY_KEYS:
+        pts = []
+        for i, p in enumerate(series):
+            counts = p.get("counts") or {}
+            pts.append(f"{x_at(i):.1f},{y_at(float(counts.get(key) or 0)):.1f}")
+        lines.append(
+            {
+                "key": key,
+                "color": _SEVERITY_COLORS[key],
+                "points": " ".join(pts),
+            }
+        )
+
+    labels = []
+    for i, p in enumerate(series):
+        labels.append(
+            {
+                "x": x_at(i),
+                "text": p.get("label") or "",
+                "forecast": p.get("kind") == "forecast",
+            }
+        )
+
+    ticks = list(range(0, max_y + 1, step if step else 10))
+    if ticks[-1] != max_y:
+        ticks.append(max_y)
+
+    return {
+        "width": w,
+        "height": h,
+        "pad_l": pad_l,
+        "pad_t": pad_t,
+        "plot_w": plot_w,
+        "plot_h": plot_h,
+        "max_y": max_y,
+        "y_ticks": [{"v": t, "y": y_at(t)} for t in ticks],
+        "lines": lines,
+        "labels": labels,
+        "legend": [
+            {"key": k, "color": _SEVERITY_COLORS[k]} for k in _SEVERITY_KEYS
+        ],
+    }
 
 def _pred_count(row: dict[str, Any]) -> int:
     v = row.get("예측사고건수")
@@ -185,72 +305,103 @@ def build_gov_report_pdf(
     freq: str = "Q",
     작성자: str | None = None,
     기관: str | None = None,
+    dashboard: dict[str, Any] | None = None,
 ) -> bytes:
-    """Re-run GovGuard predict (all districts) → TOP3 + selected district PDF."""
-    rows = predict_gov_rates(지역=None, as_of=as_of, freq=freq)
-    if isinstance(rows, dict):
-        rows = [rows]
-    if not rows:
-        raise ValueError("예측 결과가 비어 있습니다.")
+    """Build GOV admin PDF from dashboard snapshot, or re-run predict as fallback."""
+    if dashboard:
+        comparison = dashboard.get("comparison")
+        context = {
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "author_name": (작성자 or "").strip() or "-",
+            "org_name": (기관 or "").strip() or "-",
+            "district_name": 지역,
+            "period_label": dashboard.get("period_label") or "-",
+            "top3": dashboard.get("top3") or [],
+            "selected": dashboard.get("selected") or {},
+            "recommendation": (
+                f"대시보드 스냅샷 기준 · "
+                f"예상사고 {(dashboard.get('selected') or {}).get('count', 0)}건"
+            ),
+            "comparison": comparison,
+            "comparisonBars": _build_comparison_bars(comparison),
+            "suggestions": dashboard.get("suggestions") or [],
+            "severityLatest": dashboard.get("severityLatest") or [],
+            "severityChart": _build_severity_chart(
+                dashboard.get("severitySeries")
+            ),
+            "includeSummary": bool(dashboard.get("includeSummary", True)),
+        }
+    else:
+        rows = predict_gov_rates(지역=None, as_of=as_of, freq=freq)
+        if isinstance(rows, dict):
+            rows = [rows]
+        if not rows:
+            raise ValueError("예측 결과가 비어 있습니다.")
 
-    selected = next((r for r in rows if str(r.get("지역")) == 지역), None)
-    if selected is None:
-        raise ValueError(f"지역을 찾을 수 없습니다: {지역}")
+        selected = next((r for r in rows if str(r.get("지역")) == 지역), None)
+        if selected is None:
+            raise ValueError(f"지역을 찾을 수 없습니다: {지역}")
 
-    by_severe = sorted(
-        rows,
-        key=lambda r: float(r.get("예측중대사고율_퍼센트") or 0),
-        reverse=True,
-    )
-    top3 = []
-    for i, r in enumerate(by_severe[:3], start=1):
-        top3.append(
-            {
-                "rank": i,
-                "region": r.get("지역"),
-                "severe_rate": float(r.get("예측중대사고율_퍼센트") or 0),
-                "count": _pred_count(r),
-                "grade": r.get("중대사고등급") or "MODERATE",
-            }
+        by_severe = sorted(
+            rows,
+            key=lambda r: float(r.get("예측중대사고율_퍼센트") or 0),
+            reverse=True,
+        )
+        top3 = []
+        for i, r in enumerate(by_severe[:3], start=1):
+            top3.append(
+                {
+                    "rank": i,
+                    "region": r.get("지역"),
+                    "severe_rate": float(r.get("예측중대사고율_퍼센트") or 0),
+                    "count": _pred_count(r),
+                    "grade": r.get("중대사고등급") or "MODERATE",
+                }
+            )
+
+        total = _pred_count(selected)
+        types = selected.get("예측사고유형_퍼센트") or {}
+        type_items = sorted(
+            (
+                (name, int(round(float(pct) / 100.0 * total)))
+                for name, pct in types.items()
+            ),
+            key=lambda x: x[1],
+            reverse=True,
         )
 
-    total = _pred_count(selected)
-    types = selected.get("예측사고유형_퍼센트") or {}
-    type_items = sorted(
-        (
-            (name, int(round(float(pct) / 100.0 * total)))
-            for name, pct in types.items()
-        ),
-        key=lambda x: x[1],
-        reverse=True,
-    )
+        base = _format_period(selected.get("기준분기"))
+        nxt = _format_period(selected.get("예측분기"))
+        period_label = (
+            f"{base} → {nxt}" if base != "-" or nxt != "-" else "-"
+        )
+        severe = float(selected.get("예측중대사고율_퍼센트") or 0)
+        recommendation = (
+            f"예측기간 {nxt} · 참고 예상사고 {total}건 · "
+            "사고유형은 기준분기 실적 비율"
+        )
+        context = {
+            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "author_name": (작성자 or "").strip() or "-",
+            "org_name": (기관 or "").strip() or "-",
+            "district_name": 지역,
+            "period_label": period_label,
+            "top3": top3,
+            "selected": {
+                "grade": selected.get("중대사고등급") or "MODERATE",
+                "severe_rate": severe,
+                "count": total,
+                "types": type_items,
+            },
+            "recommendation": recommendation,
+            "comparison": None,
+            "comparisonBars": [],
+            "suggestions": [],
+            "severityLatest": [],
+            "severityChart": None,
+            "includeSummary": True,
+        }
 
-    base = _format_period(selected.get("기준분기"))
-    nxt = _format_period(selected.get("예측분기"))
-    period_label = (
-        f"{base} → {nxt}" if base != "-" or nxt != "-" else "-"
-    )
-    severe = float(selected.get("예측중대사고율_퍼센트") or 0)
-    recommendation = (
-        f"예측기간 {nxt} · 참고 예상사고 {total}건 · "
-        "사고유형은 기준분기 실적 비율"
-    )
-
-    context = {
-        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-        "author_name": (작성자 or "").strip() or "-",
-        "org_name": (기관 or "").strip() or "-",
-        "district_name": 지역,
-        "period_label": period_label,
-        "top3": top3,
-        "selected": {
-            "grade": selected.get("중대사고등급") or "MODERATE",
-            "severe_rate": severe,
-            "count": total,
-            "types": type_items,
-        },
-        "recommendation": recommendation,
-    }
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATE_DIR)),
         autoescape=select_autoescape(["html", "xml"]),

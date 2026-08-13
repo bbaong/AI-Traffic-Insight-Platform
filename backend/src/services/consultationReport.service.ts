@@ -1,8 +1,5 @@
-import 'dotenv/config';
-import { PrismaClient } from '../generated/prisma/client';
+import { prisma } from '../lib/prisma';
 import { recommendCoverages } from './coverageRule.service';
-
-const prisma = new PrismaClient();
 
 export async function getConsultationReport(consultationId: bigint) {
   const row = await prisma.consultations.findUnique({

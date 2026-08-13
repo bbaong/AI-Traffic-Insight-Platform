@@ -51,12 +51,36 @@ class PredictResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: str = "ok"
 
+class GovPdfTop3Item(BaseModel):
+    rank: int
+    region: str
+    severe_rate: float
+    count: int
+    grade: str
+
+class GovPdfSelected(BaseModel):
+    grade: str
+    severe_rate: float
+    count: int
+    types: List[Any]  # [[name, count], ...]
+
+class GovPdfDashboardPayload(BaseModel):
+    period_label: str
+    top3: List[GovPdfTop3Item]
+    selected: GovPdfSelected
+    comparison: Optional[Dict[str, Any]] = None
+    suggestions: Optional[List[Dict[str, Any]]] = None
+    severityLatest: Optional[List[Dict[str, Any]]] = None
+    severitySeries: Optional[List[Dict[str, Any]]] = None
+    includeSummary: bool = True
+    
 class GovReportPdfRequest(BaseModel):
     지역: str = Field(..., examples=["수성구"])
     as_of: Optional[str] = None
     freq: Literal["Q", "H"] = "Q"
     작성자: Optional[str] = None
     기관: Optional[str] = None
+    dashboard: Optional[GovPdfDashboardPayload] = None
 
 class GovPredictRequest(BaseModel):
     지역: Optional[str] = Field(None, examples=["수성구"], description="구·군명. 없으면 전 지역")
