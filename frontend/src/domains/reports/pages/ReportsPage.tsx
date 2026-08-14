@@ -199,8 +199,8 @@ export function ReportsPage() {
     const a = document.createElement('a');
     a.href = pdfUrl;
     const ymd = new Date()
-      .toLocaleDateString('sv-SE') // YYYY-MM-DD
-      .replace(/-/g, '');         // YYYYMMDD
+      .toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+      .replace(/-/g, '');
     a.download = `${downloadBase}_${ymd}.pdf`;
     a.click();
   }

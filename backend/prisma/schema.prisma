@@ -26,25 +26,6 @@ model accident_condition_stats {
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model accident_records {
-  record_id                BigInt                       @id @default(autoincrement()) @db.UnsignedBigInt
-  district_id              Int                          @db.UnsignedInt
-  accident_date            DateTime                     @db.Date
-  time_of_day              accident_records_time_of_day
-  weather_condition        String                       @db.VarChar(20)
-  road_condition           String                       @db.VarChar(20)
-  vehicle_type             String                       @db.VarChar(20)
-  severity                 accident_records_severity
-  accident_type            String?                      @db.VarChar(50)
-  weather_condition_actual String?                      @db.VarChar(20)
-  source                   String                       @default("TAAS") @db.VarChar(50)
-  created_at               DateTime                     @default(now()) @db.DateTime(0)
-  districts                districts                    @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_accrecord_district")
-
-  @@index([district_id, accident_date], map: "idx_accrecord_district_date")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model checklist_items {
   item_id                        Int                              @id @default(autoincrement()) @db.UnsignedInt
   item_key                       String                           @unique(map: "item_key") @db.VarChar(50)
@@ -203,7 +184,6 @@ model districts {
   weather_grid_ny            Int?                         @db.UnsignedSmallInt
   created_at                 DateTime                     @default(now()) @db.DateTime(0)
   accident_condition_stats   accident_condition_stats[]
-  accident_records           accident_records[]
   customer_risk_profiles     customer_risk_profiles[]
   district_benchmark_metrics district_benchmark_metrics[]
   district_monthly_trend     district_monthly_trend[]
@@ -211,23 +191,6 @@ model districts {
 
   @@index([sido_code], map: "idx_districts_sido_code")
   @@index([sigungu_code], map: "idx_districts_sigungu_code")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model reports {
-  report_id      BigInt              @id @default(autoincrement()) @db.UnsignedBigInt
-  report_type    reports_report_type
-  target_type    reports_target_type
-  target_id      BigInt              @db.UnsignedBigInt
-  generated_by   BigInt              @db.UnsignedBigInt
-  included_items String?             @db.LongText
-  file_path      String?             @db.VarChar(255)
-  share_link     String?             @db.VarChar(255)
-  generated_at   DateTime            @default(now()) @db.DateTime(0)
-  users          users               @relation(fields: [generated_by], references: [user_id], onUpdate: Restrict, map: "fk_report_user")
-
-  @@index([generated_by], map: "idx_report_generated_by")
-  @@index([target_type, target_id], map: "idx_report_target")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -258,7 +221,6 @@ model users {
   consultations          consultations[]
   customer_risk_profiles customer_risk_profiles[]
   customers              customers[]
-  reports                reports[]
   user_login_logs        user_login_logs[]
   departments            departments?             @relation(fields: [department_id], references: [department_id], onUpdate: Restrict, map: "fk_users_department")
 
@@ -321,26 +283,11 @@ model district_benchmark_metrics {
   @@index([district_id, period_end], map: "idx_benchmark_district_period")
 }
 
-enum reports_report_type {
-  ADMIN_REFERENCE
-  CONSULT_REFERENCE
-}
-
-enum reports_target_type {
-  DISTRICT
-  CUSTOMER_PROFILE
-}
-
 enum consultation_discount_riders_badge {
   REVIEW_RECOMMENDED
   FURTHER_CHECK_REQUIRED
   CURRENTLY_EXCLUDED
   EXISTING_MEMBER_VERIFIED
-}
-
-enum accident_records_time_of_day {
-  DAY
-  NIGHT
 }
 
 enum checklist_items_input_type {
@@ -371,13 +318,6 @@ enum consultations_status {
 enum customer_risk_profiles_gender {
   MALE
   FEMALE
-}
-
-enum accident_records_severity {
-  DEATH
-  SERIOUS
-  MINOR
-  REPORTED
 }
 
 enum customer_risk_profiles_driving_time_slot {

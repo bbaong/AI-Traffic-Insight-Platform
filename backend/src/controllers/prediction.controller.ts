@@ -8,7 +8,10 @@ import {
   predictGovHistory as aiPredictGovHistory,
   fetchHotspots,
 } from '../services/aiPredict.service';
-import { buildGovReportPdf } from '../services/pdf/govReportPdf.service';
+import {
+  assertGovReportPdfInput,
+  buildGovReportPdf,
+} from '../services/pdf/govReportPdf.service';
 
 function handleAiError(
   res: Response,
@@ -117,18 +120,7 @@ export const predictGovHotspots = async (req: Request, res: Response) => {
 /** POST /api/prediction/gov-report-pdf — Backend Playwright PDF */
 export const predictGovReportPdf = async (req: Request, res: Response) => {
   try {
-    const { 지역, dashboard } = req.body ?? {};
-    if (!지역 || typeof 지역 !== 'string') {
-      return fail(res, 400, '지역은 필수입니다.');
-    }
-    if (!dashboard || typeof dashboard !== 'object') {
-      return fail(
-        res,
-        400,
-        '대시보드 스냅샷(dashboard)이 필요합니다. 지자체 대시보드에서 구·군을 선택한 뒤 다시 시도해 주세요.',
-      );
-    }
-
+    assertGovReportPdfInput(req.body);
     const buf = await buildGovReportPdf(req.body);
 
     res.setHeader('Content-Type', 'application/pdf');

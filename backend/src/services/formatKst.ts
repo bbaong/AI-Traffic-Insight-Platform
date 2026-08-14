@@ -1,10 +1,11 @@
-/** 예: 2026-08-14 14:47 */
+/** 예: 2026-08-14 14:47 (GOV PDF 생성일시) */
 export function formatKstDateTime(date: Date = new Date()): string {
     return date
       .toLocaleString('sv-SE', { timeZone: 'Asia/Seoul' })
       .slice(0, 16);
   }
   
+  /** 예: 2026.08.14 14:47 (보험 PDF 분석일 형식) */
   export function formatKstDateTimeDot(date: Date = new Date()): string {
     const parts = new Intl.DateTimeFormat('en-CA', {
       timeZone: 'Asia/Seoul',
