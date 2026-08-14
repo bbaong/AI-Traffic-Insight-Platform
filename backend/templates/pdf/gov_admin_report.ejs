@@ -42,7 +42,6 @@
       page-break-before: always;
       break-before: page;
     }
-    /* 비교 막대 */
     .bars { margin-top: 8px; }
     .bar-row { margin: 0 0 10px; }
     .bar-label { font-weight: 700; font-size: 11px; margin-bottom: 4px; }
@@ -55,7 +54,7 @@
       overflow: hidden;
     }
     .fill-district { display: block; height: 100%; width: var(--w, 0%); background: #21adc4; }
-.fill-city { display: block; height: 100%; width: var(--w, 0%); background: #9aa5ab; }
+    .fill-city { display: block; height: 100%; width: var(--w, 0%); background: #9aa5ab; }
     .legend-inline { font-size: 10px; color: #555; margin: 4px 0 8px; }
     .legend-dot {
       display: inline-block; width: 8px; height: 8px;
@@ -63,8 +62,6 @@
     }
     .dot-d { background: #21adc4; }
     .dot-c { background: #9aa5ab; }
-
-    /* 경중 SVG */
     .chart-wrap { margin-top: 8px; }
     .chart-legend { font-size: 10px; margin: 6px 0 0; color: #444; }
     .chart-legend span { margin-right: 10px; }
@@ -76,15 +73,15 @@
 </head>
 <body>
   <div class="brand">AI Traffic Insight · GovGuard</div>
-  <h1>{{ district_name }} 교통안전 행정 참고 리포트</h1>
-  <p class="meta">생성일시: {{ generated_at }}</p>
-  <p class="meta">작성자: {{ author_name }}</p>
-  <p class="meta">기관: {{ org_name }}</p>
-  <p class="meta">예측 기간: {{ period_label }}</p>
+  <h1><%= district_name %> 교통안전 행정 참고 리포트</h1>
+  <p class="meta">생성일시: <%= generated_at %></p>
+  <p class="meta">작성자: <%= author_name %></p>
+  <p class="meta">기관: <%= org_name %></p>
+  <p class="meta">예측 기간: <%= period_label %></p>
 
   <hr class="divider" />
 
-  {% if top3 %}
+  <% if (top3 && top3.length) { %>
   <h2>우선점검 TOP3</h2>
   <table>
     <thead>
@@ -97,191 +94,194 @@
       </tr>
     </thead>
     <tbody>
-      {% for r in top3 %}
+      <% top3.forEach(function (r) { %>
       <tr>
-        <td>{{ r.rank }}</td>
-        <td>{{ r.region }}</td>
-        <td>{{ "%.1f"|format(r.severe_rate) }}</td>
-        <td>{{ r.count }}</td>
-        <td>{{ r.grade }}</td>
+        <td><%= r.rank %></td>
+        <td><%= r.region %></td>
+        <td><%= Number(r.severe_rate).toFixed(1) %></td>
+        <td><%= r.count %></td>
+        <td><%= r.grade %></td>
       </tr>
-      {% endfor %}
+      <% }); %>
     </tbody>
   </table>
-  {% endif %}
+  <% } %>
 
-  {% if comparisonBars %}
+  <% if (comparisonBars && comparisonBars.length) { %>
   <hr class="divider" />
   <h2>구·시 비교 지표</h2>
   <p class="legend-inline">
-    <span class="legend-dot dot-d"></span>{{ district_name }}
+    <span class="legend-dot dot-d"></span><%= district_name %>
     <span class="legend-dot dot-c"></span>대구 평균
   </p>
   <div class="bars">
-    {% for row in comparisonBars %}
+    <% comparisonBars.forEach(function (row) { %>
     <div class="bar-row">
-      <div class="bar-label">{{ row.label }}</div>
+      <div class="bar-label"><%= row.label %></div>
       <div class="bar-side">
         <div class="bar-meta">
-          {{ district_name }} {{ "%.1f"|format(row.district_pct) }}%
-          {% if row.district_count %} ({{ row.district_count }}건){% endif %}
+          <%= district_name %> <%= Number(row.district_pct).toFixed(1) %>%
+          <% if (row.district_count) { %> (<%= row.district_count %>건)<% } %>
         </div>
         <div class="track">
-          <span class="fill-district" style="--w: {{ row.district_bar }}%;"></span>
+          <span class="fill-district" style="--w: <%= row.district_bar %>%;"></span>
         </div>
       </div>
       <div class="bar-side">
         <div class="bar-meta">
-          대구 평균 {{ "%.1f"|format(row.city_pct) }}%
-          {% if row.city_count %} ({{ row.city_count }}건){% endif %}
+          대구 평균 <%= Number(row.city_pct).toFixed(1) %>%
+          <% if (row.city_count) { %> (<%= row.city_count %>건)<% } %>
         </div>
         <div class="track">
-          <span class="fill-city" style="--w: {{ row.city_bar }}%;"></span>
+          <span class="fill-city" style="--w: <%= row.city_bar %>%;"></span>
         </div>
       </div>
     </div>
-    {% endfor %}
+    <% }); %>
   </div>
-  {% elif comparison %}
+  <% } else if (comparison) { %>
   <hr class="divider" />
   <h2>구·시 비교 지표</h2>
   <table>
     <thead>
       <tr>
         <th>지표</th>
-        <th>{{ district_name }}</th>
+        <th><%= district_name %></th>
         <th>대구 평균</th>
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>보행자(%)</td>
-        <td>{{ "%.1f"|format(comparison.district.pedestrianPct) }}</td>
-        <td>{{ "%.1f"|format(comparison.cityAvg.pedestrianPct) }}</td>
+        <td><%= Number(comparison.district.pedestrianPct).toFixed(1) %></td>
+        <td><%= Number(comparison.cityAvg.pedestrianPct).toFixed(1) %></td>
       </tr>
       <tr>
         <td>야간(%)</td>
-        <td>{{ "%.1f"|format(comparison.district.nightPct) }}</td>
-        <td>{{ "%.1f"|format(comparison.cityAvg.nightPct) }}</td>
+        <td><%= Number(comparison.district.nightPct).toFixed(1) %></td>
+        <td><%= Number(comparison.cityAvg.nightPct).toFixed(1) %></td>
       </tr>
       <tr>
         <td>중상·사망(%)</td>
-        <td>{{ "%.1f"|format(comparison.district.seriousPct) }}</td>
-        <td>{{ "%.1f"|format(comparison.cityAvg.seriousPct) }}</td>
+        <td><%= Number(comparison.district.seriousPct).toFixed(1) %></td>
+        <td><%= Number(comparison.cityAvg.seriousPct).toFixed(1) %></td>
       </tr>
       <tr>
         <td>신호(%)</td>
-        <td>{{ "%.1f"|format(comparison.district.signalPct) }}</td>
-        <td>{{ "%.1f"|format(comparison.cityAvg.signalPct) }}</td>
+        <td><%= Number(comparison.district.signalPct).toFixed(1) %></td>
+        <td><%= Number(comparison.cityAvg.signalPct).toFixed(1) %></td>
       </tr>
     </tbody>
   </table>
-  {% endif %}
+  <% } %>
 
-  {% if severityLatest %}
+  <% if (severityLatest && severityLatest.length) { %>
   <hr class="divider" />
   <h2>경중 구성 (최근 예측)</h2>
   <table>
     <thead><tr><th>구분</th><th>건수/비율</th></tr></thead>
     <tbody>
-      {% for row in severityLatest %}
-      <tr><td>{{ row.label }}</td><td>{{ row.value }}</td></tr>
-      {% endfor %}
+      <% severityLatest.forEach(function (row) { %>
+      <tr><td><%= row.label %></td><td><%= row.value %></td></tr>
+      <% }); %>
     </tbody>
   </table>
-  {% endif %}
+  <% } %>
 
-  {% if suggestions %}
+  <% if (suggestions && suggestions.length) { %>
   <hr class="divider" />
   <h2>우선점검 제안</h2>
   <table>
     <thead><tr><th>제안</th><th>설명</th></tr></thead>
     <tbody>
-      {% for s in suggestions %}
-      <tr><td>{{ s.title }}</td><td>{{ s.desc }}</td></tr>
-      {% endfor %}
+      <% suggestions.forEach(function (s) { %>
+      <tr><td><%= s.title %></td><td><%= s.desc %></td></tr>
+      <% }); %>
     </tbody>
   </table>
-  {% endif %}
+  <% } %>
 
-  {% if includeSummary %}
+  <% if (includeSummary) { %>
   <hr class="divider" />
   <div class="page-break">
-    <h2>선택 지역 AI 요약 · {{ district_name }}</h2>
-    <p><span class="badge">{{ selected.grade }}</span></p>
-    <p class="meta">우선점검 점수(중대율 %): {{ "%.1f"|format(selected.severe_rate) }}</p>
-    <p class="meta">예상 사고건수: {{ selected.count }}건</p>
+    <h2>선택 지역 AI 요약 · <%= district_name %></h2>
+    <p><span class="badge"><%= selected.grade %></span></p>
+    <p class="meta">우선점검 점수(중대율 %): <%= Number(selected.severe_rate).toFixed(1) %></p>
+    <p class="meta">예상 사고건수: <%= selected.count %>건</p>
 
-    {% if severityChart %}
+    <% if (severityChart) { %>
       <hr class="divider" />
       <h2>사고 추세 및 예측 (경중)</h2>
       <div class="chart-wrap">
         <svg
           width="100%"
-          viewBox="0 0 {{ severityChart.width }} {{ severityChart.height }}"
+          viewBox="0 0 <%= severityChart.width %> <%= severityChart.height %>"
           xmlns="http://www.w3.org/2000/svg"
         >
-          {% for t in severityChart.y_ticks %}
+          <% (severityChart.y_ticks || []).forEach(function (t) { %>
           <line
-            x1="{{ severityChart.pad_l }}" y1="{{ t.y }}"
-            x2="{{ severityChart.pad_l + severityChart.plot_w }}" y2="{{ t.y }}"
+            x1="<%= severityChart.pad_l %>" y1="<%= t.y %>"
+            x2="<%= severityChart.pad_l + severityChart.plot_w %>" y2="<%= t.y %>"
             stroke="#e2e6e8" stroke-width="1"
           />
           <text
-            x="{{ severityChart.pad_l - 6 }}"
-            y="{{ t.y + 3 }}"
+            x="<%= severityChart.pad_l - 6 %>"
+            y="<%= t.y + 3 %>"
             text-anchor="end"
             font-size="9"
             fill="#666"
-          >{{ t.v }}</text>
-          {% endfor %}
+          ><%= t.v %></text>
+          <% }); %>
 
-          {% for line in severityChart.lines %}
+          <% (severityChart.lines || []).forEach(function (line) { %>
           <polyline
             fill="none"
-            stroke="{{ line.color }}"
+            stroke="<%= line.color %>"
             stroke-width="2"
-            points="{{ line.points }}"
+            points="<%= line.points %>"
           />
-          {% endfor %}
+          <% }); %>
 
-          {% for lab in severityChart.labels %}
+          <% (severityChart.labels || []).forEach(function (lab) { %>
           <text
-            x="{{ lab.x }}"
-            y="{{ severityChart.height - 10 }}"
+            x="<%= lab.x %>"
+            y="<%= severityChart.height - 10 %>"
             text-anchor="middle"
             font-size="9"
-            fill="{{ '#21adc4' if lab.forecast else '#444' }}"
-          >{{ lab.text }}</text>
-          {% endfor %}
+            fill="<%= lab.forecast ? '#21adc4' : '#444' %>"
+          ><%= lab.text %></text>
+          <% }); %>
         </svg>
         <div class="chart-legend">
-          {% for L in severityChart.legend %}
-          <span
-            ><i class="swatch" style="--color: {{ L.color }}"></i
-            >{{ L.key }}</span
-          >
-          {% endfor %}
+          <% (severityChart.legend || []).forEach(function (L) { %>
+            <span>
+              <i class="swatch" style="background: <%= L.color %>;"></i>
+              <%= L.key %>
+            </span>
+          <% }); %>
         </div>
       </div>
-    {% endif %}
-    
+    <% } %>
+
     <h2>사고유형(기준분기 비율 환산)</h2>
-    {% if selected.types %}
-      {% for name, cnt in selected.types %}
-      <div class="factor">{{ name }}: {{ cnt }}건</div>
-      {% endfor %}
-    {% else %}
+    <% if (selected.types && selected.types.length) { %>
+      <% selected.types.forEach(function (pair) {
+        var name = pair[0];
+        var cnt = pair[1];
+      %>
+      <div class="factor"><%= name %>: <%= cnt %>건</div>
+      <% }); %>
+    <% } else { %>
       <p class="meta">유형 데이터 없음</p>
-    {% endif %}
+    <% } %>
 
     <h2>권고</h2>
-    <p>{{ recommendation }}</p>
+    <p><%= recommendation %></p>
 
     <div class="footer">
       본 문서는 행정 참고용이며, 처분·정책의 직접 근거가 아닙니다.
     </div>
   </div>
-  {% endif %}
+  <% } %>
 </body>
 </html>

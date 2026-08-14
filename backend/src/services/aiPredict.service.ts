@@ -1,7 +1,6 @@
 /**
  * AI 서비스 HTTP 클라이언트 (예측 / 핫스팟 / PDF 프록시)
  */
-
 const AI_BASE = process.env.AI_SERVICE_URL ?? 'http://localhost:8000';
 
 export class AiHttpError extends Error {
@@ -53,19 +52,6 @@ async function getJson(pathWithQuery: string): Promise<unknown> {
     );
   }
   return res.json();
-}
-
-async function postPdf(path: string, body: unknown): Promise<Buffer> {
-  const res = await fetch(`${AI_BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const detail = await readErrorDetail(res);
-    throw new AiHttpError('AI PDF 생성 실패', mapAiStatus(res.status), detail);
-  }
-  return Buffer.from(await res.arrayBuffer());
 }
 
 /** INS 위험도 예측 응답 */
@@ -151,14 +137,4 @@ export async function fetchHotspots(query: {
   }
   const suffix = qs.toString() ? `?${qs}` : '';
   return getJson(`/hotspots${suffix}`);
-}
-
-/** GOV 행정 참고 PDF */
-export async function fetchGovReportPdf(body: unknown): Promise<Buffer> {
-  return postPdf('/report/gov-pdf', body);
-}
-
-/** INS 상담 참고 PDF */
-export async function fetchInsReportPdf(body: unknown): Promise<Buffer> {
-  return postPdf('/report/ins-pdf', body);
 }

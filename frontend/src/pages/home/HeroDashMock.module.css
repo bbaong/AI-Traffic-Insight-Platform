@@ -27,15 +27,8 @@
   flex-shrink: 0;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  border-right: 0.5px solid color-mix(in srgb, var(--color-ink) 8%, transparent);
-}
-
-.shellGov .sidebar {
-  background: var(--color-sidebar-gov);
-}
-
-.shellIns .sidebar {
-  background: var(--color-sidebar-ins);
+  border-right: 1px solid #eceff3;
+  background: #fff;
 }
 
 .brand {
@@ -60,15 +53,8 @@
 .brandName {
   font-size: 13px;
   font-weight: var(--font-weight-medium);
-  letter-spacing: -0.01em;
-}
-
-.shellGov .brandName {
-  color: #0f4f4f;
-}
-
-.shellIns .brandName {
-  color: #5c3d2e;
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
 }
 
 .nav {
@@ -84,56 +70,39 @@
   align-items: center;
   min-height: 36px;
   padding: 0 12px;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 13px;
+  color: #5a6573;
 }
 
-.shellGov .navItem {
-  color: color-mix(in srgb, #0f4f4f 72%, transparent);
-}
-
-.shellIns .navItem {
-  color: color-mix(in srgb, #5c3d2e 72%, transparent);
+.navActive {
+  font-weight: var(--font-weight-medium);
 }
 
 .shellGov .navActive {
-  background: var(--color-sidebar-gov-active);
-  color: #fff;
-  font-weight: var(--font-weight-medium);
+  background: color-mix(in srgb, var(--color-teal) 14%, transparent);
+  color: var(--color-teal-text);
 }
 
 .shellIns .navActive {
-  background: var(--color-sidebar-ins-active);
-  color: #fff;
-  font-weight: var(--font-weight-medium);
+  background: color-mix(in srgb, var(--color-amber) 14%, transparent);
+  color: var(--color-amber-tint-text);
 }
 
 .sideFooter {
   padding: 12px 14px 16px;
-  border-top: 0.5px solid color-mix(in srgb, var(--color-ink) 8%, transparent);
 }
 
 .userName {
   display: block;
   margin: 0 0 8px;
   font-size: 12px;
-}
-
-.shellGov .userName {
-  color: color-mix(in srgb, #0f4f4f 58%, transparent);
-}
-
-.shellIns .userName {
-  color: color-mix(in srgb, #5c3d2e 58%, transparent);
+  color: var(--color-hint);
 }
 
 .logout {
   font-size: 12.5px;
-  color: var(--color-sidebar-gov-active);
-}
-
-.shellIns .logout {
-  color: var(--color-sidebar-ins-active);
+  color: var(--color-ink);
 }
 
 .main {

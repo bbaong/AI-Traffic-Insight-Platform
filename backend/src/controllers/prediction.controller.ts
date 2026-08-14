@@ -7,8 +7,8 @@ import {
   predictGov as aiPredictGov,
   predictGovHistory as aiPredictGovHistory,
   fetchHotspots,
-  fetchGovReportPdf,
 } from '../services/aiPredict.service';
+import { buildGovReportPdf } from '../services/pdf/govReportPdf.service';
 
 function handleAiError(
   res: Response,
@@ -113,15 +113,24 @@ export const predictGovHotspots = async (req: Request, res: Response) => {
   }
 };
 
-/** POST /api/prediction/gov-report-pdf — AI GOV PDF 생성 */
+
+/** POST /api/prediction/gov-report-pdf — Backend Playwright PDF */
 export const predictGovReportPdf = async (req: Request, res: Response) => {
   try {
-    const { 지역 } = req.body ?? {};
+    const { 지역, dashboard } = req.body ?? {};
     if (!지역 || typeof 지역 !== 'string') {
       return fail(res, 400, '지역은 필수입니다.');
     }
+    if (!dashboard || typeof dashboard !== 'object') {
+      return fail(
+        res,
+        400,
+        '대시보드 스냅샷(dashboard)이 필요합니다. 지자체 대시보드에서 구·군을 선택한 뒤 다시 시도해 주세요.',
+      );
+    }
 
-    const buf = await fetchGovReportPdf(req.body);
+    const buf = await buildGovReportPdf(req.body);
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
@@ -129,6 +138,16 @@ export const predictGovReportPdf = async (req: Request, res: Response) => {
     );
     return res.send(buf);
   } catch (error) {
-    return handleAiError(res, error, 'AI GOV PDF 생성 실패');
+    console.error(error);
+    const message =
+      error instanceof Error ? error.message : 'PDF 생성 실패';
+    if (
+      message.includes('필수') ||
+      message.includes('필요합니다') ||
+      message.includes('스냅샷')
+    ) {
+      return fail(res, 400, message);
+    }
+    return fail(res, 500, 'GOV PDF 생성 실패', error);
   }
 };

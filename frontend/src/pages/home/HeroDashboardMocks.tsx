@@ -6,7 +6,7 @@ import { SuggestionsCard } from '../../domains/gov/components/SuggestionsCard';
 import { InsStep1Analyze } from '../../domains/ins/components/InsStep1Analyze';
 import { InsStepIndicator } from '../../domains/ins/components/InsStepIndicator';
 import insPage from '../../domains/ins/pages/InsDashboardPage.module.css';
-import { SIDEBAR_MENUS } from '../../shared/constants/sidebarMenus';
+import { flattenSidebarMenus } from '../../shared/constants/sidebarMenus';
 import { HeroChoropleth } from './HeroChoropleth';
 import {
   HERO_GOV_COMPARISON,
@@ -63,7 +63,7 @@ function DashShell({
   children: ReactNode;
 }) {
   const isGov = tone === 'gov';
-  const menus = isGov ? SIDEBAR_MENUS.ROLE_A : SIDEBAR_MENUS.ROLE_B;
+  const menus = flattenSidebarMenus(isGov ? 'ROLE_A' : 'ROLE_B');
 
   return (
     <div

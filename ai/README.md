@@ -5,7 +5,8 @@
 
 ## 빠른 시작 (5분)
 
-아래 5단계만 실행하면 로컬에서 AI 서버와 PDF 기능까지 바로 확인할 수 있습니다.
+아래만 실행하면 로컬에서 AI 예측 서버를 확인할 수 있습니다.  
+(참고 PDF는 **Backend**에서 생성합니다. → [backend/README.md](../backend/README.md))
 
 ```bash
 python -m venv .venv
@@ -15,10 +16,6 @@ python -m venv .venv
 # Windows(cp949)에서 UTF-8 오류가 나면 먼저:
 #   $env:PYTHONUTF8 = "1"
 python -m pip install -r requirements.txt
-
-# PDF 리포트용 Chromium 설치 (uvicorn 실행과 같은 Python 환경)
-$env:PLAYWRIGHT_BROWSERS_PATH = "$env:LOCALAPPDATA\ms-playwright"
-python -m playwright install chromium
 
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
@@ -93,16 +90,10 @@ python -m venv .venv
 # Windows(cp949)에서 requirements 주석 UTF-8 오류가 나면:
 #   $env:PYTHONUTF8 = "1"
 python -m pip install -r requirements.txt
-
-# PDF 리포트(Jinja2 + Playwright) — pip와 별도로 Chromium 필요.
-# uvicorn을 실행하는 그 Python과 같은 환경에서, 샌드박스가 아닌 경로에 설치하세요.
-$env:PLAYWRIGHT_BROWSERS_PATH = "$env:LOCALAPPDATA\ms-playwright"
-python -m playwright install chromium
 ```
 
-PDF가 `cursor-sandbox-cache` / `Executable doesn't exist`로 실패하면 Cursor가 `PLAYWRIGHT_BROWSERS_PATH`를 샌드박스로 심은 경우입니다.  
-`report_pdf`는 `%LOCALAPPDATA%\ms-playwright`의 `chrome.exe`를 직접 쓰도록 우회합니다.  
-설치 후에도 실패하면 **AI(uvicorn)를 재시작**하세요. 경로는 `AI_PLAYWRIGHT_BROWSERS_PATH`로 바꿀 수 있습니다.
+상담·행정 **참고 PDF**는 AI가 아닌 Backend(Express + Playwright + EJS)에서 생성합니다.  
+Chromium 설치는 [backend/README.md](../backend/README.md)를 보세요.
 
 ### 원천 데이터
 
@@ -259,9 +250,9 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 | POST | `/predict` | InsureGuard 위험도 |
 | POST | `/predict/gov` | GovGuard 지역 예측 |
 | POST | `/predict/gov/history` | GovGuard 분기 history |
-| POST | `/report/ins-pdf` | 보험 상담 PDF 생성 |
-| POST | `/report/gov-pdf` | 지자체 리포트 PDF 생성 |
 | GET | `/hotspots` | 대구 공식 사고다발 TOP3 (지도 원) |
+
+> PDF: `POST /report/ins-pdf`, `POST /report/gov-pdf` 는 **제거됨**. Backend `POST /api/insurance/report-pdf`, `POST /api/prediction/gov-report-pdf` 사용.
 
 ### `POST /predict` 요청
 
@@ -342,17 +333,9 @@ curl "http://localhost:5000/api/prediction/predict-gov-hotspots?year=2025119"
 | `POST …/api/prediction/predict-ins` | `predictIns` | `POST /predict` |
 | `POST …/api/prediction/predict-gov` | `predictGov` | `POST /predict/gov` |
 | `GET  …/api/prediction/predict-gov-hotspots` | `predictGovHotspots` | `GET /hotspots` |
-| `POST …/api/insurance/report-pdf` | `generateInsuranceReportPdf` | `POST /report/ins-pdf` |
-| `POST …/api/prediction/gov-report-pdf` | `generateGovReportPdf` | `POST /report/gov-pdf` |
+| `POST …/api/insurance/report-pdf` | Backend Playwright PDF (draft) | — |
+| `POST …/api/prediction/gov-report-pdf` | Backend Playwright PDF (snapshot) | — |
 | Frontend 지도 원 | `GovDashboardPage` → `MapCard` `hotspots` | `kakao.maps.Circle` |
-
-### PDF 트러블슈팅 (Playwright)
-
-- 에러: `Executable doesn't exist` + `cursor-sandbox-cache` 경로
-  - 원인: Cursor 샌드박스 경로에 Chromium 바이너리가 없어서 발생
-  - 조치: `PLAYWRIGHT_BROWSERS_PATH`를 `%LOCALAPPDATA%\ms-playwright`로 고정 후 `python -m playwright install chromium`
-- 설치 후에도 실패하면 AI 서버(`uvicorn`)를 재시작하세요.
-- 브라우저 경로를 강제로 바꾸려면 `AI_PLAYWRIGHT_BROWSERS_PATH`를 사용하세요.
 
 ---
 

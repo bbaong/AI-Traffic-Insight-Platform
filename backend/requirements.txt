@@ -1,0 +1,34 @@
+# Backend dependencies
+#
+# This project uses npm (Node.js), not pip.
+# Install:
+#   npm install
+#   npx playwright install chromium
+#
+# See package.json for exact versions.
+
+# --- Runtime (package.json dependencies) ---
+# @prisma/client
+# bcrypt
+# cors
+# dotenv
+# ejs                 # PDF HTML templates
+# express
+# playwright          # HTML → PDF (Chromium binary via: npx playwright install chromium)
+
+# --- Dev (package.json devDependencies) ---
+# @types/bcrypt
+# @types/cors
+# @types/ejs
+# @types/express
+# @types/node
+# prisma
+# tsx
+# typescript
+
+# --- PDF notes ---
+# Templates: templates/pdf/*.ejs
+# Services:  src/services/pdf/
+# Routes:    POST /api/insurance/report-pdf
+#            POST /api/prediction/gov-report-pdf
+# AI FastAPI no longer generates PDFs.

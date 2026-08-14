@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>상담 참고 리포트</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+      color: #1a1a1a;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .brand { color: #5a6a6e; font-size: 11px; margin-bottom: 4px; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    .meta { color: #555; font-size: 11px; margin: 2px 0; }
+    .divider { border: 0; border-top: 1px solid #d0d5d8; margin: 14px 0; }
+    h2 { font-size: 14px; margin: 0 0 8px; }
+    dl.row { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 0 0 12px; }
+    dl.row div { min-width: 100px; }
+    dt { color: #666; font-size: 10px; margin: 0; }
+    dd { margin: 2px 0 0; font-weight: 600; }
+    .score { display: flex; align-items: center; gap: 12px; margin: 8px 0 12px; }
+    .score-num { font-size: 28px; font-weight: 700; }
+    .badge {
+      border: 1px solid #c98900; color: #8a5a00; background: #fdecc8;
+      border-radius: 6px; padding: 3px 10px; font-weight: 700; font-size: 11px;
+    }
+    .cov { margin-bottom: 10px; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e6e8; }
+    .cov.on { background: #fff7ed; border-color: #f5c896; }
+    .cov-head { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 4px; }
+    .pill { font-size: 10px; border: 1px solid currentColor; border-radius: 999px; padding: 1px 8px; }
+    .reason { color: #666; font-size: 11px; margin: 2px 0 0; }
+    .tokk { margin-bottom: 8px; padding: 8px 10px; border: 1px solid #e2e6e8; border-radius: 6px; }
+    .tokk-top { display: flex; justify-content: space-between; font-weight: 700; }
+    .summary dt { float: left; width: 110px; clear: left; color: #666; }
+    .summary dd { margin: 0 0 6px 110px; }
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+    .tokk {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .footer {
+      margin-top: 18px; padding-top: 10px; border-top: 1px solid #d0d5d8;
+      color: #666; font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="brand">AI Traffic Insight · InsureGuard<% if (org_name) { %> · <%= org_name %><% } %></div>
+  <h1><% if (customer_name) { %><%= customer_name %> <% } %>고객 상담 참고 리포트</h1>
+  <p class="meta">분석일 <%= generated_at %><% if (org_name) { %> | <%= org_name %><% } %></p>
+  <p class="meta">작성자: <%= author_name %></p>
+
+  <hr class="divider" />
+
+  <dl class="row">
+    <div><dt>성명</dt><dd><%= customer_name || '-' %></dd></div>
+    <div><dt>연령대</dt><dd><%= profile['연령대'] %></dd></div>
+    <div><dt>차종</dt><dd><%= profile['차종'] %></dd></div>
+    <div><dt>지역</dt><dd><%= profile['구군'] %></dd></div>
+  </dl>
+
+  <div class="score">
+    <div class="score-num"><%= Number(prediction['위험도']).toFixed(1) %> <span style="font-size:14px;font-weight:500">/ 100</span></div>
+    <span class="badge"><%= prediction['예측등급'] %></span>
+  </div>
+
+  <hr class="divider" />
+  <h2>표준 6대 담보 추천 결과</h2>
+  <% if (coverages && coverages.length) { coverages.forEach(function (c) { %>
+  <div class="cov <%= c.recommended ? 'on' : 'off' %>">
+    <div class="cov-head">
+      <span><%= c.name %></span>
+      <span class="pill"><%= c.recommended ? '추천' : '비추천' %></span>
+    </div>
+    <div><%= c.script %></div>
+    <p class="reason">근거: <%= c.reason %></p>
+  </div>
+  <% }); } else { %>
+  <p class="meta">담보 추천 결과가 없습니다.</p>
+  <% } %>
+
+  <hr class="page-break" />
+  <h2>맞춤 특약 검토 결과</h2>
+  <% if (tokk_results && tokk_results.length) { tokk_results.forEach(function (t) { %>
+  <div class="tokk">
+    <div class="tokk-top">
+      <span><%= t.icon %> <%= t.name %></span>
+      <span class="pill"><%= t.status_label %></span>
+    </div>
+    <p class="reason"><%= t.desc %></p>
+  </div>
+  <% }); } else { %>
+  <p class="meta">특약 검토 결과가 없습니다.</p>
+  <% } %>
+
+  <hr class="divider" />
+  <h2># 상담 요약</h2>
+  <dl class="summary">
+    <dt>주행거리</dt><dd><%= checklist.mileage || '-' %></dd>
+    <dt>블랙박스</dt><dd><%= checklist.blackbox || '-' %></dd>
+    <dt>안전운전점수</dt>
+    <dd>
+      <% if (checklist.safedrive) { %>
+        <%= checklist.safedrive %>
+        <% if (checklist.safedriveService) { %> · <%= checklist.safedriveService %><% } %>
+        <% if (checklist.safedriveScore) { %> · <%= checklist.safedriveScore %>점<% } %>
+      <% } else { %>-<% } %>
+    </dd>
+    <dt>전방충돌방지장치</dt><dd><%= checklist.fcw || '-' %></dd>
+    <dt>차선이탈경고장치</dt><dd><%= checklist.ldw || '-' %></dd>
+    <dt>상담 유형</dt><dd><%= consult_type %></dd>
+    <% if (memo) { %>
+    <dt>상담 메모</dt><dd style="white-space: pre-wrap;"><%= memo %></dd>
+    <% } %>
+  </dl>
+
+  <div class="footer">
+    본 리포트는 참고 지표이며 보험료 산출·인수 심사의 직접 근거가 아닙니다.
+  </div>
+</body>
+</html>
