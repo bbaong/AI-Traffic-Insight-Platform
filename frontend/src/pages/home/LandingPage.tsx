@@ -34,6 +34,11 @@ export function LandingPage() {
   }, [location.state]);
 
   useEffect(() => {
+    if (location.hash) return;
+    window.scrollTo(0, 0);
+  }, [location.key, location.hash]);
+
+  useEffect(() => {
     if (!location.hash) return;
     const t = window.setTimeout(() => scrollToHash(location.hash), 80);
     return () => window.clearTimeout(t);
