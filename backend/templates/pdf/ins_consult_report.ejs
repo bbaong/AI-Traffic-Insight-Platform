@@ -37,6 +37,14 @@
     .tokk-top { display: flex; justify-content: space-between; font-weight: 700; }
     .summary dt { float: left; width: 110px; clear: left; color: #666; }
     .summary dd { margin: 0 0 6px 110px; }
+    .page-break {
+      page-break-before: always;
+      break-before: page;
+    }
+    .tokk {
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
     .footer {
       margin-top: 18px; padding-top: 10px; border-top: 1px solid #d0d5d8;
       color: #666; font-size: 10px;
@@ -44,73 +52,73 @@
   </style>
 </head>
 <body>
-  <div class="brand">AI Traffic Insight · InsureGuard{% if org_name %} · {{ org_name }}{% endif %}</div>
-  <h1>{% if customer_name %}{{ customer_name }} {% endif %}고객 상담 참고 리포트</h1>
-  <p class="meta">분석일 {{ generated_at }}{% if org_name %} | {{ org_name }}{% endif %}</p>
-  <p class="meta">작성자: {{ author_name }}</p>
+  <div class="brand">AI Traffic Insight · InsureGuard<% if (org_name) { %> · <%= org_name %><% } %></div>
+  <h1><% if (customer_name) { %><%= customer_name %> <% } %>고객 상담 참고 리포트</h1>
+  <p class="meta">분석일 <%= generated_at %><% if (org_name) { %> | <%= org_name %><% } %></p>
+  <p class="meta">작성자: <%= author_name %></p>
 
   <hr class="divider" />
 
   <dl class="row">
-    <div><dt>성명</dt><dd>{{ customer_name or "-" }}</dd></div>
-    <div><dt>연령대</dt><dd>{{ profile.연령대 }}</dd></div>
-    <div><dt>차종</dt><dd>{{ profile.차종 }}</dd></div>
-    <div><dt>지역</dt><dd>{{ profile.구군 }}</dd></div>
+    <div><dt>성명</dt><dd><%= customer_name || '-' %></dd></div>
+    <div><dt>연령대</dt><dd><%= profile['연령대'] %></dd></div>
+    <div><dt>차종</dt><dd><%= profile['차종'] %></dd></div>
+    <div><dt>지역</dt><dd><%= profile['구군'] %></dd></div>
   </dl>
 
   <div class="score">
-    <div class="score-num">{{ "%.1f"|format(prediction.위험도) }} <span style="font-size:14px;font-weight:500">/ 100</span></div>
-    <span class="badge">{{ prediction.예측등급 }}</span>
+    <div class="score-num"><%= Number(prediction['위험도']).toFixed(1) %> <span style="font-size:14px;font-weight:500">/ 100</span></div>
+    <span class="badge"><%= prediction['예측등급'] %></span>
   </div>
 
   <hr class="divider" />
   <h2>표준 6대 담보 추천 결과</h2>
-  {% for c in coverages %}
-  <div class="cov {{ 'on' if c.recommended else 'off' }}">
+  <% if (coverages && coverages.length) { coverages.forEach(function (c) { %>
+  <div class="cov <%= c.recommended ? 'on' : 'off' %>">
     <div class="cov-head">
-      <span>{{ c.name }}</span>
-      <span class="pill">{{ '추천' if c.recommended else '비추천' }}</span>
+      <span><%= c.name %></span>
+      <span class="pill"><%= c.recommended ? '추천' : '비추천' %></span>
     </div>
-    <div>{{ c.script }}</div>
-    <p class="reason">근거: {{ c.reason }}</p>
+    <div><%= c.script %></div>
+    <p class="reason">근거: <%= c.reason %></p>
   </div>
-  {% else %}
+  <% }); } else { %>
   <p class="meta">담보 추천 결과가 없습니다.</p>
-  {% endfor %}
+  <% } %>
 
-  <hr class="divider" />
+  <hr class="page-break" />
   <h2>맞춤 특약 검토 결과</h2>
-  {% for t in tokk_results %}
+  <% if (tokk_results && tokk_results.length) { tokk_results.forEach(function (t) { %>
   <div class="tokk">
     <div class="tokk-top">
-      <span>{{ t.icon }} {{ t.name }}</span>
-      <span class="pill">{{ t.status_label }}</span>
+      <span><%= t.icon %> <%= t.name %></span>
+      <span class="pill"><%= t.status_label %></span>
     </div>
-    <p class="reason">{{ t.desc }}</p>
+    <p class="reason"><%= t.desc %></p>
   </div>
-  {% else %}
+  <% }); } else { %>
   <p class="meta">특약 검토 결과가 없습니다.</p>
-  {% endfor %}
+  <% } %>
 
   <hr class="divider" />
   <h2># 상담 요약</h2>
   <dl class="summary">
-    <dt>주행거리</dt><dd>{{ checklist.mileage or "-" }}</dd>
-    <dt>블랙박스</dt><dd>{{ checklist.blackbox or "-" }}</dd>
+    <dt>주행거리</dt><dd><%= checklist.mileage || '-' %></dd>
+    <dt>블랙박스</dt><dd><%= checklist.blackbox || '-' %></dd>
     <dt>안전운전점수</dt>
     <dd>
-      {% if checklist.safedrive %}
-        {{ checklist.safedrive }}
-        {% if checklist.safedriveService %} · {{ checklist.safedriveService }}{% endif %}
-        {% if checklist.safedriveScore %} · {{ checklist.safedriveScore }}점{% endif %}
-      {% else %}-{% endif %}
+      <% if (checklist.safedrive) { %>
+        <%= checklist.safedrive %>
+        <% if (checklist.safedriveService) { %> · <%= checklist.safedriveService %><% } %>
+        <% if (checklist.safedriveScore) { %> · <%= checklist.safedriveScore %>점<% } %>
+      <% } else { %>-<% } %>
     </dd>
-    <dt>전방충돌방지장치</dt><dd>{{ checklist.fcw or "-" }}</dd>
-    <dt>차선이탈경고장치</dt><dd>{{ checklist.ldw or "-" }}</dd>
-    <dt>상담 유형</dt><dd>{{ consult_type }}</dd>
-    {% if memo %}
-    <dt>상담 메모</dt><dd style="white-space: pre-wrap;">{{ memo }}</dd>
-    {% endif %}
+    <dt>전방충돌방지장치</dt><dd><%= checklist.fcw || '-' %></dd>
+    <dt>차선이탈경고장치</dt><dd><%= checklist.ldw || '-' %></dd>
+    <dt>상담 유형</dt><dd><%= consult_type %></dd>
+    <% if (memo) { %>
+    <dt>상담 메모</dt><dd style="white-space: pre-wrap;"><%= memo %></dd>
+    <% } %>
   </dl>
 
   <div class="footer">
