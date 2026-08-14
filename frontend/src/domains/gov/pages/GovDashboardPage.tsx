@@ -27,7 +27,7 @@ import { ComparisonCard } from '../components/ComparisonCard';
 import { PriorityTop3Card } from '../components/PriorityTop3Card';
 import { SeverityStackedCard } from '../components/SeverityStackedCard';
 import { SuggestionsCard } from '../components/SuggestionsCard';
-import styles from '../../../shared/components/dashboard/GovDashboardPage.module.css';
+import styles from './GovDashboardPage.module.css';
 import { useState, useEffect, useRef } from 'react';
 
 

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { verifyPassword } from '../../shared/api/user';
-import { useAuthStore } from '../../stores/authStore';
-import { useSettingsVerifyStore } from '../../stores/settingsVerifyStore';
+import { useAuthStore } from '../../shared/stores/authStore';
+import { useSettingsVerifyStore } from '../../shared/stores/settingsVerifyStore';
 import styles from './SettingsPage.module.css';
 
 export function SettingsVerifyPage() {

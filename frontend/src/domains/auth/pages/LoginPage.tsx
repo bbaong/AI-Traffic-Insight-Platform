@@ -8,7 +8,7 @@ import {
   EyeOffIcon,
 } from '../components/RoleIcons';
 import { ROUTES } from '../../../shared/constants/routes';
-import { useAuthStore } from '../../../stores/authStore';
+import { useAuthStore } from '../../../shared/stores/authStore';
 import styles from './LoginPage.module.css';
 
 const MAX_FAILURES = 5;

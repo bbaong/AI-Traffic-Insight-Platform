@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchDepartments } from '../../domains/auth/api/signup';
 import { changeEmail } from '../../shared/api/user';
-import { useAuthStore } from '../../stores/authStore';
+import { useAuthStore } from '../../shared/stores/authStore';
 import styles from './MyPage.module.css';
 
 function isValidEmail(value: string): boolean {

@@ -1,6 +1,6 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
-import { clearAuthStorage, useAuthStore } from '../../stores/authStore';
+import { clearAuthStorage, useAuthStore } from '../../shared/stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './LandingNav.module.css';
 import { scrollToLandingSection } from './scrollToLandingSection';

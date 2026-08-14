@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
-import { useAuthStore } from '../../stores/authStore';
+import { useAuthStore } from '../../shared/stores/authStore';
 import type { UserRole } from '../../shared/types/auth';
 
 export interface RoleRouteProps {

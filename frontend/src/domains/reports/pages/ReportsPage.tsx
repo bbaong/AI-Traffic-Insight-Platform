@@ -5,7 +5,7 @@ import { DAEGU_DISTRICTS } from '../../../shared/constants/daeguBoundaries';
 import { ROUTES } from '../../../shared/constants/routes';
 import { useDistrictStore } from '../../../shared/stores/districtStore';
 import { PdfPreviewModal } from '../../../shared/components/ui/PdfPreviewModal';
-import { useAuthStore } from '../../../stores/authStore';
+import { useAuthStore } from '../../../shared/stores/authStore';
 import { useInsReportDraftStore } from '../stores/insReportDraftStore';
 import { InsConsultReportView } from '../components/InsConsultReportView';
 import styles from './ReportsPage.module.css';

@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
-import { useAuthStore } from '../../stores/authStore';
+import { useAuthStore } from '../../shared/stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './CtaSection.module.css';
 import { scrollToLandingSection } from './scrollToLandingSection';
