@@ -3,8 +3,7 @@ import type {
   SignupGovPayload,
   SignupInsPayload,
 } from '../types/signup';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
+import { apiUrl } from '../../../shared/api/http';
 
 export type SignupResult =
   | { ok: true }
@@ -14,7 +13,7 @@ export type SignupResult =
 export async function checkLoginId(
   loginId: string,
 ): Promise<{ available: boolean }> {
-  const res = await fetch(`${API_BASE}/api/user/idCheck`, {
+  const res = await fetch(apiUrl('/api/user/idCheck'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ login_id: loginId }),
@@ -38,7 +37,7 @@ export async function checkLoginId(
 
 /** departments 테이블 목록 */
 export async function fetchDepartments(): Promise<Department[]> {
-  const res = await fetch(`${API_BASE}/api/user/departments`);
+  const res = await fetch(apiUrl('/api/user/departments'));
 
   if (!res.ok) {
     throw new Error('fetchDepartments failed');
@@ -90,7 +89,7 @@ export async function signupIns(
 /** 회원가입 요청 */
 async function signupRequest(body: Record<string, unknown>): Promise<SignupResult> {
   // 회원가입 요청
-  const res = await fetch(`${API_BASE}/api/user/create`, {
+  const res = await fetch(apiUrl('/api/user/create'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

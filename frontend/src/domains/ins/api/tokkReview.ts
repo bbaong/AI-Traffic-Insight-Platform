@@ -5,8 +5,7 @@ import type {
   TokkResult,
   TokkStatus,
 } from '../types/consulting';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
+import { apiUrl, readJson } from "../../../shared/api/http";
 
 /** 백엔드 POST /api/discount-riders/evaluate 응답 한 건 */
 interface DiscountRiderApiItem {
@@ -72,18 +71,16 @@ function mapRiderItem(item: DiscountRiderApiItem): TokkResult {
 export async function fetchTokkReview(
   input: ChecklistAnswers,
 ): Promise<TokkResult[]> {
-  const res = await fetch(`${API_BASE}/api/discount-riders/evaluate`, {
+  const res = await fetch(apiUrl('/api/discount-riders/evaluate'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 
-  let json: ApiResponse<DiscountRiderApiItem[]>;
-  try {
-    json = (await res.json()) as ApiResponse<DiscountRiderApiItem[]>;
-  } catch {
-    throw new Error('특약 검토 응답을 해석하지 못했습니다.');
-  }
+  const json = await readJson<ApiResponse<DiscountRiderApiItem[]>>(
+    res,
+    '특약 검토 응답을 해석하지 못했습니다.',
+  );
 
   if (!res.ok || !json.success || !Array.isArray(json.data)) {
     throw new Error(json.message ?? '특약 검토에 실패했습니다.');

@@ -1,6 +1,5 @@
 import type { LoginPayload, LoginResult, UserRole } from '../../../shared/types/auth';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
+import { apiUrl } from '../../../shared/api/http';
 
 function isUserRole(value: unknown): value is UserRole {
   return value === 'ROLE_A' || value === 'ROLE_B';
@@ -8,13 +7,10 @@ function isUserRole(value: unknown): value is UserRole {
 
 /** 로그인 */
 export async function login(payload: LoginPayload): Promise<LoginResult> {
-  const res = await fetch(`${API_BASE}/api/user/login`, {
+  const res = await fetch(apiUrl('/api/user/login'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      id: payload.loginId,
-      password: payload.password,
-    }),
+    body: JSON.stringify({ id: payload.loginId, password: payload.password }),
   });
 
   const data = (await res.json().catch(() => ({}))) as {

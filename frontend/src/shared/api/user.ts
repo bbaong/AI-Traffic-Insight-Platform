@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
+import { apiUrl } from "./http";
 
 export type ChangePasswordResult =
   | { ok: true; message: string }
@@ -13,7 +13,7 @@ export async function verifyPassword(payload: {
   userId: number;
   password: string;
 }): Promise<VerifyPasswordResult> {
-  const res = await fetch(`${API_BASE}/api/user/verify-password`, {
+  const res = await fetch(apiUrl('/api/user/verify-password'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -45,7 +45,7 @@ export async function changePassword(payload: {
   userId: number;
   newPassword: string;
 }): Promise<ChangePasswordResult> {
-  const res = await fetch(`${API_BASE}/api/user/password`, {
+  const res = await fetch(apiUrl('/api/user/password'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -80,7 +80,7 @@ export async function changeEmail(payload: {
   userId: number;
   email: string;
 }): Promise<ChangeEmailResult> {
-  const res = await fetch(`${API_BASE}/api/user/email`, {
+  const res = await fetch(apiUrl('/api/user/email'), {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

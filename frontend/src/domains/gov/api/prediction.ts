@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
+import { apiUrl } from "../../../shared/api/http";
 export type GovFreq = 'Q' | 'H';
 
 /** 상해정도 키 — AI SEVERITY_ORDER와 동일 */
@@ -210,7 +210,7 @@ export async function fetchGovForecasts(options?: {
   if (options?.scope) q.set('scope', options.scope);
 
   const res = await fetch(
-    `${API_BASE}/api/prediction/gov-forecasts?${q.toString()}`,
+    apiUrl(`/api/prediction/gov-forecasts?${q.toString()}`),
   );
   const json = await res.json();
   if (!res.ok || !json.success || !json.data) {
@@ -230,7 +230,7 @@ export async function fetchGovForecasts(options?: {
 export async function predictGov(
   body: GovPredictRequest = {},
 ): Promise<GovPredictResult | GovPredictResult[]> {
-  const res = await fetch(`${API_BASE}/api/prediction/predict-gov`, {
+  const res = await fetch(apiUrl('/api/prediction/predict-gov'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -250,7 +250,7 @@ export async function predictGov(
 export async function predictGovHistory(
   body: GovHistoryRequest,
 ): Promise<GovHistoryResponse> {
-  const res = await fetch(`${API_BASE}/api/prediction/predict-gov-history`, {
+  const res = await fetch(apiUrl('/api/prediction/predict-gov-history'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -276,7 +276,7 @@ export async function predictGovHotspots(options?: {
   if (options?.refresh) qs.set('refresh', 'true');
   const suffix = qs.toString() ? `?${qs}` : '';
   const res = await fetch(
-    `${API_BASE}/api/prediction/predict-gov-hotspots${suffix}`,
+    apiUrl(`/api/prediction/predict-gov-hotspots${suffix}`),
   );
   const json = await res.json();
   if (!res.ok || !json.success) {

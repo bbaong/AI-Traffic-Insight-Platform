@@ -3,8 +3,7 @@ import type {
   ConsultationPayload,
   SaveConsultationResult,
 } from '../types/consulting';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
+import { apiUrl, readJson } from "../../../shared/api/http";
 
 interface SaveConsultationApiData {
   consultationId: string;
@@ -34,7 +33,7 @@ export async function saveConsultation(
     throw new Error('프로필(지역·연령·성별·차종)은 필수입니다.');
   }
 
-  const res = await fetch(`${API_BASE}/api/consultations/save`, {
+  const res = await fetch(apiUrl('/api/consultations/save'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -47,12 +46,10 @@ export async function saveConsultation(
     }),
   });
 
-  let json: ApiResponse<SaveConsultationApiData>;
-  try {
-    json = (await res.json()) as ApiResponse<SaveConsultationApiData>;
-  } catch {
-    throw new Error('상담 저장 응답을 해석하지 못했습니다.');
-  }
+  const json = await readJson<ApiResponse<SaveConsultationApiData>>(
+    res,
+    '상담 저장 응답을 해석하지 못했습니다.',
+  );
 
   if (!res.ok || !json.success || json.data == null) {
     throw new Error(json.message ?? '상담 저장에 실패했습니다.');

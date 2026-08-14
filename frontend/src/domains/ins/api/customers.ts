@@ -4,16 +4,7 @@ import type {
   CustomerListItem,
   ReportItem,
 } from '../types/customers';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
-
-async function readJson<T>(res: Response): Promise<T> {
-  try {
-    return (await res.json()) as T;
-  } catch {
-    throw new Error('응답을 해석하지 못했습니다.');
-  }
-}
+import { apiUrl, readJson } from "../../../shared/api/http";
 
 /** GET /api/customers — json.data만 사용 */
 export async function fetchCustomers(
@@ -21,7 +12,7 @@ export async function fetchCustomers(
   userId?: number,
 ): Promise<CustomerListItem[]> {
   if (userId == null) throw new Error('로그인이 필요합니다.');
-  const url = new URL(`${API_BASE}/api/customers`);
+  const url = new URL(apiUrl('/api/customers'));
   url.searchParams.set('userId', String(userId));
   const query = q?.trim();
   if (query) url.searchParams.set('q', query);
@@ -50,7 +41,7 @@ export async function hideCustomer(
   userId: number,
 ): Promise<HideCustomerResult> {
   const url = new URL(
-    `${API_BASE}/api/customers/${encodeURIComponent(customerId)}/hide`,
+    apiUrl(`/api/customers/${encodeURIComponent(customerId)}/hide`),
   );
   url.searchParams.set('userId', String(userId));
   const res = await fetch(url.toString(), { method: 'PATCH' });
@@ -111,7 +102,7 @@ export async function fetchCustomerConsultations(
   userId: number,
 ): Promise<ConsultationsResponse> {
   const url = new URL(
-    `${API_BASE}/api/customers/${encodeURIComponent(customerId)}/consultations`,
+    apiUrl(`/api/customers/${encodeURIComponent(customerId)}/consultations`),
   );
   url.searchParams.set('userId', String(userId));
   const res = await fetch(url.toString());
@@ -150,7 +141,7 @@ export async function fetchConsultationReport(
   _riskGrade?: string | null,
 ): Promise<ReportItem[]> {
   const res = await fetch(
-    `${API_BASE}/api/consultations/${encodeURIComponent(consultationId)}/report`,
+    apiUrl(`/api/consultations/${encodeURIComponent(consultationId)}/report`),
   );
   const json = await readJson<{
     success?: boolean;
