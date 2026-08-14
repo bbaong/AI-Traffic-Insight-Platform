@@ -10,10 +10,6 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from playwright.sync_api import Error as PlaywrightError
-from playwright.sync_api import sync_playwright
-
-from src.gov_inference import predict_gov_rates
-from src.inference import predict_from_input
 
 ROOT = Path(__file__).resolve().parent.parent
 TEMPLATE_DIR = ROOT / "templates"
@@ -21,6 +17,7 @@ TEMPLATE_DIR = ROOT / "templates"
 _playwright = None
 _browser = None
 
+# playwright 브라우저 경로 설정
 def _get_browser():
     global _playwright, _browser
     browsers_dir = _configure_playwright_browsers_path()
@@ -38,7 +35,7 @@ def _get_browser():
         _browser = _playwright.chromium.launch(headless=True)
     return _browser
 
-
+# 브라우저 경로 설정
 def _stable_browsers_dir() -> Path:
     override = (os.environ.get("AI_PLAYWRIGHT_BROWSERS_PATH") or "").strip()
     if override:
@@ -46,7 +43,7 @@ def _stable_browsers_dir() -> Path:
     local = os.environ.get("LOCALAPPDATA") or os.environ.get("HOME") or str(Path.home())
     return Path(local) / "ms-playwright"
 
-
+# playwright 브라우저 경로 설정
 def _configure_playwright_browsers_path() -> Path:
     """Force a stable browser dir; Cursor sandbox cache often lacks binaries."""
     preferred = _stable_browsers_dir()
@@ -62,11 +59,10 @@ def _configure_playwright_browsers_path() -> Path:
     os.environ.setdefault("PLAYWRIGHT_CHROMIUM_USE_HEADLESS_SHELL", "0")
     return Path(os.environ["PLAYWRIGHT_BROWSERS_PATH"])
 
-
 # uvicorn may inherit PLAYWRIGHT_BROWSERS_PATH=cursor-sandbox-cache
 _configure_playwright_browsers_path()
 
-
+# 브라우저 경로 설정
 def _find_chromium_executable(browsers_dir: Path) -> Path | None:
     patterns = (
         "chromium-*/chrome-win64/chrome.exe",
@@ -81,7 +77,7 @@ def _find_chromium_executable(browsers_dir: Path) -> Path | None:
             return found[0]
     return None
 
-
+# HTML 렌더링
 def _render_html(context: dict[str, Any]) -> str:
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATE_DIR)),
@@ -90,7 +86,7 @@ def _render_html(context: dict[str, Any]) -> str:
     tpl = env.get_template("ins_consult_report.html")
     return tpl.render(**context)
 
-
+# HTML을 PDF로 변환
 def _html_to_pdf_bytes(html: str) -> bytes:
     try:
         browser = _get_browser()
@@ -118,48 +114,79 @@ def _html_to_pdf_bytes(html: str) -> bytes:
             ) from e
         raise
 
+_TOKK_LABEL = {
+    "RECOMMEND": "권장",
+    "CHECK": "추천",
+    "EXCLUDE": "제외",
+    "EXISTING": "기존가입",
+}
+
+# 보험 참고 리포트 생성
 def build_ins_report_pdf(
     *,
     구군: str,
     연령대: str,
     성별: str,
     차종: str,
+    예측등급: str,
+    위험도: float,
+    담보추천: list[dict[str, Any]] | None = None,
     고객명: str | None = None,
     작성자: str | None = None,
     memo: str | None = None,
+    checklist: dict[str, Any] | None = None,
+    tokkResults: list[dict[str, Any]] | None = None,
+    analyzedAt: str | None = None,
+    consultType: str | None = None,
+    orgName: str | None = None,
 ) -> bytes:
-    """Same calculation path as on-screen: predict + coverage rules → PDF."""
-    prediction = predict_from_input(
-        구군=구군,
-        연령대=연령대,
-        성별=성별,
-        차종=차종,
-    )
-    top = sorted(
-        prediction.get("등급확률", {}).items(),
-        key=lambda x: x[1],
-        reverse=True,
-    )[:3]
+    """Render consult PDF from FE draft snapshot (no re-predict)."""
     memo_text = (memo or "").strip() or None
+    generated_at = (analyzedAt or "").strip() or datetime.now().strftime(
+        "%Y-%m-%d %H:%M"
+    )
+    tokk_rows = []
+    for row in tokkResults or []:
+        status = str(row.get("status") or "")
+        tokk_rows.append(
+            {
+                **row,
+                "status_label": _TOKK_LABEL.get(status, status or "-"),
+            }
+        )
+        _GRADE_LABEL = {
+            "CRITICAL": "Critical",
+            "HIGH": "High",
+            "MODERATE": "Moderate",
+            "LOW": "Low",
+        }
+        grade_key = str(예측등급 or "").upper()
+        grade_label = _GRADE_LABEL.get(grade_key, 예측등급)
     context = {
-        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "generated_at": generated_at,
         "customer_name": (고객명 or "").strip() or None,
         "author_name": (작성자 or "").strip() or "-",
+        "org_name": (orgName or "").strip() or None,
+        "consult_type": (consultType or "").strip() or "신규",
         "profile": {
             "구군": 구군,
             "연령대": 연령대,
             "성별": 성별,
             "차종": 차종,
         },
-        "prediction": prediction,
-        "top_violations": top,
-        "coverages": prediction.get("담보추천") or [],
+        "prediction": {
+            "예측등급": grade_label,
+            "위험도": float(위험도),
+        },
+        "coverages": 담보추천 or [],
+        "checklist": checklist or {},
+        "tokk_results": tokk_rows,
         "memo": memo_text,
     }
     html = _render_html(context)
     return _html_to_pdf_bytes(html)
 
-
+# 기간 포맷팅
 def _format_period(raw: str | None) -> str:
     if not raw:
         return "-"
@@ -188,7 +215,7 @@ _COMPARE_METRICS = (
     ("신호위반", "signalPct", "signalCount"),
 )
 
-
+# 비교 바 생성
 def _build_comparison_bars(comparison: dict[str, Any] | None) -> list[dict[str, Any]]:
     if not comparison:
         return []
@@ -218,6 +245,7 @@ def _build_comparison_bars(comparison: dict[str, Any] | None) -> list[dict[str, 
         )
     return rows
 
+# 심각도 차트 생성
 def _build_severity_chart(series: list[dict[str, Any]] | None) -> dict[str, Any] | None:
     if not series:
         return None
@@ -288,16 +316,7 @@ def _build_severity_chart(series: list[dict[str, Any]] | None) -> dict[str, Any]
         ],
     }
 
-def _pred_count(row: dict[str, Any]) -> int:
-    v = row.get("예측사고건수")
-    if v is None:
-        v = row.get("추정_다음분기사고건수")
-    try:
-        return int(v or 0)
-    except (TypeError, ValueError):
-        return 0
-
-
+# 지자체 참고 리포트 생성 (대시보드 스냅샷 기준)
 def build_gov_report_pdf(
     *,
     지역: str,
@@ -307,100 +326,37 @@ def build_gov_report_pdf(
     기관: str | None = None,
     dashboard: dict[str, Any] | None = None,
 ) -> bytes:
-    """Build GOV admin PDF from dashboard snapshot, or re-run predict as fallback."""
-    if dashboard:
-        comparison = dashboard.get("comparison")
-        context = {
-            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "author_name": (작성자 or "").strip() or "-",
-            "org_name": (기관 or "").strip() or "-",
-            "district_name": 지역,
-            "period_label": dashboard.get("period_label") or "-",
-            "top3": dashboard.get("top3") or [],
-            "selected": dashboard.get("selected") or {},
-            "recommendation": (
-                f"대시보드 스냅샷 기준 · "
-                f"예상사고 {(dashboard.get('selected') or {}).get('count', 0)}건"
-            ),
-            "comparison": comparison,
-            "comparisonBars": _build_comparison_bars(comparison),
-            "suggestions": dashboard.get("suggestions") or [],
-            "severityLatest": dashboard.get("severityLatest") or [],
-            "severityChart": _build_severity_chart(
-                dashboard.get("severitySeries")
-            ),
-            "includeSummary": bool(dashboard.get("includeSummary", True)),
-        }
-    else:
-        rows = predict_gov_rates(지역=None, as_of=as_of, freq=freq)
-        if isinstance(rows, dict):
-            rows = [rows]
-        if not rows:
-            raise ValueError("예측 결과가 비어 있습니다.")
+    """Build GOV admin PDF from dashboard snapshot only (no re-predict)."""
+    _ = (as_of, freq)  # API 호환용; 스냅샷 없을 때 재예측하지 않음
 
-        selected = next((r for r in rows if str(r.get("지역")) == 지역), None)
-        if selected is None:
-            raise ValueError(f"지역을 찾을 수 없습니다: {지역}")
-
-        by_severe = sorted(
-            rows,
-            key=lambda r: float(r.get("예측중대사고율_퍼센트") or 0),
-            reverse=True,
-        )
-        top3 = []
-        for i, r in enumerate(by_severe[:3], start=1):
-            top3.append(
-                {
-                    "rank": i,
-                    "region": r.get("지역"),
-                    "severe_rate": float(r.get("예측중대사고율_퍼센트") or 0),
-                    "count": _pred_count(r),
-                    "grade": r.get("중대사고등급") or "MODERATE",
-                }
-            )
-
-        total = _pred_count(selected)
-        types = selected.get("예측사고유형_퍼센트") or {}
-        type_items = sorted(
-            (
-                (name, int(round(float(pct) / 100.0 * total)))
-                for name, pct in types.items()
-            ),
-            key=lambda x: x[1],
-            reverse=True,
+    if not dashboard:
+        raise ValueError(
+            "대시보드 스냅샷(dashboard)이 필요합니다. "
+            "지자체 대시보드에서 구·군을 선택한 뒤 다시 시도해 주세요."
         )
 
-        base = _format_period(selected.get("기준분기"))
-        nxt = _format_period(selected.get("예측분기"))
-        period_label = (
-            f"{base} → {nxt}" if base != "-" or nxt != "-" else "-"
-        )
-        severe = float(selected.get("예측중대사고율_퍼센트") or 0)
-        recommendation = (
-            f"예측기간 {nxt} · 참고 예상사고 {total}건 · "
-            "사고유형은 기준분기 실적 비율"
-        )
-        context = {
-            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
-            "author_name": (작성자 or "").strip() or "-",
-            "org_name": (기관 or "").strip() or "-",
-            "district_name": 지역,
-            "period_label": period_label,
-            "top3": top3,
-            "selected": {
-                "grade": selected.get("중대사고등급") or "MODERATE",
-                "severe_rate": severe,
-                "count": total,
-                "types": type_items,
-            },
-            "recommendation": recommendation,
-            "comparison": None,
-            "comparisonBars": [],
-            "suggestions": [],
-            "severityLatest": [],
-            "severityChart": None,
-            "includeSummary": True,
-        }
+    comparison = dashboard.get("comparison")
+    context = {
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "author_name": (작성자 or "").strip() or "-",
+        "org_name": (기관 or "").strip() or "-",
+        "district_name": 지역,
+        "period_label": dashboard.get("period_label") or "-",
+        "top3": dashboard.get("top3") or [],
+        "selected": dashboard.get("selected") or {},
+        "recommendation": (
+            f"대시보드 스냅샷 기준 · "
+            f"예상사고 {(dashboard.get('selected') or {}).get('count', 0)}건"
+        ),
+        "comparison": comparison,
+        "comparisonBars": _build_comparison_bars(comparison),
+        "suggestions": dashboard.get("suggestions") or [],
+        "severityLatest": dashboard.get("severityLatest") or [],
+        "severityChart": _build_severity_chart(
+            dashboard.get("severitySeries")
+        ),
+        "includeSummary": bool(dashboard.get("includeSummary", True)),
+    }
 
     env = Environment(
         loader=FileSystemLoader(str(TEMPLATE_DIR)),
@@ -408,3 +364,7 @@ def build_gov_report_pdf(
     )
     html = env.get_template("gov_admin_report.html").render(**context)
     return _html_to_pdf_bytes(html)
+
+
+
+   

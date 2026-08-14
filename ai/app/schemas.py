@@ -21,14 +21,38 @@ class PredictRequest(BaseModel):
 
     model_config = {"populate_by_name": True}
 
+class InsPdfChecklist(BaseModel):
+    mileage: str = ""
+    blackbox: str = ""
+    safedrive: str = ""
+    safedriveService: str = ""
+    safedriveScore: str = ""
+    fcw: str = ""
+    ldw: str = ""
+
+class InsPdfTokkItem(BaseModel):
+    id: str
+    name: str
+    desc: str = ""
+    status: str
+    icon: str = ""
+
 class InsReportPdfRequest(BaseModel):
     구군: str
     연령대: str
     성별: str
     차종: str
+    예측등급: str
+    위험도: float
+    담보추천: List[CoverageRecommendItem] = Field(default_factory=list)
     고객명: Optional[str] = None
     작성자: Optional[str] = None
     memo: Optional[str] = None
+    checklist: Optional[InsPdfChecklist] = None
+    tokkResults: Optional[List[InsPdfTokkItem]] = None
+    analyzedAt: Optional[str] = None
+    consultType: Optional[str] = None
+    orgName: Optional[str] = None
 
     model_config = {"populate_by_name": True}
 

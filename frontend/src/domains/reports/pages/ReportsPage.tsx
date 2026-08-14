@@ -182,25 +182,15 @@ export function ReportsPage() {
       setPdfError('대시보드에서「상담 참고 리포트 생성」으로 이동해 주세요.');
       return;
     }
-    const {
-      memo,
-      예측등급: _grade,
-      위험도: _score,
-      담보추천: _coverages,
-      checklist: _checklist,
-      analyzedAt: _analyzedAt,
-      consultType: _consultType,
-      orgName: _orgName,
-      ...rest
-    } = insDraft;
+    const { source: _source, memo, ...draftFields } = insDraft;
+    const name = (insDraft.고객명?.trim() || '고객').replace(/[\\/:*?"<>|]/g, '_');
     await runPdfJob(
-      () =>
-        fetchInsReportPdf({
-          ...rest,
+      () => fetchInsReportPdf({
+          ...draftFields,
           ...(includeMemo && memo ? { memo } : {}),
           작성자: user?.name || undefined,
         }),
-      `상담참고리포트_${insDraft.구군}`,
+      `상담참고리포트_${name}`,
     );
   }
 
@@ -208,7 +198,10 @@ export function ReportsPage() {
     if (!pdfUrl) return;
     const a = document.createElement('a');
     a.href = pdfUrl;
-    a.download = `${downloadBase}_${Date.now()}.pdf`;
+    const ymd = new Date()
+      .toLocaleDateString('sv-SE') // YYYY-MM-DD
+      .replace(/-/g, '');         // YYYYMMDD
+    a.download = `${downloadBase}_${ymd}.pdf`;
     a.click();
   }
 

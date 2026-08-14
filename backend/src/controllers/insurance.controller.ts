@@ -23,9 +23,23 @@ export const analyzeInsurance = async (req: Request, res: Response) => {
 // POST /api/insurance/report-pdf — AI PDF proxy (application/pdf)
 export const reportPdfInsurance = async (req: Request, res: Response) => {
   try {
-    const { 구군, 연령대, 성별, 차종 } = req.body ?? {};
+    const {
+      구군,
+      연령대,
+      성별,
+      차종,
+      예측등급,
+      위험도,
+      담보추천,
+    } = req.body ?? {};
     if (!구군 || !연령대 || !성별 || !차종) {
       return fail(res, 400, '구군, 연령대, 성별, 차종은 필수입니다.');
+    }
+    if (예측등급 == null || 예측등급 === '' || 위험도 == null || 위험도 === '') {
+      return fail(res, 400, '예측등급, 위험도는 필수입니다. (미리보기 draft를 보내 주세요)');
+    }
+    if (!Array.isArray(담보추천)) {
+      return fail(res, 400, '담보추천 배열이 필요합니다.');
     }
 
     const buf = await fetchInsReportPdf(req.body);
