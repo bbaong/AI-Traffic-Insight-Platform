@@ -25,6 +25,7 @@ import {
   COMPARE_MAX_CHIPS,
   DISTRICT_COLOR_BY_CODE,
   DISTRICT_COLOR_LEGEND,
+  resolveDistrictName,
   type CompareChip,
 } from '../utils/regionCompareUi';
 import surface from '../components/compareSurface.module.css';
@@ -56,18 +57,20 @@ function matchForecastRow(
   rows: GovPredictResult[],
   name: string,
 ): GovPredictResult | undefined {
-  return rows.find(
-    (r) => r.지역 === name || r.지역.endsWith(name) || name.endsWith(r.지역),
-  );
+  const resolved = resolveDistrictName(name);
+  return rows.find((r) => resolveDistrictName(r.지역) === resolved);
+}
+
+function districtByForecastName(raw: string) {
+  const resolved = resolveDistrictName(raw);
+  return DAEGU_DISTRICTS.find((d) => d.name === resolved);
 }
 
 function rowsToRisk(rows: GovPredictResult[]): Record<string, RiskLevel> {
   const rates = rows.map((r) => r.예측사고율_퍼센트 ?? r.예측중대사고율_퍼센트 ?? 0);
   const next: Record<string, RiskLevel> = {};
   for (const row of rows) {
-    const code = DAEGU_DISTRICTS.find(
-      (d) => d.name === row.지역 || row.지역.endsWith(d.name),
-    )?.code;
+    const code = districtByForecastName(row.지역)?.code;
     if (code) {
       next[code] = severeRateToMapLevel(
         row.예측사고율_퍼센트 ?? row.예측중대사고율_퍼센트 ?? 0,
@@ -234,9 +237,7 @@ export function GovRegionComparePage() {
 
   const districtOptions: CompareChip[] = forecastRows.flatMap((row) => {
     if (row.districtId == null) return [];
-    const district = DAEGU_DISTRICTS.find(
-      (d) => d.name === row.지역 || row.지역.endsWith(d.name),
-    );
+    const district = districtByForecastName(row.지역);
     if (!district) return [];
     return [
       {

@@ -75,16 +75,18 @@ export function CompareInsightsCard({
       {insights.length === 0 ? (
         <p className={styles.empty}>표시할 인사이트가 없습니다.</p>
       ) : (
-        <ul className={styles.list}>
-          {insights.map((item, i) => (
-            <li key={`${item.key}-${item.districtId ?? 'rel'}-${i}`}>
-              <span className={styles.icon}>
-                <Icon name={insightIcon(item.key)} />
-              </span>
-              <p>{item.text}</p>
-            </li>
-          ))}
-        </ul>
+        <div className={styles.scroll}>
+          <ul className={styles.list}>
+            {insights.map((item, i) => (
+              <li key={`${item.key}-${item.districtId ?? 'rel'}-${i}`}>
+                <span className={styles.icon}>
+                  <Icon name={insightIcon(item.key)} />
+                </span>
+                <p>{item.text}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </DashboardCard>
   );

@@ -11,7 +11,7 @@ export const DISTRICT_COLORS: Record<string, string> = {
   수성구: '#75B0DB',
   달서구: '#005F27',
   달성군: '#33B540',
-  군위군: '#DF2D5A',
+  군위군: '#FF7EB6',
 };
 
 export const DISTRICT_COLOR_BY_CODE: Record<string, string> = {
@@ -23,7 +23,7 @@ export const DISTRICT_COLOR_BY_CODE: Record<string, string> = {
   suseong: '#75B0DB',
   dalseo: '#005F27',
   dalseong: '#33B540',
-  gunwi: '#DF2D5A',
+  gunwi: '#FF7EB6',
 };
 
 export const DISTRICT_COLOR_LEGEND = [
@@ -35,7 +35,7 @@ export const DISTRICT_COLOR_LEGEND = [
   { label: '수성구', color: '#75B0DB' },
   { label: '달서구', color: '#005F27' },
   { label: '달성군', color: '#33B540' },
-  { label: '군위군', color: '#DF2D5A' },
+  { label: '군위군', color: '#FF7EB6' },
 ] as const;
 
 export type CompareChip = {
@@ -44,11 +44,17 @@ export type CompareChip = {
   code: string;
 };
 
+export function resolveDistrictName(raw: string): string | null {
+  if (DISTRICT_COLORS[raw]) return raw;
+  const hit = Object.keys(DISTRICT_COLORS)
+    .filter((n) => raw.endsWith(n))
+    .sort((a, b) => b.length - a.length)[0];
+  return hit ?? null;
+}
+
 export function districtColor(name: string): string {
-  const hit = Object.keys(DISTRICT_COLORS).find(
-    (n) => name === n || name.endsWith(n) || n.endsWith(name),
-  );
-  return (hit && DISTRICT_COLORS[hit]) || CITY_AVG_COLOR;
+  const key = resolveDistrictName(name);
+  return (key && DISTRICT_COLORS[key]) || CITY_AVG_COLOR;
 }
 
 export function districtColorByCode(code: string): string {

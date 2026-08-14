@@ -31,6 +31,7 @@
     'map summary'
     'metrics types'
     'trend insights';
+  grid-template-rows: auto auto 380px;
   gap: 16px;
   align-items: stretch;
   padding: 0 20px;
@@ -72,6 +73,9 @@
 
 .cellInsights {
   grid-area: insights;
+  min-height: 0;
+  max-height: 380px;
+  overflow: hidden;
 }
 
 .cellSummary,
@@ -91,6 +95,19 @@
 .cellTrend > *,
 .cellInsights > * {
   flex: 1;
+}
+
+.cellInsights {
+  min-height: 0;
+  max-height: 380px;
+  overflow: hidden;
+}
+
+.cellInsights > * {
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .mapStatus {
@@ -179,6 +196,7 @@
 
   .grid {
     grid-template-columns: 1fr;
+    grid-template-rows: none;
     grid-template-areas:
       'map'
       'summary'
@@ -191,5 +209,10 @@
   .cellMap,
   .cellMap > :first-child {
     min-height: 360px;
+  }
+
+  .cellInsights {
+    height: 320px;
+    max-height: 320px;
   }
 }
