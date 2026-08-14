@@ -29,11 +29,25 @@ export function SolutionChapter({
     }
 
     let done = false;
+    const timers: number[] = [];
+
     const reveal = () => {
       if (done) return;
       done = true;
-      setOn(true);
       observer.disconnect();
+
+      const apply = () => setOn(true);
+
+      if (playOnMount) {
+        // 초기 CSS 상태가 먼저 그려진 뒤 transition이 실행되도록 지연
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            timers.push(window.setTimeout(apply, 60));
+          });
+        });
+      } else {
+        apply();
+      }
     };
 
     const observer = new IntersectionObserver(
@@ -55,8 +69,6 @@ export function SolutionChapter({
         reveal();
       }
     };
-
-    const timers: number[] = [];
 
     if (playOnMount) {
       requestAnimationFrame(() => {

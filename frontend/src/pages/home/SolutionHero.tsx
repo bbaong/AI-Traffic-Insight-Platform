@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
+import { HeroGovMock, HeroInsMock } from './HeroDashboardMocks';
 import styles from './SolutionHero.module.css';
 import { useFadeInClassName } from './useFadeInClassName';
 
@@ -10,8 +11,6 @@ interface SolutionHeroProps {
   eyebrow: string;
   title: string;
   body: string;
-  image: string;
-  imageAlt: string;
 }
 
 export function SolutionHero({
@@ -19,8 +18,6 @@ export function SolutionHero({
   eyebrow,
   title,
   body,
-  image,
-  imageAlt,
 }: SolutionHeroProps) {
   const { ref, className, visible } = useFadeInClassName({
     threshold: 0.2,
@@ -45,8 +42,17 @@ export function SolutionHero({
           <p className={styles.body}>{body}</p>
         </div>
 
-        <div className={styles.preview}>
-          <img src={image} alt={imageAlt} className={styles.previewImage} />
+        <div
+          className={styles.preview}
+          aria-label={
+            tone === 'gov'
+              ? '지자체 대시보드 미리보기'
+              : '보험사 상담 대시보드 미리보기'
+          }
+        >
+          <div className={styles.previewMock}>
+            {tone === 'gov' ? <HeroGovMock /> : <HeroInsMock />}
+          </div>
         </div>
       </div>
     </section>

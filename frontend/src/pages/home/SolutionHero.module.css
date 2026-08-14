@@ -95,10 +95,11 @@
   transform: translateY(0);
 }
 
-.previewImage {
+.previewMock {
+  position: relative;
   width: 100%;
-  height: auto;
-  display: block;
+  aspect-ratio: 16 / 10;
+  min-height: 260px;
 }
 
 @media (max-width: 1023px) {

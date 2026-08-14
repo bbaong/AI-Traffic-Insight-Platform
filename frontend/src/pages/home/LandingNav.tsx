@@ -1,9 +1,13 @@
+import type { MouseEvent } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
 import { clearAuthStorage, useAuthStore } from '../../shared/stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './LandingNav.module.css';
-import { scrollToLandingSection } from './scrollToLandingSection';
+import {
+  scrollToLandingSection,
+  scrollToLandingTop,
+} from './scrollToLandingSection';
 
 export function LandingNav() {
   const user = useAuthStore((s) => s.user);
@@ -30,10 +34,27 @@ export function LandingNav() {
     navigate({ pathname: ROUTES.LANDING, hash: `#${id}` });
   }
 
+  function handleLogoClick(e: MouseEvent<HTMLAnchorElement>): void {
+    if (location.pathname !== ROUTES.LANDING) return;
+
+    e.preventDefault();
+
+    if (location.hash) {
+      navigate({ pathname: ROUTES.LANDING }, { replace: true });
+    }
+
+    scrollToLandingTop();
+  }
+
   return (
     <header className={styles.nav} data-landing-nav>
       <div className={styles.left}>
-        <Link to={ROUTES.LANDING} className={styles.brand} aria-label="AI Traffic Insight 홈">
+        <Link
+          to={ROUTES.LANDING}
+          className={styles.brand}
+          aria-label="AI Traffic Insight 홈"
+          onClick={handleLogoClick}
+        >
           <img
             src="/icon_logo.png"
             alt=""
