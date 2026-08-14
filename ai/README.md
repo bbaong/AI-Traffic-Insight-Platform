@@ -160,6 +160,20 @@ python scripts/etl_accident_condition_type.py
 
 기본 기간은 CSV 최신 연도(1/1~12/31). `DATABASE_URL`은 forecast 배치와 동일.
 
+#### 월별 추세 실적 ETL (`district_monthly_trend`)
+
+지역비교 「분기별 사고 추세」 실선용. CSV → 구×월 건수. gov pkl 불필요.
+
+```bash
+python scripts/etl_district_monthly_trend.py
+# 미리보기: ETL_DRY_RUN=1 python scripts/etl_district_monthly_trend.py
+# 전체 기간: ETL_ALL=1 python scripts/etl_district_monthly_trend.py
+# 연수: ETL_YEARS_BACK=5 python scripts/etl_district_monthly_trend.py
+# 기간: ETL_PERIOD_START=2023-01-01 ETL_PERIOD_END=2025-12-31
+```
+
+기본 기간은 CSV 최신 연도 기준 **직전 3개 연도**. 적재 후 `GET /api/gov/region-compare`의 `trend.history`가 채워집니다.
+
 #### 배치 스케줄 (AI ≠ DB 서버 — 권장 운영)
 
 개발자 PC에 Windows 작업 스케줄러를 **등록하지 않습니다.**  

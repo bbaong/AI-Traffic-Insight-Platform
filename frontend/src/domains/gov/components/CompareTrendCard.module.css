@@ -23,6 +23,12 @@
   color: var(--color-hint);
 }
 
+.chartWrap {
+  position: relative;
+  width: 100%;
+  overflow: visible;
+}
+
 .svg {
   width: 100%;
   height: auto;
@@ -34,10 +40,20 @@
   fill: var(--color-hint);
 }
 
+.tickActive {
+  fill: var(--color-ink, #0f1b2d);
+  font-weight: 600;
+}
+
 .value {
   font-size: 10px;
   font-weight: var(--font-weight-medium);
   font-variant-numeric: tabular-nums;
+}
+
+.dotHit,
+.colHit {
+  cursor: pointer;
 }
 
 .legend {
@@ -67,4 +83,86 @@
 
 .legendDash {
   border-top-style: dashed;
+}
+
+.tooltip {
+  position: relative;
+  z-index: 2;
+  min-width: 140px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--color-ink, #0f1b2d);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: 0 6px 20px rgb(15 27 45 / 22%);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.tooltipAnchor {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 10px));
+}
+
+.tooltipAnchorBelow {
+  transform: translate(-50%, 12px);
+}
+
+.tooltipAnchorAbove::after,
+.tooltipAnchorBelow::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: var(--color-ink, #0f1b2d);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.tooltipAnchorAbove::after {
+  bottom: 2px;
+}
+
+.tooltipAnchorBelow::after {
+  top: 2px;
+}
+
+.tooltipTitle {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgb(255 255 255 / 88%);
+}
+
+.tooltipForecast {
+  color: #7ee8dc;
+  font-weight: 700;
+}
+
+.tooltipRow {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltipRow + .tooltipRow {
+  margin-top: 3px;
+}
+
+.tooltipSwatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.tooltipRow strong {
+  font-weight: 700;
+  margin-left: auto;
+  padding-left: 10px;
+  font-variant-numeric: tabular-nums;
 }

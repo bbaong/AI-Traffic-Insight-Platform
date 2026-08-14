@@ -72,10 +72,32 @@ export function onDistrictColor(hex: string): string {
   return yiq >= 160 ? '#1b3a4b' : '#fff';
 }
 
+/** 대시보드 「사고 추세 및 예측」과 동일: 2025Q2 → 25년 2분기 */
 export function formatQuarterLabel(raw: string): string {
   const m = /^(\d{4})-?Q([1-4])$/i.exec(raw.replace('-Q', 'Q'));
-  if (m) return `${m[1].slice(2)}-${m[2]}Q`;
+  if (m) return `${m[1].slice(2)}년 ${m[2]}분기`;
   return raw;
+}
+
+/**
+ * X축용 축약: 연도가 바뀌는 첫 분기만 `25년 1분기`, 같은 해는 `2분기` …
+ * forecast면 `예측` 접미는 호출측에서 붙임.
+ */
+export function formatQuarterLabelAxis(
+  raw: string,
+  prevRaw: string | null,
+): string {
+  const cur = /^(\d{4})-?Q([1-4])$/i.exec(raw.replace('-Q', 'Q'));
+  if (!cur) return formatQuarterLabel(raw);
+  const year = cur[1];
+  const q = cur[2];
+  const prev = prevRaw
+    ? /^(\d{4})-?Q([1-4])$/i.exec(prevRaw.replace('-Q', 'Q'))
+    : null;
+  if (!prev || prev[1] !== year) {
+    return `${year.slice(2)}년 ${q}분기`;
+  }
+  return `${q}분기`;
 }
 
 export function insightIcon(key: string): string {

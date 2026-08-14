@@ -36,7 +36,7 @@
 | 지도 색 | `GET /api/prediction/gov-forecasts` | `gov_forecast_runs`, `gov_forecast_districts` |
 | 핵심 지표 (구 1 + 시 평균) | `GET /api/gov/comparison/:districtId` → `govComparison.service.ts` | `district_benchmark_metrics` (`district_id=null` = 대구 평균) |
 | 인사이트 (구 1) | `GET /api/gov/suggestions/:districtId` → `listSuggestions` | 벤치마크 vs 시 평균 |
-| 분기 추세 (구 1) | `GET /api/gov/trend/:districtId` → `listTrend` | `district_monthly_trend` |
+| 분기 추세 (구 1) | `GET /api/gov/trend/:districtId` → `listTrend` | `district_monthly_trend` (CSV ETL: `ai/scripts/etl_district_monthly_trend.py`) |
 | 사고유형 | API 없음 | `accident_condition_stats` (`dimension=ACCIDENT_TYPE`) |
 
 **갭:** 선택 N개 구 + 대구 평균을 **한 응답**으로 주는 API 없음.

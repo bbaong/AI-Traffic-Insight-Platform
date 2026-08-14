@@ -142,7 +142,8 @@ CSV (`주야`, `사고유형`, `법규위반`, `사고내용` 등)로 파생 가
 
 ### 5.3 주 1회 파이프라인
 
-1. (기존) 원천 → benchmark, monthly_trend ETL  
+1. (기존) 원천 → benchmark ETL  
+1a. **`etl_district_monthly_trend.py`** → `district_monthly_trend` (추세 실선)  
 1b. (A안) `etl_accident_condition_type.py` → `accident_condition_stats` (`ACCIDENT_TYPE`)  
 2. (기존) `batch_gov_forecast.py` → `gov_forecast_*`  
 3. (선택) 같은 배치에서 `risk_score` 계산·저장  
@@ -184,5 +185,7 @@ CSV (`주야`, `사고유형`, `법규위반`, `사고내용` 등)로 파생 가
 | `scripts/gov_v1_0_5.py` / `models/gov_model_v1.0.5.pkl` | 분기 예측 (배치) |
 | `scripts/batch_gov_forecast.py` | pkl → DB 적재 |
 | `scripts/etl_accident_condition_type.py` | CSV → `accident_condition_stats` (유형 대분류) |
+| `scripts/etl_district_monthly_trend.py` | CSV → `district_monthly_trend` (월별 추세 실적) |
+| `scripts/batch_gov_forecast.py` | pkl → `gov_forecast_*` |
 | `src/gov_inference.py` | 실시간 추론 헬퍼 (대시보드 폴백) |
 | `docs/gov_v1_0_5_feature_spec.md` | GovGuard 피처 명세 |
