@@ -42,9 +42,6 @@ export function buildInsReportDraft(
     orgName,
     tokkResults,
   } = input;
-  const today = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const analyzedAt = `${today.getFullYear()}.${pad(today.getMonth() + 1)}.${pad(today.getDate())} ${pad(today.getHours())}:${pad(today.getMinutes())}`;
 
   return {
     구군: profile.region,
@@ -58,7 +55,7 @@ export function buildInsReportDraft(
     담보추천: prediction.담보추천 ?? [],
     checklist: { ...checklist },
     tokkResults: tokkResults ?? [],
-    analyzedAt,
+    analyzedAt: formatConsultDateTime(new Date().toISOString()),
     consultType,
     orgName: orgName || undefined,
     source: 'dashboard',
@@ -119,8 +116,8 @@ export function consultationToInsReportDraft(input: {
     memo: consult.memo?.trim() || undefined,
     예측등급: consult.riskGrade
       ? String(consult.riskGrade).toUpperCase()
-      : undefined,
-    위험도: consult.riskScore ?? undefined,
+      : '',
+    위험도: consult.riskScore ?? 0,
     담보추천: reportItems.map((item) => ({
       id: item.coverageKey,
       name: item.coverageName,

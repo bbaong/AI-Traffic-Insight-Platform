@@ -1,6 +1,7 @@
 import { gradeLabel, tokkStatusLabel } from './labels';
 import { renderPdfTemplate } from './renderTemplate';
 import { htmlToPdfBuffer } from './browser';
+import { formatKstDateTimeDot } from '../formatKst';
 
 export type InsReportPdfInput = {
   구군: string;
@@ -47,8 +48,7 @@ export function assertInsReportPdfInput(body: any): asserts body is InsReportPdf
 export async function buildInsReportPdf(body: InsReportPdfInput): Promise<Buffer> {
   const memoText = (body.memo || '').trim() || null;
   const generatedAt =
-    (body.analyzedAt || '').trim() ||
-    new Date().toISOString().slice(0, 16).replace('T', ' ');
+    (body.analyzedAt || '').trim() || formatKstDateTimeDot();
 
   const tokkResults = (body.tokkResults || []).map((row) => ({
     ...row,
