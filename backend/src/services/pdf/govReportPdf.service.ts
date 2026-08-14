@@ -1,6 +1,7 @@
 import { renderPdfTemplate } from './renderTemplate';
 import { htmlToPdfBuffer } from './browser';
 import { buildComparisonBars, buildSeverityChart } from './govChart';
+import { formatKstDateTime } from '../formatKst';
 
 export async function buildGovReportPdf(body: {
   지역: string;
@@ -17,7 +18,7 @@ export async function buildGovReportPdf(body: {
 
   const comparison = dashboard.comparison ?? null;
   const html = await renderPdfTemplate('gov_admin_report.ejs', {
-    generated_at: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    generated_at: formatKstDateTime(),
     author_name: (body.작성자 || '').trim() || '-',
     org_name: (body.기관 || '').trim() || '-',
     district_name: body.지역,
