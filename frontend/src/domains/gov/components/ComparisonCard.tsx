@@ -264,9 +264,7 @@ export function ComparisonCard({
                       title={countTitle}
                     >
                       {formatPct1(cPct)}{' '}
-                      <span className={styles.countHint}>
-                        ({formatCount(cCount)}건)
-                      </span>
+                      
                     </span>
                     <span
                       className={styles.miniTrack}

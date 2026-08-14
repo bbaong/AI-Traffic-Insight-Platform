@@ -1,9 +1,10 @@
-import type { ReactNode, RefObject } from 'react';
 import { getRiskMeta } from '../../shared/utils/riskMeta';
 import styles from './GovDetailSection.module.css';
 import { GovLandingMap } from './GovLandingMap';
+import { SolutionBeforeAfter } from './SolutionBeforeAfter';
 import { SolutionChapter } from './SolutionChapter';
-import { useFadeInClassName } from './useFadeInClassName';
+import { SolutionFlowStrip } from './SolutionFlowStrip';
+import motionStyles from './solutionMotion.module.css';
 
 const ALIAS = {
   selected: '△△구',
@@ -63,24 +64,6 @@ const SUGGESTIONS = [
   },
 ] as const;
 
-function FadeBlock({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  const { ref, className: fadeClass } = useFadeInClassName({ threshold: 0.12 });
-  return (
-    <div
-      ref={ref as RefObject<HTMLDivElement | null>}
-      className={`${className ?? ''} ${fadeClass}`.trim()}
-    >
-      {children}
-    </div>
-  );
-}
-
 function delta(district: number, city: number): string {
   const diff = district - city;
   const sign = diff > 0 ? '↑' : '↓';
@@ -93,60 +76,61 @@ export function GovDetailSection() {
   return (
     <section id="gov-section" aria-label="지자체 솔루션 상세">
       <div className={styles.beforeAfter}>
-        <div className={styles.beforeAfterInner}>
-          <FadeBlock className={`${styles.baCard} ${styles.baBefore}`}>
-            <p className={styles.baLabel}>보고 준비</p>
-            <ul className={styles.baList}>
-              {BEFORE_ITEMS.map((item) => (
-                <li key={item} className={styles.baItem}>
-                  <span className={styles.baX} aria-hidden="true">
-                    ×
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className={styles.baTime}>
-              반나절
-              <span className={styles.baTimeLabel}>월간 자료 1건</span>
-            </p>
-          </FadeBlock>
-
-          <FadeBlock className={`${styles.baCard} ${styles.baAfter}`}>
-            <p className={styles.baLabel}>같은 보고, ATI에서</p>
-            <ul className={styles.baList}>
-              {AFTER_ITEMS.map((item) => (
-                <li key={item} className={styles.baItem}>
-                  <span className={styles.baChk} aria-hidden="true">
-                    ✓
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className={styles.baTime}>
-              약 5분
-              <span className={styles.baTimeLabel}>분석부터 리포트까지</span>
-            </p>
-          </FadeBlock>
-        </div>
+        <SolutionBeforeAfter
+          innerClassName={styles.beforeAfterInner}
+          before={
+            <div className={`${styles.baCard} ${styles.baBefore}`}>
+              <p className={styles.baLabel}>보고 준비</p>
+              <ul className={styles.baList}>
+                {BEFORE_ITEMS.map((item) => (
+                  <li key={item} className={styles.baItem}>
+                    <span className={styles.baX} aria-hidden="true">
+                      ×
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className={styles.baTime}>
+                반나절
+                <span className={styles.baTimeLabel}>월간 자료 1건</span>
+              </p>
+            </div>
+          }
+          after={
+            <div className={`${styles.baCard} ${styles.baAfter}`}>
+              <p className={styles.baLabel}>같은 보고, ATI에서</p>
+              <ul className={styles.baList}>
+                {AFTER_ITEMS.map((item) => (
+                  <li key={item} className={styles.baItem}>
+                    <span className={styles.baChk} aria-hidden="true">
+                      ✓
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className={styles.baTime}>
+                약 5분
+                <span className={styles.baTimeLabel}>분석부터 리포트까지</span>
+              </p>
+            </div>
+          }
+        />
       </div>
 
       <div className={styles.main}>
-        <FadeBlock className={styles.flow}>
-          {FLOW.map((step, index) => (
-            <div key={step.num} className={styles.flowStep}>
-              {index > 0 ? (
-                <span className={styles.flowLine} aria-hidden="true" />
-              ) : null}
-              <p className={styles.flowNum}>{step.num}</p>
-              <p className={styles.flowTitle}>{step.title}</p>
-              <p className={styles.flowBody}>{step.body}</p>
-            </div>
-          ))}
-        </FadeBlock>
+        <SolutionFlowStrip
+          steps={FLOW}
+          flowClassName={styles.flow}
+          stepClassName={styles.flowStep}
+          lineClassName={styles.flowLine}
+          numClassName={styles.flowNum}
+          titleClassName={styles.flowTitle}
+          bodyClassName={styles.flowBody}
+        />
 
-        <SolutionChapter className={styles.chapter}>
+        <SolutionChapter className={styles.chapter} playOnMount>
           <div className={styles.copy}>
             <p className={styles.kicker}>01 · 지도 · 우선점검</p>
             <h2 className={styles.title}>어디를 먼저 볼지, 지도에서 고릅니다</h2>
@@ -243,7 +227,7 @@ export function GovDetailSection() {
                   </span>
                   <div
                     className={bar.forecast ? styles.trendForecast : styles.trendBar}
-                    style={{ height: `${(bar.value / maxTrend) * 72}px` }}
+                    style={{ ['--trend-h' as string]: `${(bar.value / maxTrend) * 72}px` }}
                   />
                   <span className={bar.forecast ? styles.trendLabelTeal : styles.trendLabel}>
                     {bar.label}
@@ -281,7 +265,7 @@ export function GovDetailSection() {
                 </li>
               ))}
             </ul>
-            <div className={styles.report}>
+            <div className={`${styles.report} ${motionStyles.report}`}>
               <span className={styles.reportMark}>PDF</span>
               <div>
                 <p>행정 참고 리포트</p>
