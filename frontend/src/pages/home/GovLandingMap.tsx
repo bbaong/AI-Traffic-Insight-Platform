@@ -97,6 +97,7 @@ export function GovLandingMap({ selectedLabel }: { selectedLabel: string }) {
           return district.paths.map((ring, i) => (
             <path
               key={`${district.code}-${i}`}
+              className={styles.districtPath}
               d={ringToPath(ring, project)}
               fill={RISK_COLORS[risk]}
               fillOpacity={selected ? 0.82 : 0.58}
@@ -112,6 +113,7 @@ export function GovLandingMap({ selectedLabel }: { selectedLabel: string }) {
           return (
             <circle
               key={`${spot.lat}-${spot.lng}`}
+              className={styles.hotspot}
               cx={x}
               cy={y}
               r={spot.r}

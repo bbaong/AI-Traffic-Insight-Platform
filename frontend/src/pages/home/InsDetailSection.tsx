@@ -1,7 +1,8 @@
-import type { ReactNode, RefObject } from 'react';
 import styles from './InsDetailSection.module.css';
+import { SolutionBeforeAfter } from './SolutionBeforeAfter';
 import { SolutionChapter } from './SolutionChapter';
-import { useFadeInClassName } from './useFadeInClassName';
+import { SolutionFlowStrip } from './SolutionFlowStrip';
+import motionStyles from './solutionMotion.module.css';
 
 const BEFORE_ITEMS = [
   '서류·엑셀·약관을 오가며 담보를 하나씩 확인',
@@ -52,27 +53,7 @@ const HISTORY = [
   { when: '2026.03.04', type: '신규', note: '첫 상담 · 특약 확인 남김' },
 ] as const;
 
-function FadeBlock({
-  children,
-  className,
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
-  const { ref, className: fadeClass } = useFadeInClassName({ threshold: 0.12 });
-  return (
-    <div
-      ref={ref as RefObject<HTMLDivElement | null>}
-      className={`${className ?? ''} ${fadeClass}`.trim()}
-    >
-      {children}
-    </div>
-  );
-}
-
 function ScoreGauge() {
-  const score = 74;
-
   return (
     <div className={styles.gauge} aria-hidden="true">
       <svg viewBox="0 0 200 118" className={styles.gaugeSvg}>
@@ -91,7 +72,6 @@ function ScoreGauge() {
           strokeWidth="14"
           strokeLinecap="round"
           pathLength="100"
-          strokeDasharray={`${score} 100`}
         />
       </svg>
       <div className={styles.gaugeLabel}>
@@ -106,58 +86,61 @@ export function InsDetailSection() {
   return (
     <section id="ins-section" aria-label="보험사 솔루션 상세">
       <div className={styles.beforeAfter}>
-        <div className={styles.beforeAfterInner}>
-          <FadeBlock className={`${styles.baCard} ${styles.baBefore}`}>
-            <p className={styles.baLabel}>상담 준비</p>
-            <ul className={styles.baList}>
-              {BEFORE_ITEMS.map((item) => (
-                <li key={item} className={styles.baItem}>
-                  <span className={styles.baX} aria-hidden="true">
-                    ×
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className={styles.baTime}>
-              20~30분
-              <span className={styles.baTimeLabel}>고객 한 명</span>
-            </p>
-          </FadeBlock>
-
-          <FadeBlock className={`${styles.baCard} ${styles.baAfter}`}>
-            <p className={styles.baLabel}>같은 상담, ATI에서</p>
-            <ul className={styles.baList}>
-              {AFTER_ITEMS.map((item) => (
-                <li key={item} className={styles.baItem}>
-                  <span className={styles.baChk} aria-hidden="true">
-                    ✓
-                  </span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-            <p className={styles.baTime}>
-              약 5분
-              <span className={styles.baTimeLabel}>분석부터 저장까지</span>
-            </p>
-          </FadeBlock>
-        </div>
+        <SolutionBeforeAfter
+          innerClassName={styles.beforeAfterInner}
+          before={
+            <div className={`${styles.baCard} ${styles.baBefore}`}>
+              <p className={styles.baLabel}>상담 준비</p>
+              <ul className={styles.baList}>
+                {BEFORE_ITEMS.map((item) => (
+                  <li key={item} className={styles.baItem}>
+                    <span className={styles.baX} aria-hidden="true">
+                      ×
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className={styles.baTime}>
+                20~30분
+                <span className={styles.baTimeLabel}>고객 한 명</span>
+              </p>
+            </div>
+          }
+          after={
+            <div className={`${styles.baCard} ${styles.baAfter}`}>
+              <p className={styles.baLabel}>같은 상담, ATI에서</p>
+              <ul className={styles.baList}>
+                {AFTER_ITEMS.map((item) => (
+                  <li key={item} className={styles.baItem}>
+                    <span className={styles.baChk} aria-hidden="true">
+                      ✓
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <p className={styles.baTime}>
+                약 5분
+                <span className={styles.baTimeLabel}>분석부터 저장까지</span>
+              </p>
+            </div>
+          }
+        />
       </div>
 
       <div className={styles.main}>
-        <FadeBlock className={styles.flow}>
-          {FLOW.map((step, index) => (
-            <div key={step.num} className={styles.flowStep}>
-              {index > 0 ? <span className={styles.flowLine} aria-hidden="true" /> : null}
-              <p className={styles.flowNum}>{step.num}</p>
-              <p className={styles.flowTitle}>{step.title}</p>
-              <p className={styles.flowBody}>{step.body}</p>
-            </div>
-          ))}
-        </FadeBlock>
+        <SolutionFlowStrip
+          steps={FLOW}
+          flowClassName={styles.flow}
+          stepClassName={styles.flowStep}
+          lineClassName={styles.flowLine}
+          numClassName={styles.flowNum}
+          titleClassName={styles.flowTitle}
+          bodyClassName={styles.flowBody}
+        />
 
-        <SolutionChapter className={styles.chapter}>
+        <SolutionChapter className={styles.chapter} playOnMount>
           <div className={styles.copy}>
             <p className={styles.kicker}>01 · 위험도</p>
             <h2 className={styles.title}>이 고객, 어디가 위험한지 먼저 봅니다</h2>
@@ -267,7 +250,7 @@ export function InsDetailSection() {
                 </li>
               ))}
             </ol>
-            <div className={styles.report}>
+            <div className={`${styles.report} ${motionStyles.report}`}>
               <span className={styles.reportMark}>PDF</span>
               <div>
                 <p>상담 참고 리포트</p>

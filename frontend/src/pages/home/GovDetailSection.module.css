@@ -267,6 +267,29 @@
   height: auto;
 }
 
+.districtPath {
+  opacity: 0.4;
+  transition: opacity 0.78s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
+}
+
+.chapter[data-revealed] .districtPath {
+  opacity: 1;
+}
+
+.hotspot {
+  opacity: 0;
+  transform-origin: center;
+  transition:
+    opacity 0.52s ease 0.58s,
+    transform 0.52s cubic-bezier(0.16, 1, 0.3, 1) 0.58s;
+  transform: scale(0.6);
+}
+
+.chapter[data-revealed] .hotspot {
+  opacity: 1;
+  transform: scale(1);
+}
+
 .mapHint {
   position: absolute;
   left: 10px;
@@ -400,10 +423,36 @@
 .barTrack::after {
   content: '';
   display: block;
-  width: var(--bar, 50%);
+  width: 0;
   max-width: 100%;
   height: 100%;
   border-radius: 3px;
+  transition: width 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chapter[data-revealed] .barTeal::after {
+  width: var(--bar, 50%);
+}
+
+.chapter[data-revealed] .barMuted::after {
+  width: var(--bar, 50%);
+  transition-delay: 0.1s;
+}
+
+.chapter[data-revealed] .compareRow:nth-child(1) .barTeal::after {
+  transition-delay: 0.2s;
+}
+
+.chapter[data-revealed] .compareRow:nth-child(2) .barTeal::after {
+  transition-delay: 0.32s;
+}
+
+.chapter[data-revealed] .compareRow:nth-child(3) .barTeal::after {
+  transition-delay: 0.44s;
+}
+
+.chapter[data-revealed] .compareRow:nth-child(4) .barTeal::after {
+  transition-delay: 0.56s;
 }
 
 .barTeal::after {
@@ -456,15 +505,44 @@
 
 .trendBar {
   width: 100%;
+  height: 0;
   border-radius: 4px 4px 0 0;
   background: color-mix(in srgb, var(--color-teal) 55%, var(--color-border));
+  transition: height 0.85s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .trendForecast {
   width: 100%;
+  height: 0;
   border-radius: 4px;
   border: 1.5px dashed var(--color-teal);
   background: var(--color-teal-bg);
+  transition: height 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chapter[data-revealed] .trendBar,
+.chapter[data-revealed] .trendForecast {
+  height: var(--trend-h);
+}
+
+.chapter[data-revealed] .trendCol:nth-child(1) .trendBar,
+.chapter[data-revealed] .trendCol:nth-child(1) .trendForecast {
+  transition-delay: 0.26s;
+}
+
+.chapter[data-revealed] .trendCol:nth-child(2) .trendBar,
+.chapter[data-revealed] .trendCol:nth-child(2) .trendForecast {
+  transition-delay: 0.42s;
+}
+
+.chapter[data-revealed] .trendCol:nth-child(3) .trendBar,
+.chapter[data-revealed] .trendCol:nth-child(3) .trendForecast {
+  transition-delay: 0.58s;
+}
+
+.chapter[data-revealed] .trendCol:nth-child(4) .trendBar,
+.chapter[data-revealed] .trendCol:nth-child(4) .trendForecast {
+  transition-delay: 0.74s;
 }
 
 .trendLabel,
@@ -623,10 +701,21 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .baCard,
-  .flow,
-  .chapter {
-    opacity: 1;
-    transform: none;
+  .barTrack::after,
+  .trendBar,
+  .trendForecast,
+  .districtPath,
+  .hotspot {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    width: var(--bar, 50%);
+    height: var(--trend-h);
+  }
+
+  .chapter[data-revealed] .barTeal::after,
+  .chapter[data-revealed] .barMuted::after {
+    width: var(--bar, 50%);
   }
 }

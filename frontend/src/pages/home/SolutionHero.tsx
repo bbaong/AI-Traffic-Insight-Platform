@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
 import styles from './SolutionHero.module.css';
+import { useFadeInClassName } from './useFadeInClassName';
 
 type SolutionTone = 'gov' | 'ins';
 
@@ -21,9 +22,15 @@ export function SolutionHero({
   image,
   imageAlt,
 }: SolutionHeroProps) {
+  const { ref, className, visible } = useFadeInClassName({
+    threshold: 0.2,
+    subLanding: true,
+  });
+
   return (
     <section
-      className={`${styles.section} ${tone === 'ins' ? styles.ins : styles.gov}`}
+      ref={ref}
+      className={`${styles.section} ${tone === 'ins' ? styles.ins : styles.gov} ${className} ${visible ? styles.ready : ''}`}
       aria-labelledby="solution-hero-heading"
     >
       <div className={styles.inner}>

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import govDashboardImg from '../../assets/images/hero-gov-dashboard.png';
 import { CtaSection } from './CtaSection';
 import { GovDetailSection } from './GovDetailSection';
@@ -7,15 +8,18 @@ import { LandingNav } from './LandingNav';
 import { SolutionHero } from './SolutionHero';
 
 export function GovLandingPage() {
+  const location = useLocation();
+
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [location.key]);
 
   return (
     <>
       <LandingNav />
       <main>
         <SolutionHero
+          key={`hero-${location.key}`}
           tone="gov"
           eyebrow="지자체 솔루션"
           title="어디를 먼저 점검할지, 한 화면에서"
@@ -23,8 +27,8 @@ export function GovLandingPage() {
           image={govDashboardImg}
           imageAlt="지자체 대시보드 화면: 사고위험 지도와 우선점검 제안"
         />
-        <GovDetailSection />
-        <CtaSection />
+        <GovDetailSection key={location.key} />
+        <CtaSection key={`cta-${location.key}`} />
       </main>
       <LandingFooter />
     </>

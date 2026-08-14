@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import insDashboardImg from '../../assets/images/hero-ins-dashboard.png';
 import { CtaSection } from './CtaSection';
 import { InsDetailSection } from './InsDetailSection';
@@ -7,15 +8,18 @@ import { LandingNav } from './LandingNav';
 import { SolutionHero } from './SolutionHero';
 
 export function InsLandingPage() {
+  const location = useLocation();
+
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+  }, [location.key]);
 
   return (
     <>
       <LandingNav />
       <main>
         <SolutionHero
+          key={`hero-${location.key}`}
           tone="ins"
           eyebrow="보험사 솔루션"
           title="분석부터 리포트까지, 한 화면에서"
@@ -23,8 +27,8 @@ export function InsLandingPage() {
           image={insDashboardImg}
           imageAlt="보험사 상담 대시보드 화면: 고객 프로필과 AI 분석 결과"
         />
-        <InsDetailSection />
-        <CtaSection />
+        <InsDetailSection key={location.key} />
+        <CtaSection key={`cta-${location.key}`} />
       </main>
       <LandingFooter />
     </>

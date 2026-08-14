@@ -1,0 +1,20 @@
+/* Slower fade for gov/ins sub-landing only (main landing uses fadeIn.module.css) */
+
+.fadeIn {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.fadeInVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fadeIn {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

@@ -128,7 +128,7 @@ export function PriorityTop3Card({
           </table>
         )}
         <Link className={styles.reportBtn} to={ROUTES.REPORTS}>
-          상세 리포트 보기 →
+          상세 리포트 만들기 →
         </Link>
       </div>
     </DashboardCard>
