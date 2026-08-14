@@ -9,6 +9,7 @@ import discountRiderRoutes from './routes/discountRider.route';
 import consultationRoutes from './routes/consultation.route';
 import customerRoutes from './routes/customer.route';
 import govRoutes from './routes/gov.route';
+import { closePdfBrowser } from './services/pdf/browser';
 
 const app = express();
 const port = 5000;
@@ -27,6 +28,7 @@ app.use('/api/consultations', consultationRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/gov', govRoutes);
 
+
 app.get('/health', (_req: Request, res: Response) => {
   res.status(200).json({ success: true, data: { status: 'ok' } });
 });
@@ -35,6 +37,25 @@ app.get('/', (_req: Request, res: Response) => {
   res.send('Hello, TypeScript with Express!');
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+});
+
+let shuttingDown = false;
+
+async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  console.log(`${signal} received, shutting down`);
+
+  server.close();
+  await closePdfBrowser();
+  process.exit(0);
+}
+
+process.on('SIGTERM', () => {
+  void shutdown('SIGTERM');
+});
+process.on('SIGINT', () => {
+  void shutdown('SIGINT');
 });
