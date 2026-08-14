@@ -28,3 +28,12 @@ export async function htmlToPdfBuffer(html: string): Promise<Buffer> {
     await page.close();
   }
 }
+
+export async function closePdfBrowser(): Promise<void> {
+    if (!browser) return;
+    try {
+      await browser.close();
+    } finally {
+      browser = null;
+    }
+  }

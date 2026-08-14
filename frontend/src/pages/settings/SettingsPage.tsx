@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { changePassword } from '../../shared/api/user';
 import { Toast } from '../../shared/components/ui/Toast';
 import { ROUTES } from '../../shared/constants/routes';
-import { clearAuthStorage, useAuthStore } from '../../stores/authStore';
+import { clearAuthStorage, useAuthStore } from '../../shared/stores/authStore';
 import styles from './SettingsPage.module.css';
 
 export function SettingsPage() {

@@ -215,7 +215,6 @@ export function ComparisonCard({
             const dPct = readPct(district, metric.pctKey);
             const cPct = readPct(cityAvg, metric.pctKey);
             const dCount = readCount(district, metric.countKey);
-            const cCount = readCount(cityAvg, metric.countKey);
             const delta = calcDeltaPctPoints(dPct, cPct);
             const up = delta > 0;
             const down = delta < 0;

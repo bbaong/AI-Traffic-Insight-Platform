@@ -29,7 +29,6 @@ import {
   toRiderBadge,
   toRiskGrade,
 } from '../constants/insEnums';
-import { CONSULT_TYPE_OPTIONS } from '../constants/consultTypes';
 import type {
   Consultation,
   ConsultationTypeCode,
@@ -38,7 +37,7 @@ import type {
   ReportItem,
 } from '../types/customers';
 import { fetchTokkReview } from '../api/tokkReview';
-import { useAuthStore } from '../../../stores/authStore';
+import { useAuthStore } from '../../../shared/stores/authStore';
 import styles from './CustomersPage.module.css';
 
 import { useNavigate } from 'react-router-dom';
@@ -48,14 +47,6 @@ import { consultationToInsReportDraft } from '../utils/buildInsReportDraft';
 import { resolveChecklistAnswers } from '../utils/checklistAnswers';
 
 const PAGE_SIZE = 10;
-const FILTER_TABS: Array<{ id: 'ALL' | ConsultationTypeCode; label: string }> =
-  [
-    { id: 'ALL', label: '전체' },
-    ...CONSULT_TYPE_OPTIONS.map((opt) => ({
-      id: opt.value,
-      label: opt.label,
-    })),
-  ];
 
   const CUSTOMERS_SELECTION_KEY = 'ins_customers_selection_v1';
 

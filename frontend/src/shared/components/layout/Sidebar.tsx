@@ -4,7 +4,7 @@ import {
   type SidebarIcon,
 } from '../../constants/sidebarMenus';
 import { ROUTES } from '../../constants/routes';
-import { clearAuthStorage, useAuthStore } from '../../../stores/authStore';
+import { clearAuthStorage, useAuthStore } from '../../stores/authStore';
 import type { UserRole } from '../../types/auth';
 import styles from './Sidebar.module.css';
 

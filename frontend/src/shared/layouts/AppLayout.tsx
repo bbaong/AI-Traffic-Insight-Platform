@@ -3,7 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Header } from '../components/layout/Header';
 import { Sidebar } from '../components/layout/Sidebar';
 import { ROUTES } from '../constants/routes';
-import { useAuthStore } from '../../stores/authStore';
+import { useAuthStore } from '../stores/authStore';
 import styles from './AppLayout.module.css';
 
 const SIDEBAR_DRAWER_MQ = '(max-width: 1100px)';
@@ -13,7 +13,6 @@ export function AppLayout() {
   const user = useAuthStore((s) => s.user);
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const isInsCustomers = location.pathname === ROUTES.CUSTOMERS;
 
   useEffect(() => {
     const roots = [

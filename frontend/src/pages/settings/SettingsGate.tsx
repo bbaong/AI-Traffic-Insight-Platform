@@ -1,6 +1,6 @@
 import { SettingsPage } from './SettingsPage';
 import { SettingsVerifyPage } from './SettingsVerifyPage';
-import { useSettingsVerifyStore } from '../../stores/settingsVerifyStore';
+import { useSettingsVerifyStore } from '../../shared/stores/settingsVerifyStore';
 
 /** 설정 진입 전 비밀번호 재확인 게이트 */
 export function SettingsGate() {

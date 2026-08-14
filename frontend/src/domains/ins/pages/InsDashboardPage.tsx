@@ -23,7 +23,7 @@ import { InsStep1Analyze } from '../components/InsStep1Analyze';
 import { InsStep2ChecklistTokk } from '../components/InsStep2ChecklistTokk';
 import { InsStepIndicator } from '../components/InsStepIndicator';
 import { SaveSuccessModal } from '../components/SaveSuccessModal';
-import { useAuthStore } from '../../../stores/authStore';
+import { useAuthStore } from '../../../shared/stores/authStore';
 import { ROUTES } from '../../../shared/constants/routes';
 import { useInsReportDraftStore } from '../../reports/stores/insReportDraftStore';
 import styles from './InsDashboardPage.module.css';
