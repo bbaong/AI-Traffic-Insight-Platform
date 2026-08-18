@@ -11,6 +11,7 @@ import {
 
 const PAGE_SIZE = 10;
 
+/* 고객 목록 훅 */
 export function useCustomersList(userId: number | undefined) {
   const [query, setQuery] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
@@ -29,11 +30,13 @@ export function useCustomersList(userId: number | undefined) {
   const [hiding, setHiding] = useState(false);
   const [hideError, setHideError] = useState<string | null>(null);
 
+  /* 검색어 디바운스 */
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedQ(query.trim()), 300);
     return () => window.clearTimeout(t);
   }, [query]);
 
+  /* 고객 목록 로드 */
   useEffect(() => {
     if (userId == null) {
       setList([]);
@@ -84,6 +87,7 @@ export function useCustomersList(userId: number | undefined) {
     };
   }, [debouncedQ, listNonce, userId]);
 
+  /* 필터링된 고객 목록 반환 */
   const filteredList = useMemo(() => {
     return list.filter((row) => {
       if (!fromDate && !toDate) return true;
@@ -118,6 +122,7 @@ export function useCustomersList(userId: number | undefined) {
     writeCustomersSelection({ customerId });
   }
 
+  /* 체크 토글 */
   function toggleChecked(id: string, on: boolean) {
     setCheckedIds((prev) => {
       const next = new Set(prev);
@@ -127,6 +132,7 @@ export function useCustomersList(userId: number | undefined) {
     });
   }
 
+  /* 페이지 체크 토글 */
   function togglePageChecks() {
     setCheckedIds((prev) => {
       const next = new Set(prev);
@@ -139,6 +145,7 @@ export function useCustomersList(userId: number | undefined) {
     });
   }
 
+  /* 삭제 확인 */
   async function confirmHide() {
     if (hiding || checkedCustomers.length === 0 || userId == null) return;
     setHiding(true);
@@ -171,6 +178,7 @@ export function useCustomersList(userId: number | undefined) {
     }
   }
 
+  /* 필터 초기화 */
   function resetFilters() {
     setQuery('');
     setDebouncedQ('');

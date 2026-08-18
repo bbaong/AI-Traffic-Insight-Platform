@@ -29,6 +29,15 @@ import { SeverityStackedCard } from '../components/SeverityStackedCard';
 import { SuggestionsCard } from '../components/SuggestionsCard';
 import styles from './GovDashboardPage.module.css';
 import { useState, useEffect, useRef } from 'react';
+import {
+  GOV_HOTSPOT_CACHE_KEY,
+  GOV_PDF_SNAPSHOT_KEY,
+  GOV_PRED_CACHE_KEY,
+  historySessionKey,
+  readSessionJson,
+  writeSessionJson,
+} from '../utils/govSession';
+import { formatPeriodLabel } from '../utils/govFormat';
 
 
 function getAccidentCount(row: GovPredictResult): number {
@@ -40,22 +49,14 @@ function priorityScore(row: GovPredictResult): number {
   return Number((row.예측사고율_퍼센트 ?? 0).toFixed(1));
 }
 
+/* 위험 등급 변환 */
 function toRiskLevel(v: string): RiskLevel {
   return v === 'CRITICAL' || v === 'HIGH' || v === 'MODERATE' || v === 'LOW'
     ? v
     : 'MODERATE';
 }
 
-/** 2025Q4 → 2025년 4분기, 2025H2 → 2025년 하반기 */
-function formatPeriodLabel(raw?: string | null): string {
-  if (!raw) return '-';
-  const q = /^(\d{4})Q([1-4])$/i.exec(raw);
-  if (q) return `${q[1]}년 ${q[2]}분기`;
-  const h = /^(\d{4})H([12])$/i.exec(raw);
-  if (h) return `${h[1]}년 ${h[2] === '1' ? '상반기' : '하반기'}`;
-  return raw;
-}
-
+/* 에러 메시지 변환 */
 function govFetchErrorMessage(error: unknown, notFound: string): string {
   if (error instanceof GovApiError) {
     if (error.status === 400) return 'id 형식이 올바르지 않습니다.';
@@ -64,21 +65,15 @@ function govFetchErrorMessage(error: unknown, notFound: string): string {
   }
   return error instanceof Error ? error.message : '불러오지 못했습니다.';
 }
-
-const GOV_PRED_CACHE_KEY = 'gov:forecasts:Q';
-const GOV_HOTSPOT_CACHE_KEY = 'gov:hotspots';
-/** ReportsPage PDF — 대시보드 스냅샷 (재추론 스킵) */
-const GOV_PDF_SNAPSHOT_KEY = 'gov_pdf_snapshot_v1';
-/** 프론트: 이 시간 안이면 Backend/AI 다발 API를 다시 치지 않음 */
-const GOV_HOTSPOT_CLIENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const historySessionKey = (region: string) => `gov:history:${region}:4`;
-
 type HotspotSessionCache = {
   year: number;
   points: GovHotspotPoint[];
   fetched_at: number;
 };
 
+const GOV_HOTSPOT_CLIENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+/* 지도 핫스폿 변환 */
 function toMapHotspots(points: GovHotspotPoint[]): MapHotspot[] {
   return points
     .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon))
@@ -91,28 +86,13 @@ function toMapHotspots(points: GovHotspotPoint[]): MapHotspot[] {
     }));
 }
 
+/* 프론트: 이 시간 안이면 Backend/AI 다발 API를 다시 치지 않음 */
 function isHotspotCacheFresh(cache: HotspotSessionCache | null): boolean {
   if (!cache?.points?.length || !cache.fetched_at) return false;
   return Date.now() - cache.fetched_at < GOV_HOTSPOT_CLIENT_TTL_MS;
 }
 
-function readSessionJson<T>(key: string): T | null {
-  try {
-    const raw = sessionStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeSessionJson(key: string, value: unknown) {
-  try {
-    sessionStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* quota 등은 무시 */
-  }
-}
-
+/* 전체 시군구 — 페이지 진입 시 1회 */
 export function GovDashboardPage() {
   const selectedCode = useDistrictStore((s) => s.selectedCode);
   const setSelectedCode = useDistrictStore((s) => s.setSelectedCode);
@@ -144,6 +124,7 @@ export function GovDashboardPage() {
   const [hotspots, setHotspots] = useState<MapHotspot[]>([]);
   const [hotspotYear, setHotspotYear] = useState<number | null>(null);
 
+  /* 예측 결과 적용 */
   function applyPredictRows(rows: GovPredictResult[]) {
     const bySevere = [...rows].sort(
       (a, b) => priorityScore(b) - priorityScore(a),
@@ -161,6 +142,7 @@ export function GovDashboardPage() {
           : `${from} ~ ${to}`,
     );
 
+    /* 우선점검 점수 적용 */
     setPriorityRegions(
       bySevere.slice(0, 3).map((row, i) => ({
         rank: i + 1,
@@ -230,6 +212,7 @@ export function GovDashboardPage() {
   useEffect(() => {
     let cancelled = false;
 
+    /* 공식 사고다발 TOP3 — 지도 원 (세션 TTL 안이면 API 스킵) */
     async function loadHotspots() {
       const cached = readSessionJson<HotspotSessionCache>(GOV_HOTSPOT_CACHE_KEY);
       if (cached?.points?.length) {
@@ -263,6 +246,7 @@ export function GovDashboardPage() {
     };
   }, []);
 
+  /* 상단 차트 — 지도 선택 시 1회 */
   useEffect(() => {
     if (!selectedName) {
       setHistoryData(null);
@@ -295,6 +279,7 @@ export function GovDashboardPage() {
 
     let cancelled = false;
 
+    /* 상단 차트 — 지도 선택 시 1회 */
     async function loadHistory() {
       try {
         const data = await predictGovHistory({
@@ -327,6 +312,7 @@ export function GovDashboardPage() {
   const selectedDistrictId =
     allRows.find((r) => r.지역 === selectedName)?.districtId ?? null;
 
+  /* 비교 데이터 로드 */
   useEffect(() => {
     if (!selectedName) {
       setComparison(null);
@@ -371,6 +357,7 @@ export function GovDashboardPage() {
         if (!cancelled) setComparisonLoading(false);
       });
 
+    /* 제안 데이터 로드 */
     void fetchGovSuggestions(selectedDistrictId)
       .then((data) => {
         if (cancelled) return;

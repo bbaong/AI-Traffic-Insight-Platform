@@ -13,7 +13,12 @@ import {
   fetchGovReportPdf,
   type GovReportPdfDashboardPayload,
 } from '../../gov/api/reportPdf';
+import {
+  GOV_PDF_SNAPSHOT_KEY,
+  readSessionJson,
+} from '../../gov/utils/govSession';
 
+/* 행정 참고 리포트 스냅샷 */
 type GovPdfSnapshot = {
   지역: string;
   period_label: string;
@@ -25,6 +30,7 @@ type GovPdfSnapshot = {
   severitySeries?: GovReportPdfDashboardPayload['severitySeries'] | null; // 추가
 };
 
+/* 행정 참고 리포트 섹션 */
 type GovPdfSections = {
   top3: boolean;
   comparison: boolean;
@@ -34,6 +40,7 @@ type GovPdfSections = {
   summary: boolean;
 };
 
+/* 기본 행정 참고 리포트 섹션 */
 const DEFAULT_GOV_SECTIONS: GovPdfSections = {
   top3: true,
   comparison: true,
@@ -43,6 +50,7 @@ const DEFAULT_GOV_SECTIONS: GovPdfSections = {
   summary: true,
 };
 
+/* 빈 행정 참고 리포트 섹션 */
 const EMPTY_GOV_SECTIONS: GovPdfSections = {
   top3: false,
   comparison: false,
@@ -52,6 +60,7 @@ const EMPTY_GOV_SECTIONS: GovPdfSections = {
   summary: false,
 };
 
+/* 행정 참고 리포트 섹션 옵션 */
 const GOV_SECTION_OPTIONS: Array<{ key: keyof GovPdfSections; label: string }> =
   [
     { key: 'top3', label: '우선점검 TOP3' },
@@ -88,16 +97,19 @@ export function ReportsPage() {
   const [govSections, setGovSections] =
     useState<GovPdfSections>(DEFAULT_GOV_SECTIONS);
 
+  /* 메모 포함 여부 설정 */
   useEffect(() => {
     setIncludeMemo(Boolean(insDraft?.memo));
   }, [insDraft]);
 
+  /* PDF URL 정리 */
   useEffect(() => {
     return () => {
       if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     };
   }, [pdfUrl]);
 
+  /* PDF 모달 닫기 */
   const closePdfModal = useCallback(() => {
     setPdfOpen(false);
     setPdfError(null);
@@ -107,6 +119,7 @@ export function ReportsPage() {
     });
   }, []);
 
+  /* PDF 작업 실행 */
   async function runPdfJob(load: () => Promise<Blob>, fileBase: string) {
     setPdfLoading(true);
     setPdfError(null);
@@ -129,18 +142,14 @@ export function ReportsPage() {
     }
   }
 
+  /* 행정 참고 리포트 생성 */
   async function handleCreateGovPdf() {
     if (!selectedName) {
       setPdfError('대시보드에서 구·군을 먼저 선택해 주세요.');
       return;
     }
     let snapshot: GovPdfSnapshot | null = null;
-    try {
-      const raw = sessionStorage.getItem('gov_pdf_snapshot_v1');
-      snapshot = raw ? (JSON.parse(raw) as GovPdfSnapshot) : null;
-    } catch {
-      snapshot = null;
-    }
+    snapshot = readSessionJson<GovPdfSnapshot>(GOV_PDF_SNAPSHOT_KEY);
 
     if (!snapshot || snapshot.지역 !== selectedName) {
       setPdfError('대시보드에서 구·군을 선택한 뒤 다시 시도해 주세요.');
@@ -177,6 +186,7 @@ export function ReportsPage() {
     );
   }
 
+  /* 상담 참고 리포트 생성 */
   async function handleCreateInsPdf() {
     if (!insDraft) {
       setPdfError('대시보드에서「상담 참고 리포트 생성」으로 이동해 주세요.');
@@ -194,6 +204,7 @@ export function ReportsPage() {
     );
   }
 
+  /* PDF 다운로드 */
   function handleDownloadPdf() {
     if (!pdfUrl) return;
     const a = document.createElement('a');

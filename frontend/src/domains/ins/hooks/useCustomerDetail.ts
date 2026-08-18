@@ -32,6 +32,7 @@ type UseCustomerDetailArgs = {
   orgName?: string | null;
 };
 
+/* 고객 상세 페이지 훅 */
 export function useCustomerDetail({
   selectedId,
   userId,
@@ -54,6 +55,7 @@ export function useCustomerDetail({
   const [reportLoading, setReportLoading] = useState(false);
   const [reportItems, setReportItems] = useState<ReportItem[]>([]);
 
+  /* 고객 상세 데이터 로드 */
   useEffect(() => {
     if (!selectedId || userId == null) {
       setDetail(null);
@@ -63,6 +65,8 @@ export function useCustomerDetail({
     let cancelled = false;
     setDetailLoading(true);
     setDetailError(null);
+
+    /* 상담 이력 데이터 로드 */
     void fetchCustomerConsultations(selectedId, userId)
       .then((res) => {
         if (cancelled) return;
@@ -92,6 +96,7 @@ export function useCustomerDetail({
     };
   }, [selectedId, userId]);
 
+  /* 필터링된 상담 목록 반환 */
   const filteredConsults = useMemo(() => {
     const rows = detail?.data ?? [];
     if (typeFilter === 'ALL') return rows;
@@ -100,6 +105,7 @@ export function useCustomerDetail({
     );
   }, [detail, typeFilter]);
 
+  /* 선택된 상담 반환 */
   const selectedConsult =
     filteredConsults.find((c) => c.consultationId === selectedConsultId) ??
     filteredConsults[0] ??
@@ -115,6 +121,7 @@ export function useCustomerDetail({
     Math.max(0, Number(riskConsult?.riskScore ?? 0)),
   );
 
+  /* 보고서 드로어 열기 */
   const openReportDrawer = useCallback(
     async (consult?: Consultation) => {
       const target = consult ?? selectedConsult;
@@ -137,6 +144,7 @@ export function useCustomerDetail({
     [selectedConsult],
   );
 
+  /* 상담 이력 보고서 열기 */
   const openHistoryReport = useCallback(
     async (consult?: Consultation) => {
       const target = consult ?? selectedConsult;

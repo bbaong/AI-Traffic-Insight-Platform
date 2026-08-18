@@ -30,28 +30,15 @@ import {
 } from '../utils/regionCompareUi';
 import surface from '../components/compareSurface.module.css';
 import styles from './GovRegionComparePage.module.css';
+import {
+  GOV_PRED_CACHE_KEY,
+  readSessionJson,
+  writeSessionJson,
+} from '../utils/govSession';
+import { formatPeriodLabel } from '../utils/govFormat';
 
 const EMPTY_PROMPT =
   '지도에서 비교하고 싶은 구를 클릭 후 비교하기 버튼을 눌러주세요';
-
-const GOV_PRED_CACHE_KEY = 'gov:forecasts:Q';
-
-function readSessionJson<T>(key: string): T | null {
-  try {
-    const raw = sessionStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
-  }
-}
-
-function writeSessionJson(key: string, value: unknown) {
-  try {
-    sessionStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* ignore */
-  }
-}
 
 function matchForecastRow(
   rows: GovPredictResult[],
@@ -79,13 +66,6 @@ function rowsToRisk(rows: GovPredictResult[]): Record<string, RiskLevel> {
     }
   }
   return next;
-}
-
-function formatPeriodLabel(raw?: string | null): string {
-  if (!raw) return '';
-  const q = /^(\d{4})Q([1-4])$/i.exec(raw);
-  if (q) return `${q[1]}년 ${q[2]}분기`;
-  return raw;
 }
 
 function Placeholder({
