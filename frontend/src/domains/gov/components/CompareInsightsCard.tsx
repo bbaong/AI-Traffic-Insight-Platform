@@ -1,64 +1,31 @@
+import { useEffect, useMemo, useState } from 'react';
 import { DashboardCard } from '../../../shared/components/dashboard';
 import type { RegionCompareInsight } from '../api/govRegionCompare';
-import { insightIcon } from '../utils/regionCompareUi';
+import {
+  districtColor,
+  insightIcon,
+  onDistrictColor,
+} from '../utils/regionCompareUi';
+import { GovMaterialIcon, isGovMaterialIcon } from './GovMaterialIcon';
 import surface from './compareSurface.module.css';
 import styles from './CompareInsightsCard.module.css';
 
 function Icon({ name }: { name: string }) {
-  const common = {
-    width: 16,
-    height: 16,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.8,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    'aria-hidden': true as const,
-  };
-  if (name === 'moon') {
-    return (
-      <svg {...common}>
-        <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z" />
-      </svg>
-    );
-  }
-  if (name === 'walk') {
-    return (
-      <svg {...common}>
-        <circle cx="12" cy="5" r="2" />
-        <path d="M10 22l2-6 2 2 2 4M12 9l-2 4h4l-1 3" />
-      </svg>
-    );
-  }
-  if (name === 'traffic') {
-    return (
-      <svg {...common}>
-        <rect x="7" y="2" width="10" height="20" rx="2" />
-        <circle cx="12" cy="7" r="1.4" fill="currentColor" stroke="none" />
-        <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
-        <circle cx="12" cy="17" r="1.4" fill="currentColor" stroke="none" />
-      </svg>
-    );
-  }
-  if (name === 'chart') {
-    return (
-      <svg {...common}>
-        <path d="M4 19V5M4 19h16" />
-        <path d="M8 15l4-5 3 3 5-7" />
-      </svg>
-    );
-  }
-  if (name === 'parking') {
-    return (
-      <svg {...common}>
-        <rect x="4" y="3" width="16" height="18" rx="2" />
-        <path d="M9 17V7h5a3 3 0 0 1 0 6H9" />
-      </svg>
-    );
+  if (isGovMaterialIcon(name)) {
+    return <GovMaterialIcon name={name} size={16} />;
   }
   return (
-    <svg {...common}>
+    <svg
+      width={16}
+      height={16}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <circle cx="12" cy="12" r="9" />
       <path d="M12 8v5M12 16h.01" />
     </svg>
@@ -70,14 +37,84 @@ export function CompareInsightsCard({
 }: {
   insights: RegionCompareInsight[];
 }) {
+  const districts = useMemo(() => {
+    const seen = new Map<number, string>();
+    for (const item of insights) {
+      if (item.districtId == null || !item.districtName) continue;
+      if (!seen.has(item.districtId)) seen.set(item.districtId, item.districtName);
+    }
+    return [...seen.entries()].map(([id, name]) => ({ id, name }));
+  }, [insights]);
+
+  const [filterId, setFilterId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (filterId != null && !districts.some((d) => d.id === filterId)) {
+      setFilterId(null);
+    }
+  }, [districts, filterId]);
+
+  const visible =
+    filterId == null
+      ? insights
+      : insights.filter((item) => item.districtId === filterId);
+
   return (
-    <DashboardCard title="비교 인사이트" className={`${surface.card} ${styles.card}`}>
-      {insights.length === 0 ? (
-        <p className={styles.empty}>표시할 인사이트가 없습니다.</p>
+    <DashboardCard
+      title="비교 인사이트"
+      className={`${surface.card} ${styles.card}`}
+      action={
+        districts.length > 0 ? (
+          <div className={styles.filters} role="tablist" aria-label="인사이트 지역 필터">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filterId == null}
+              className={`${styles.filter} ${filterId == null ? styles.filterAllOn : ''}`}
+              onClick={() => setFilterId(null)}
+            >
+              전체
+            </button>
+            {districts.map((d) => {
+              const on = filterId === d.id;
+              const color = districtColor(d.name);
+              return (
+                <button
+                  key={d.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={on}
+                  className={styles.filter}
+                  style={
+                    on
+                      ? {
+                          background: color,
+                          color: onDistrictColor(color),
+                          borderColor: color,
+                        }
+                      : undefined
+                  }
+                  onClick={() => setFilterId(d.id)}
+                >
+                  <i style={{ background: color }} aria-hidden />
+                  {d.name}
+                </button>
+              );
+            })}
+          </div>
+        ) : undefined
+      }
+    >
+      {insights.length === 0 || visible.length === 0 ? (
+        <p className={styles.empty}>
+          {insights.length === 0
+            ? '표시할 인사이트가 없습니다.'
+            : '이 지역의 인사이트가 없습니다.'}
+        </p>
       ) : (
         <div className={styles.scroll}>
           <ul className={styles.list}>
-            {insights.map((item, i) => (
+            {visible.map((item, i) => (
               <li key={`${item.key}-${item.districtId ?? 'rel'}-${i}`}>
                 <span className={styles.icon}>
                   <Icon name={insightIcon(item.key)} />

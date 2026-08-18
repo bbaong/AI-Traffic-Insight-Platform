@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-OUT = ROOT / "docs" / "prediction_latency.json"
+OUT = ROOT / "docs" / "measure_latency.json"
 
 N_WARMUP = 5
 N_RUNS = 50

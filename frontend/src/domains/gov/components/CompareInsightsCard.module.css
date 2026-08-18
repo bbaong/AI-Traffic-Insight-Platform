@@ -5,6 +5,52 @@
   overflow: hidden;
 }
 
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.filter:hover {
+  border-color: #c5d0dc;
+  color: var(--color-ink);
+}
+
+.filterAllOn {
+  background: #1b3a4b;
+  border-color: #1b3a4b;
+  color: #fff;
+}
+
+.filterAllOn:hover {
+  color: #fff;
+}
+
+.filter i {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 70%);
+}
+
 .empty {
   margin: auto;
   padding: 16px 0;

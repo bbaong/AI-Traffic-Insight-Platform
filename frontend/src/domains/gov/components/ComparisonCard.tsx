@@ -8,6 +8,7 @@ import {
   formatDeltaBadge,
   formatPct1,
 } from '../utils/comparisonFormat';
+import { GovMaterialIcon } from './GovMaterialIcon';
 import styles from './ComparisonCard.module.css';
 
 const METRICS = [
@@ -53,49 +54,7 @@ export interface ComparisonCardProps {
 }
 
 function MetricIconSvg({ name }: { name: MetricIcon }) {
-  const common = {
-    width: 14,
-    height: 14,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: 'currentColor',
-    strokeWidth: 1.8,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    'aria-hidden': true as const,
-  };
-
-  if (name === 'walk') {
-    return (
-      <svg {...common}>
-        <circle cx="12" cy="5" r="2" />
-        <path d="M10 22l2-6 2 2 2 4M12 9l-2 4h4l-1 3" />
-      </svg>
-    );
-  }
-  if (name === 'moon') {
-    return (
-      <svg {...common}>
-        <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z" />
-      </svg>
-    );
-  }
-  if (name === 'shield') {
-    return (
-      <svg {...common}>
-        <path d="M12 3l8 3v5c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-3z" />
-        <path d="M12 9v6M9.5 12h5" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...common}>
-      <rect x="7" y="2" width="10" height="20" rx="2" />
-      <circle cx="12" cy="7" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
-      <circle cx="12" cy="17" r="1.6" fill="currentColor" stroke="none" />
-    </svg>
-  );
+  return <GovMaterialIcon name={name} size={14} />;
 }
 
 function readPct(m: ComparisonMetrics, key: PctKey): number {

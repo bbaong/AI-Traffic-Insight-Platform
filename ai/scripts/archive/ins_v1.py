@@ -14,10 +14,10 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 from sklearn.metrics import mean_squared_error, accuracy_score
 
-# traffic_accident_model/ (scripts/ 상위)
+# ins_model_v1/ (scripts/ 상위)
 ROOT = Path(__file__).resolve().parents[2]  # scripts/archive -> ai
 DATA_DIR = ROOT / "data"
-MODEL_DIR = ROOT / "model"
+MODEL_DIR = ROOT / "models"
 
 def main():
     print("1. 데이터 불러오기 및 전처리 시작...")
@@ -166,7 +166,7 @@ def main():
     }
     
     MODEL_DIR.mkdir(parents=True, exist_ok=True)
-    model_path = MODEL_DIR / 'traffic_accident_model.pkl'
+    model_path = MODEL_DIR / "ins_model_v1.pkl"
     with open(model_path, 'wb') as f:
         pickle.dump(model_package, f)
         

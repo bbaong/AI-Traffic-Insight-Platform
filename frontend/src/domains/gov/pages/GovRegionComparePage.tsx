@@ -333,6 +333,7 @@ export function GovRegionComparePage() {
             <CompareSummaryCard
               districts={result.districts}
               cityAvg={result.cityAvg}
+              forecastLabel={result.meta.forecastLabel}
             />
           ) : (
             <Placeholder
