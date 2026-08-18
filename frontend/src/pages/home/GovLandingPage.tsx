@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { CtaSection } from './CtaSection';
 import { GovDetailSection } from './GovDetailSection';
@@ -8,10 +7,6 @@ import { SolutionHero } from './SolutionHero';
 
 export function GovLandingPage() {
   const location = useLocation();
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [location.key]);
 
   return (
     <>
