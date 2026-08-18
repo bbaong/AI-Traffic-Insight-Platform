@@ -18,10 +18,13 @@ const CHART = {
   width: 640,
   height: 260,
   padTop: 28,
-  padRight: 20,
+  padRight: 56,
   padBottom: 44,
   padLeft: 44,
 };
+
+/** 실적 마지막 점과 예측 점 사이 추가 간격 */
+const FORECAST_GAP = 40;
 
 const Y_TICK_STEP = 100;
 const HOVER_DELAY_MS = 220;
@@ -75,10 +78,16 @@ function pointMap(entity: RegionCompareEntity): Map<string, TrendPoint> {
   return next;
 }
 
-function xAt(index: number, count: number): number {
-  const w = CHART.width - CHART.padLeft - CHART.padRight;
-  if (count <= 1) return CHART.padLeft + w / 2;
-  return CHART.padLeft + (index / (count - 1)) * w;
+function xAt(index: number, axis: AxisLabel[]): number {
+  const n = axis.length;
+  const plotW = CHART.width - CHART.padLeft - CHART.padRight;
+  if (n <= 1) return CHART.padLeft + plotW / 2;
+
+  const firstFc = axis.findIndex((a) => a.forecast);
+  const extra = firstFc > 0 ? FORECAST_GAP : 0;
+  const step = (plotW - extra) / (n - 1);
+  const x = CHART.padLeft + index * step;
+  return firstFc > 0 && index >= firstFc ? x + extra : x;
 }
 
 function yAt(value: number, maxY: number): number {
@@ -164,7 +173,7 @@ export function CompareTrendCard({
 
   const firstForecastIdx = axis.findIndex((a) => a.forecast);
   const splitX =
-    firstForecastIdx > 0 ? xAt(firstForecastIdx, axis.length) : null;
+    firstForecastIdx > 0 ? xAt(firstForecastIdx - 1, axis) : null;
 
   function scheduleHover(index: number) {
     if (hoverTimer.current) clearTimeout(hoverTimer.current);
@@ -185,7 +194,7 @@ export function CompareTrendCard({
       : Math.min(Math.max(0, hoverIdx), axis.length - 1);
   const activeLabel = activeIdx != null ? axis[activeIdx] : null;
   const hoverX =
-    activeIdx != null ? xAt(activeIdx, axis.length) : CHART.padLeft;
+    activeIdx != null ? xAt(activeIdx, axis) : CHART.padLeft;
 
   const hoverRows =
     activeLabel == null
@@ -214,11 +223,6 @@ export function CompareTrendCard({
     activeLabel == null || hoverRows.length === 0
       ? CHART.padTop + 24
       : Math.min(...hoverRows.map((r) => yAt(r.total, maxY)));
-
-  const bandW =
-    axis.length <= 1
-      ? CHART.width - CHART.padLeft - CHART.padRight
-      : (CHART.width - CHART.padLeft - CHART.padRight) / (axis.length - 1);
 
   const tooltipLeftPct = (hoverX / CHART.width) * 100;
   const tooltipTopPct = (hoverAnchorY / CHART.height) * 100;
@@ -257,6 +261,7 @@ export function CompareTrendCard({
         <svg
           className={styles.svg}
           viewBox={`0 0 ${CHART.width} ${CHART.height}`}
+          overflow="visible"
           role="img"
           aria-label="분기별 사고 건수 추세"
         >
@@ -326,7 +331,7 @@ export function CompareTrendCard({
               const p = byQ.get(a.key);
               if (p == null) return null;
               return {
-                x: xAt(i, axis.length),
+                x: xAt(i, axis),
                 y: yAt(p.total, maxY),
                 total: p.total,
                 forecast: a.forecast || p.isForecast,
@@ -422,14 +427,20 @@ export function CompareTrendCard({
           })}
 
           {axis.map((_, i) => {
-            const cx = xAt(i, axis.length);
-            const half = Math.max(bandW / 2, 18);
+            const cx = xAt(i, axis);
+            const prevX = i > 0 ? xAt(i - 1, axis) : CHART.padLeft;
+            const nextX =
+              i < axis.length - 1
+                ? xAt(i + 1, axis)
+                : CHART.width - 4;
+            const left = i === 0 ? CHART.padLeft : (prevX + cx) / 2;
+            const right = (cx + nextX) / 2;
             return (
               <rect
                 key={`hit-${i}`}
-                x={cx - half}
+                x={left}
                 y={CHART.padTop}
-                width={half * 2}
+                width={Math.max(18, right - left)}
                 height={CHART.height - CHART.padTop - CHART.padBottom}
                 fill="transparent"
                 className={styles.colHit}
@@ -443,8 +454,8 @@ export function CompareTrendCard({
             return (
               <text
                 key={label.key}
-                x={xAt(i, axis.length)}
-                y={CHART.height - (label.forecast ? 8 : 14)}
+                x={xAt(i, axis)}
+                y={CHART.height - 14}
                 textAnchor="middle"
                 className={`${styles.tick} ${
                   activeIdx === i ? styles.tickActive : ''
