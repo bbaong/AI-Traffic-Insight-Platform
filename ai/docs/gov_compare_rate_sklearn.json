@@ -188,5 +188,5 @@
       "RandomForestRegressor"
     ]
   },
-  "related_pipeline_compare": "docs/gov_v1_0_4_b1_vs_b2.md"
+  "related_pipeline_compare": "docs/gov_compare_b1_b2_v1_0_4.md"
 }

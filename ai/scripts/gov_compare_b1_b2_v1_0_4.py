@@ -9,8 +9,8 @@ GovGuard B1 vs B2 (+ A cap) 비교 실험
 - 베이스라인: v1.0.3식 선형 건수 회귀 (count-weighted)
 
 출력:
-  docs/gov_v1_0_4_b1_vs_b2.json
-  docs/gov_v1_0_4_b1_vs_b2.md
+  docs/gov_compare_b1_b2_v1_0_4.json
+  docs/gov_compare_b1_b2_v1_0_4.md
   docs/figures/gov_v1_0_4_compare/*.png
 """
 
@@ -32,8 +32,8 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT_V103 = ROOT / "scripts" / "archive" / "gov_v1_0_3.py"
-OUT_JSON = ROOT / "docs" / "gov_v1_0_4_b1_vs_b2.json"
-OUT_MD = ROOT / "docs" / "gov_v1_0_4_b1_vs_b2.md"
+OUT_JSON = ROOT / "docs" / "gov_compare_b1_b2_v1_0_4.json"
+OUT_MD = ROOT / "docs" / "gov_compare_b1_b2_v1_0_4.md"
 FIG_DIR = ROOT / "docs" / "figures" / "gov_v1_0_4_compare"
 
 # 소지역 점프·과대추정 게이트 (판정표)

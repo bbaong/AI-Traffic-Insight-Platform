@@ -68,24 +68,25 @@ ai/
 │   ├── main.py                   # 엔드포인트
 │   └── schemas.py                # 요청·응답 스키마
 ├── src/
-│   ├── inference.py              # InsureGuard 로드·추론 (v1.0.4)
-│   ├── coverage_rules.py         # 보험 담보 추천 규칙
+│   ├── ins_inference.py          # InsureGuard 로드·추론 (v1.0.4)
+│   ├── ins_coverage_rules.py     # 보험 담보 추천 규칙
 │   ├── gov_inference.py          # GovGuard 로드·추론 (v1.0.5)
-│   ├── hotspots.py               # 공식 다발지역 REST + 파일 캐시
-│   ├── insureguard.py            # Ins 패키지 호환 헬퍼 (API 미사용)
+│   ├── gov_hotspots.py           # 공식 다발지역 REST + 파일 캐시
+│   ├── ins_package_codec.py      # Ins 패키지 호환 헬퍼 (API 미사용)
 │   └── preprocess.py             # 레거시 인구 join (API 미사용)
 ├── scripts/                      # 현재 학습·검증·ETL·배치
 │   ├── ins_v1_0_4.py             # 보험 학습
 │   ├── gov_v1_0_5.py             # 지자체 학습 (서빙 시에도 로드)
-│   ├── batch_gov_forecast.py     # 구·군 예측 → MySQL
+│   ├── gov_batch_forecast.py     # 구·군 예측 → MySQL
+│   ├── gov_batch_forecast_run.sh # 위 배치 cron 래퍼
 │   ├── etl_accident_condition_type.py   # 사고유형 실적 ETL
 │   ├── etl_district_monthly_trend.py    # 월별 추세 실적 ETL
-│   ├── validate_ins_v1_0_4.py
-│   ├── compare_ins_sklearn.py / compare_gov_rate_sklearn.py
-│   ├── measure_prediction_latency.py / measure_prediction_latency_e2e.py
-│   ├── plot_validation_experiments.py
-│   ├── gov_v1_0_4_experiments.py # v1.0.4 산식 실험 기록
-│   ├── run_gov_forecast_batch.sh
+│   ├── ins_validate_v1_0_4.py
+│   ├── ins_compare_sklearn.py / gov_compare_rate_sklearn.py
+│   ├── measure_latency.py / measure_latency_e2e.py
+│   ├── ins_plot_validate_design.py
+│   ├── gov_compare_b1_b2_v1_0_4.py # B1 vs B2 산식 선정 기록
+│   ├── ins_smoke.py              # InsureGuard 로컬 스모크
 │   └── archive/                  # 이전 버전 스크립트
 ├── models/                       # *.pkl (Git 제외, 학습 후 생성)
 ├── data/                         # Git 제외
@@ -95,7 +96,6 @@ ai/
 │   ├── archive/                  # 이전 명세·실험 기록
 │   └── figures/                  # 버전·실험 차트
 ├── notebooks/                    # 탐색용 Jupyter
-├── test_model.py                 # InsureGuard 로컬 스모크
 ├── Dockerfile                    # app/ + src/ + models/ 복사
 ├── .env.example                  # KOROAD·배치 환경변수 예시
 └── requirements.txt
@@ -165,9 +165,9 @@ python scripts/gov_v1_0_5.py
 # DATABASE_URL=mysql://user:pass@host:3306/dbname
 # 미설정 시(로컬 전용) backend/.env 의 DATABASE_URL 을 읽습니다.
 # AI·DB 서버가 다르면 AI 쪽에서 remote DB URL을 환경변수로 넣으세요.
-python scripts/batch_gov_forecast.py
+python scripts/gov_batch_forecast.py
 # 또는 로그 래퍼:
-# bash scripts/run_gov_forecast_batch.sh
+# bash scripts/gov_batch_forecast_run.sh
 ```
 
 선택 환경 변수: `GOV_AS_OF`(예: `2025Q3`), `GOV_FREQ`(`Q`|`H`), `GOV_SCOPE`(기본 `DAEGU`).
@@ -207,13 +207,13 @@ cron / systemd timer는 **AI 서버**(pkl·배치 스크립트가 있는 곳)에
 
 | 구성 | 역할 |
 |------|------|
-| **AI 서버** | 추론 + `batch_gov_forecast.py` + **스케줄 등록** |
+| **AI 서버** | 추론 + `gov_batch_forecast.py` + **스케줄 등록** |
 | **MySQL** (별도 호스트) | `gov_forecast_*` 적재. AI 출구 IP를 Trusted sources에 허용 |
 | **Backend** | `GET /api/prediction/gov-forecasts` 조회만. 배치 실행에 불필요 |
 
 ```text
 [ cron on AI server ]
-        │  batch_gov_forecast.py (로컬 pkl)
+        │  gov_batch_forecast.py (로컬 pkl)
         ▼
 [ MySQL ]  ◄── DATABASE_URL (AI → DB 네트워크 허용)
         ▲
@@ -227,7 +227,7 @@ CRON_TZ=Asia/Seoul
 0 3 * * 1 cd /opt/ai-traffic/ai && . .venv/bin/activate && \
   export DATABASE_URL='mysql://USER:PASS@DB_HOST:3306/DBNAME' \
   GOV_FREQ=Q GOV_SCOPE=DAEGU && \
-  bash scripts/run_gov_forecast_batch.sh
+  bash scripts/gov_batch_forecast_run.sh
 ```
 
 - 주 1회는 파이프라인 생존·데모용. 동일 `as_of`면 수치가 거의 같고 run 행만 늘 수 있음.
@@ -264,7 +264,7 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 | v1.0.3 | 프로파일 **심각도 + 빈도** 블렌드 (`scripts/archive/ins_v1_0_3.py`) |
 | v1.0.2 | 심각도만 (`scripts/archive/ins_v1_0_2.py`) |
 
-담보추천은 `src/coverage_rules.py`가 등급·연령·법규위반 확률로 표준약관 6대 담보를 규칙 기반으로 붙입니다.
+담보추천은 `src/ins_coverage_rules.py`가 등급·연령·법규위반 확률로 표준약관 6대 담보를 규칙 기반으로 붙입니다.
 
 ### GovGuard (지자체) — API `POST /predict/gov`
 
@@ -401,15 +401,15 @@ curl "http://localhost:5000/api/prediction/predict-gov-hotspots?year=2025119"
 
 ```bash
 # 보험 CLI 스모크 (Python)
-python -c "from src.inference import predict_from_input; print(predict_from_input('중구','21-30세','남','승용'))"
+python -c "from src.ins_inference import predict_from_input; print(predict_from_input('중구','21-30세','남','승용'))"
 # 또는
-python test_model.py
+python scripts/ins_smoke.py
 
 # 지자체 CLI 스모크
 python -c "from src.gov_inference import predict_gov_rates; print(predict_gov_rates()[:3])"
 
 # 보험 엄격 검증 A~C
-python scripts/validate_ins_v1_0_4.py
+python scripts/ins_validate_v1_0_4.py
 
 # 지자체 중대율 EB/반기 실험 (보관 스크립트)
 python scripts/archive/gov_severe_experiments.py

@@ -7,7 +7,7 @@
 > **v1.0.4:** **점유율×시전체(B1) + 직전 실적×2 캡**  
 > **v1.0.5:** v1.0.4 산식 동일 + **군위 2016.1~2023.6(편입 전)** 사고 포함 재학습
 
-비교 실험(산식 선정, v1.0.4 시기): [gov_v1_0_4_b1_vs_b2.md](gov_v1_0_4_b1_vs_b2.md)
+비교 실험(산식 선정, v1.0.4 시기): [gov_compare_b1_b2_v1_0_4.md](gov_compare_b1_b2_v1_0_4.md)
 
 현재 `src/gov_inference.py`는 **v1.0.5**을 로드합니다.
 
@@ -88,5 +88,5 @@ predict_gov_history(지역="군위군")
 | `scripts/archive/gov_v1_0_4.py` | 보관·재현용 |
 | `models/gov_model_v1.0.5.pkl` | 패키지 |
 | `src/gov_inference.py` | FastAPI 헬퍼 |
-| `docs/gov_v1_0_4_b1_vs_b2.md` | B1/B2 실험 (산식 선정 기록) |
+| `docs/gov_compare_b1_b2_v1_0_4.md` | B1/B2 실험 (산식 선정 기록) |
 | `docs/archive/gov_v1_0_4_feature_spec.md` | v1.0.4 명세 |

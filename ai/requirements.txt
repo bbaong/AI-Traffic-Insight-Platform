@@ -16,7 +16,7 @@ pydantic>=2.0.0
 httpx>=0.27.0
 python-dotenv>=1.0.0
 
-# --- Batch jobs (e.g. scripts/batch_gov_forecast.py -> MySQL) ---
+# --- Batch jobs (e.g. scripts/gov_batch_forecast.py -> MySQL) ---
 # Needs DATABASE_URL (mysql://...) from env or backend/.env
 PyMySQL>=1.1.0
 

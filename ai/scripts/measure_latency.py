@@ -63,7 +63,7 @@ def main() -> None:
 
     # --- Ins cold load ---
     t0 = time.perf_counter()
-    from src.inference import load_model, predict_from_input
+    from src.ins_inference import load_model, predict_from_input
 
     _ = load_model()
     report["ins_cold_load_ms"] = round((time.perf_counter() - t0) * 1000.0, 3)

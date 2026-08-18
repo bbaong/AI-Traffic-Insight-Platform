@@ -22,8 +22,8 @@ from src.gov_inference import (
     predict_gov_history,
     predict_gov_rates,
 )
-from src.hotspots import fetch_daegu_hotspots_auto_year
-from src.inference import load_model as load_ins_model, predict_from_input
+from src.gov_hotspots import fetch_daegu_hotspots_auto_year
+from src.ins_inference import load_model as load_ins_model, predict_from_input
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 

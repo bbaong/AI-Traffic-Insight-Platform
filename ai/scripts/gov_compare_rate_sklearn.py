@@ -5,11 +5,11 @@ GovGuard — sklearn rate-model comparison under fixed B1 + last×2 serving.
 Keeps panel / features / time split / B1×city_total / last×2 identical.
 Only the share (rate) regressor algorithm changes.
 
-Also points to existing pipeline compare: docs/gov_v1_0_4_b1_vs_b2.md
+Also points to existing pipeline compare: docs/gov_compare_b1_b2_v1_0_4.md
 
 Outputs:
-  docs/gov_sklearn_rate_compare.json
-  docs/gov_sklearn_rate_compare.md
+  docs/gov_compare_rate_sklearn.json
+  docs/gov_compare_rate_sklearn.md
 """
 
 from __future__ import annotations
@@ -33,8 +33,8 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "archive" / "gov_v1_0_4.py"
-OUT_JSON = ROOT / "docs" / "gov_sklearn_rate_compare.json"
-OUT_MD = ROOT / "docs" / "gov_sklearn_rate_compare.md"
+OUT_JSON = ROOT / "docs" / "gov_compare_rate_sklearn.json"
+OUT_MD = ROOT / "docs" / "gov_compare_rate_sklearn.md"
 
 RANDOM_STATE = 42
 LAST_MULT = 2.0
@@ -253,7 +253,7 @@ def main() -> None:
             "rule": "min small-region MAPE, then overall MAE, then Top-3",
             "ranking": [n for n, _ in ranking],
         },
-        "related_pipeline_compare": "docs/gov_v1_0_4_b1_vs_b2.md",
+        "related_pipeline_compare": "docs/gov_compare_b1_b2_v1_0_4.md",
     }
 
     OUT_JSON.write_text(
@@ -264,7 +264,7 @@ def main() -> None:
         "# GovGuard — sklearn 점유율(rate) 모델 비교 (B1 + last×2 고정)",
         "",
         "> 파이프라인(B1 × 시전체 + `last×2` cap)은 고정하고, **점유율 회귀 알고리즘만** 비교.",
-        "> 서빙 구조(B1 vs B2 vs 건수회귀) 비교는 [`gov_v1_0_4_b1_vs_b2.md`](gov_v1_0_4_b1_vs_b2.md) 참고.",
+        "> 서빙 구조(B1 vs B2 vs 건수회귀) 비교는 [`gov_compare_b1_b2_v1_0_4.md`](gov_compare_b1_b2_v1_0_4.md) 참고.",
         "",
         "## 설정",
         "",
@@ -314,10 +314,10 @@ def main() -> None:
         "- **현재 서빙 rate 모델:** `HistGradientBoostingRegressor`.",
         "- `last×2` 캡이 강하면 알고리즘 격차가 줄고 Ridge가 건수 KPI에서 앞설 수 있다. "
         "HGBR도 R²·Top-3 기준으로는 충분하며, **파이프라인 선정(B1)** 이 더 중요"
-        "([`gov_v1_0_4_b1_vs_b2.md`](gov_v1_0_4_b1_vs_b2.md)).",
+        "([`gov_compare_b1_b2_v1_0_4.md`](gov_compare_b1_b2_v1_0_4.md)).",
         "- HGBR 유지 근거: 기존 pkl·보조 헤드와 동일 스택, Top-3 동등.",
         "",
-        "스크립트: `scripts/compare_gov_rate_sklearn.py`",
+        "스크립트: `scripts/gov_compare_rate_sklearn.py`",
         "",
     ]
     OUT_MD.write_text("\n".join(lines), encoding="utf-8")
