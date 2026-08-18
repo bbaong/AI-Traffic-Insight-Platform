@@ -4,6 +4,7 @@ import {
   listCustomerConsultations,
   hideCustomer,
 } from '../services/customer.service';
+import { ok, fail, handleRouteError, HttpError} from '../lib/http';
 
 function parseUserId(req: Request): string | undefined {
   const q = req.query.userId;
@@ -18,10 +19,7 @@ export const getCustomers = async (req: Request, res: Response) => {
   try {
     const userId = parseUserId(req);
     if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'userId(상담원)가 필요합니다.',
-      });
+      throw new HttpError('userId(상담원)가 필요합니다.', 400);
     }
     const q =
       typeof req.query.q === 'string' && req.query.q.trim()
@@ -29,10 +27,9 @@ export const getCustomers = async (req: Request, res: Response) => {
         : undefined;
 
     const data = await listCustomers(q, userId);
-    return res.status(200).json({ success: true, data });
+    return ok(res, data, 200);
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ success: false, message: '고객 목록 조회 실패' });
+    return handleRouteError(res, error, '고객 목록 조회 실패');
   }
 };
 
@@ -41,38 +38,28 @@ export const getCustomerConsultations = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (!id) {
-      return res.status(400).json({ success: false, message: '고객 id가 필요합니다.' });
+      throw new HttpError('고객 id가 필요합니다.', 400);
+    }
+    if (!/^\d+$/.test(String(id))) {
+      return fail(res, 400, '잘못된 고객 id입니다.');
     }
 
     const userId = parseUserId(req);
     if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'userId(상담원)가 필요합니다.',
-      });
+      throw new HttpError('userId(상담원)가 필요합니다.', 400);
     }
 
     const result = await listCustomerConsultations(id as string, userId);
     if (!result) {
-      return res.status(404).json({
-        success: false,
-        message: '고객을 찾을 수 없습니다.',
-      });
+      throw new HttpError('고객을 찾을 수 없습니다.', 404);
     }
 
-    return res.status(200).json({
-      success: true,
+    return ok(res, result.consultations, 200, {
       customerId: id,
       customer: result.customer,
-      data: result.consultations,
     });
   } catch (error) {
-    console.error(error);
-    // BigInt("abc") 같은 잘못된 id
-    if (error instanceof SyntaxError || error instanceof TypeError) {
-      return res.status(400).json({ success: false, message: '잘못된 고객 id입니다.' });
-    }
-    return res.status(500).json({ success: false, message: '상담 이력 조회 실패' });
+    return handleRouteError(res, error, '상담 이력 조회 실패');
   }
 };
 
@@ -81,32 +68,25 @@ export const hideCustomerHandler = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     if (!id) {
-      return res.status(400).json({ success: false, message: '고객 id가 필요합니다.' });
+      throw new HttpError('고객 id가 필요합니다.', 400);
+    }
+    if (!/^\d+$/.test(String(id))) {
+      return fail(res, 400, '잘못된 고객 id입니다.');
     }
 
     const userId = parseUserId(req);
     if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'userId(상담원)가 필요합니다.',
-      });
+      throw new HttpError('userId(상담원)가 필요합니다.', 400);
     }
 
     const data = await hideCustomer(id as string, userId);
     
     if (!data) {
-      return res.status(404).json({
-        success: false,
-        message: '고객을 찾을 수 없습니다.',
-      });
+      throw new HttpError('고객을 찾을 수 없습니다.', 404);
     }
 
-    return res.status(200).json({ success: true, data });
+    return ok(res, data, 200);
   } catch (error) {
-    console.error(error);
-    if (error instanceof SyntaxError || error instanceof TypeError) {
-      return res.status(400).json({ success: false, message: '잘못된 고객 id입니다.' });
-    }
-    return res.status(500).json({ success: false, message: '고객 숨김 처리 실패' });
+    return handleRouteError(res, error, '고객 숨김 처리 실패');
   }
 };

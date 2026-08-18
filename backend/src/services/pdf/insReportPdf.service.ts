@@ -2,7 +2,9 @@ import { gradeLabel, tokkStatusLabel } from './labels';
 import { renderPdfTemplate } from './renderTemplate';
 import { htmlToPdfBuffer } from './browser';
 import { formatKstDateTimeDot } from '../formatKst';
+import { HttpError } from '../../lib/http';
 
+/* 보험 상담 보고서 입력 타입 */
 export type InsReportPdfInput = {
   구군: string;
   연령대: string;
@@ -35,13 +37,13 @@ export type InsReportPdfInput = {
 
 export function assertInsReportPdfInput(body: any): asserts body is InsReportPdfInput {
   if (!body?.구군 || !body?.연령대 || !body?.성별 || !body?.차종) {
-    throw new Error('구군, 연령대, 성별, 차종은 필수입니다.');
+    throw new HttpError('구군, 연령대, 성별, 차종은 필수입니다.', 400);
   }
   if (body.예측등급 == null || body.예측등급 === '' || body.위험도 == null || body.위험도 === '') {
-    throw new Error('예측등급, 위험도는 필수입니다. (미리보기 draft를 보내 주세요)');
+    throw new HttpError('예측등급, 위험도는 필수입니다. (미리보기 draft를 보내 주세요)', 400);
   }
   if (!Array.isArray(body.담보추천)) {
-    throw new Error('담보추천 배열이 필요합니다.');
+    throw new HttpError('담보추천 배열이 필요합니다.', 400);
   }
 }
 

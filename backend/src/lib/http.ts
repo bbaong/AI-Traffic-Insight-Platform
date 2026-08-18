@@ -11,8 +11,29 @@ export function sendJson(res: Response, status: number, body: unknown): void {
   res.send(JSON.stringify(body, jsonReplacer));
 }
 
-export function ok(res: Response, data: unknown, status = 200): void {
-  sendJson(res, status, { success: true, data });
+export class HttpError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number,
+    public readonly detail?: unknown,
+    public readonly exposeMessage = true,
+  ) {
+    super(message);
+    this.name = 'HttpError';
+  }
+}
+
+export function ok(
+  res: Response,
+  data?: unknown,
+  status = 200,
+  extra?: Record<string, unknown>,
+): void {
+  sendJson(res, status, {
+    success: true,
+    ...(data !== undefined ? { data } : {}),
+    ...extra,
+  });
 }
 
 export function fail(
@@ -28,4 +49,17 @@ export function fail(
       ? { error: typeof error === 'string' ? error : String(error) }
       : {}),
   });
+}
+
+export function handleRouteError(
+  res: Response,
+  error: unknown,
+  fallbackMessage: string,
+): void {
+  console.error(error);
+  if (error instanceof HttpError) {
+    const message = error.exposeMessage ? error.message : fallbackMessage;
+    return fail(res, error.status, message, error.detail);
+  }
+  return fail(res, 500, fallbackMessage);
 }

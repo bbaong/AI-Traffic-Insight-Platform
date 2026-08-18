@@ -5,6 +5,7 @@ import type { PrismaClient } from '../generated/prisma/client';
 import { predictRisk } from './aiPredict.service';
 import { evaluateDiscountRiders } from './discountRider.service';
 import { preparePhoneForStorage } from '../utils/phoneCrypto';
+import { HttpError } from '../lib/http';
 
 const BADGE_MAP = {
   검토권장: 'REVIEW_RECOMMENDED',
@@ -162,17 +163,18 @@ export async function saveConsultation(input: any) {
   const { customer, profile, checklist, memo, userId, consultationType } = input;
 
   if (!customer?.name || !customer?.phone) {
-    throw new Error('고객명·전화번호는 필수입니다.');
+    throw new HttpError('고객명·전화번호는 필수입니다.', 400);
   }
   if (!profile?.region || !profile?.age || !profile?.gender || !profile?.vehicle) {
-    throw new Error('프로필(지역·연령·성별·차종)은 필수입니다.');
+    throw new HttpError('프로필(지역·연령·성별·차종)은 필수입니다.', 400);
   }
   if (!userId) {
-    throw new Error('userId(상담원)가 필요합니다.');
+    throw new HttpError('userId(상담원)가 필요합니다.', 400);
   }
   if (!isConsultationType(consultationType)) {
-    throw new Error(
+    throw new HttpError(
       '상담 유형은 NEW|RENEWAL|CLAIM|COVERAGE_ANALYSIS|OTHER 중 하나여야 합니다.',
+      400,
     );
   }
 

@@ -68,6 +68,7 @@ function rowsToRisk(rows: GovPredictResult[]): Record<string, RiskLevel> {
   return next;
 }
 
+/* 자리 대기 플레이스홀더 */
 function Placeholder({
   title,
   message,

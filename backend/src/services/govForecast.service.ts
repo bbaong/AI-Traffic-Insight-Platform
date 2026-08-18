@@ -1,3 +1,4 @@
+import { Prisma } from '../generated/prisma/client';
 import { prisma } from '../lib/prisma';
 
 // ============================================================
@@ -90,6 +91,28 @@ export async function listPriorityTop(limit: number) {
  * AI 우선점검 제안 카드
  * district_benchmark_metrics 구 vs 대구 평균(null) 비교
  */
+export type SuggestionMetrics = {
+  night_pct: unknown;
+  signal_violation_pct: unknown;
+  pedestrian_pct: unknown;
+};
+
+/* 구별 우선점검 제안 카드 목록 */
+export function suggestionsFromMetrics(
+  district: SuggestionMetrics,
+  cityAvg: SuggestionMetrics,
+) {
+  return SUGGESTION_RULES.filter((rule) => rule.condition(district, cityAvg)).map(
+    (rule) => ({
+      key: rule.key,
+      icon: rule.icon,
+      title: rule.title,
+      desc: rule.desc,
+    }),
+  );
+}
+
+/* 구별 우선점검 제안 카드 */
 export async function listSuggestions(districtId: number) {
   const [district, cityAvg] = await Promise.all([
     prisma.district_benchmark_metrics.findFirst({
@@ -103,20 +126,10 @@ export async function listSuggestions(districtId: number) {
   ]);
 
   if (!district || !cityAvg) return [];
-
-  return SUGGESTION_RULES.filter((rule) => rule.condition(district, cityAvg)).map(
-    (rule) => ({
-      key: rule.key,
-      icon: rule.icon,
-      title: rule.title,
-      desc: rule.desc,
-    }),
-  );
+  return suggestionsFromMetrics(district, cityAvg);
 }
 
-/**
- * 분기별 사고 추세 (district_monthly_trend → 분기 집계)
- */
+/* 분기별 사고 추세 (district_monthly_trend → 분기 집계) */
 export async function listTrend(districtId: number) {
   const rows = await prisma.$queryRaw<
     { quarter_label: string; total: bigint; serious_above: bigint }[]
@@ -151,7 +164,56 @@ type ListOpts = {
   scope?: string; // 기본 DAEGU
 };
 
-/** 최신(또는 지정) 배치 스냅샷 — 지도용 구·군 목록 */
+export async function listTrendByDistrictIds(districtIds: number[]) {
+  const uniqueIds = [...new Set(districtIds)];
+  const empty = new Map<
+    number,
+    { quarterLabel: string; total: number; seriousAbove: number }[]
+  >();
+  if (uniqueIds.length === 0) return empty;
+
+  const rows = await prisma.$queryRaw<
+    {
+      district_id: number;
+      quarter_label: string;
+      total: bigint;
+      serious_above: bigint;
+    }[]
+  >`
+    SELECT
+      district_id,
+      CONCAT(
+        YEAR(STR_TO_DATE(CONCAT(trend_month, '-01'), '%Y-%m-%d')),
+        '-Q',
+        CEILING(MONTH(STR_TO_DATE(CONCAT(trend_month, '-01'), '%Y-%m-%d')) / 3)
+      ) AS quarter_label,
+      SUM(accident_count)     AS total,
+      SUM(severe_death_count) AS serious_above
+    FROM district_monthly_trend
+    WHERE district_id IN (${Prisma.join(uniqueIds)})
+    GROUP BY
+      district_id,
+      YEAR(STR_TO_DATE(CONCAT(trend_month, '-01'), '%Y-%m-%d')),
+      CEILING(MONTH(STR_TO_DATE(CONCAT(trend_month, '-01'), '%Y-%m-%d')) / 3)
+    ORDER BY
+      district_id,
+      YEAR(STR_TO_DATE(CONCAT(trend_month, '-01'), '%Y-%m-%d')),
+      CEILING(MONTH(STR_TO_DATE(CONCAT(trend_month, '-01'), '%Y-%m-%d')) / 3)
+  `;
+
+  const byId = empty;
+  for (const id of uniqueIds) byId.set(id, []);
+  for (const r of rows) {
+    byId.get(Number(r.district_id))?.push({
+      quarterLabel: r.quarter_label,
+      total: Number(r.total),
+      seriousAbove: Number(r.serious_above),
+    });
+  }
+  return byId;
+}
+
+/* 최신(또는 지정) 배치 스냅샷 — 지도용 구·군 목록 */
 export async function getLatestGovForecast(opts: ListOpts = {}) {
   const freq = opts.freq ?? 'Q';
   const scope = opts.scope ?? 'DAEGU';

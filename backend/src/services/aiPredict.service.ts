@@ -1,19 +1,19 @@
+import { HttpError } from '../lib/http';
+
 /**
  * AI 서비스 HTTP 클라이언트 (예측 / 핫스팟 / PDF 프록시)
  */
 const AI_BASE = process.env.AI_SERVICE_URL ?? 'http://localhost:8000';
 
-export class AiHttpError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-    public readonly detail: string,
-  ) {
-    super(message);
+/* AI 서비스 HTTP 에러 */
+export class AiHttpError extends HttpError {
+  constructor(message: string, status: number, detail: string) {
+    super(message, status, detail, false);
     this.name = 'AiHttpError';
   }
 }
 
+/* 에러 상세 읽기 */
 async function readErrorDetail(res: globalThis.Response): Promise<string> {
   try {
     return await res.text();
@@ -22,12 +22,14 @@ async function readErrorDetail(res: globalThis.Response): Promise<string> {
   }
 }
 
+/* AI 상태 매핑 */
 function mapAiStatus(aiStatus: number, preferPassThrough: number[] = [400]): number {
   if (preferPassThrough.includes(aiStatus)) return aiStatus;
   if (aiStatus === 503) return 503;
   return 502;
 }
 
+/* POST JSON 요청 */
 async function postJson(path: string, body: unknown): Promise<unknown> {
   const res = await fetch(`${AI_BASE}${path}`, {
     method: 'POST',
@@ -41,6 +43,7 @@ async function postJson(path: string, body: unknown): Promise<unknown> {
   return res.json();
 }
 
+/* GET JSON 요청 */
 async function getJson(pathWithQuery: string): Promise<unknown> {
   const res = await fetch(`${AI_BASE}${pathWithQuery}`, { method: 'GET' });
   if (!res.ok) {

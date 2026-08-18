@@ -1,6 +1,7 @@
 export const API_BASE =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000';
 
+/* API URL 생성 */
 export function apiUrl(
   path: string,
   params?: Record<string, string | number | boolean | undefined | null>,
@@ -15,6 +16,7 @@ export function apiUrl(
   return url.toString();
 }
 
+/* JSON 읽기 */
 export async function readJson<T>(
   res: Response,
   fallback = '응답을 해석하지 못했습니다.',
@@ -26,6 +28,7 @@ export async function readJson<T>(
   }
 }
 
+/* PDF 블럭 가져오기 */
 export async function fetchPdfBlob(path: string, body: unknown): Promise<Blob> {
   const res = await fetch(apiUrl(path), {
     method: 'POST',
