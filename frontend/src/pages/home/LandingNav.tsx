@@ -4,6 +4,7 @@ import { ROUTES } from '../../shared/constants/routes';
 import { clearAuthStorage, useAuthStore } from '../../shared/stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './LandingNav.module.css';
+import { jumpToPageTop } from '../../shared/utils/jumpToPageTop';
 import {
   scrollToLandingSection,
   scrollToLandingTop,
@@ -77,6 +78,7 @@ export function LandingNav() {
             className={({ isActive }) =>
               `${styles.anchorLink} ${isActive ? styles.anchorLinkActive : ''}`
             }
+            onClick={jumpToPageTop}
           >
             지자체 솔루션
           </NavLink>
@@ -85,6 +87,7 @@ export function LandingNav() {
             className={({ isActive }) =>
               `${styles.anchorLink} ${isActive ? styles.anchorLinkActive : ''}`
             }
+            onClick={jumpToPageTop}
           >
             보험사 솔루션
           </NavLink>
