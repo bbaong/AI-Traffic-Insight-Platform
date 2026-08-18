@@ -5,13 +5,21 @@ import type { PrismaClient } from '../generated/prisma/client';
 import { predictRisk } from './aiPredict.service';
 import { evaluateDiscountRiders } from './discountRider.service';
 import { preparePhoneForStorage } from '../utils/phoneCrypto';
+import { HttpError } from '../lib/http';
+import type { RiderBadge } from '../discountRider';
 
-const BADGE_MAP = {
+const BADGE_MAP: Record<
+  RiderBadge,
+  | 'REVIEW_RECOMMENDED'
+  | 'FURTHER_CHECK_REQUIRED'
+  | 'CURRENTLY_EXCLUDED'
+  | 'EXISTING_MEMBER_VERIFIED'
+> = {
   검토권장: 'REVIEW_RECOMMENDED',
   추가확인필요: 'FURTHER_CHECK_REQUIRED',
   현재제외: 'CURRENTLY_EXCLUDED',
   기존가입확인: 'EXISTING_MEMBER_VERIFIED',
-} as const;
+};
 
 const CHECKLIST_KEYS = [
   'mileage', 'blackbox', 'safedrive',
@@ -129,11 +137,13 @@ async function ensureChecklistItems(
   }
 }
 
-function mapGender(g: string) {
+function mapGender(g: string): 'FEMALE' | 'MALE' {
   return g === '여' || g === 'FEMALE' ? 'FEMALE' : 'MALE';
 }
 
-function mapRiskGrade(grade: string) {
+function mapRiskGrade(
+  grade: string,
+): 'Low' | 'Moderate' | 'High' | 'Critical' {
   const g = String(grade).toUpperCase();
   if (g.includes('CRITICAL')) return 'Critical';
   if (g.includes('HIGH')) return 'High';
@@ -151,6 +161,20 @@ const CONSULTATION_TYPES = [
 
 type ConsultationType = (typeof CONSULTATION_TYPES)[number];
 
+export type SaveConsultationInput = {
+  customer: { name: string; phone: string };
+  profile: {
+    region: string;
+    age: string;
+    gender: string;
+    vehicle: string;
+  };
+  checklist?: Record<string, unknown>;
+  memo?: string | null;
+  userId: string | number;
+  consultationType: ConsultationType;
+};
+
 function isConsultationType(v: unknown): v is ConsultationType {
   return (
     typeof v === 'string' &&
@@ -158,23 +182,77 @@ function isConsultationType(v: unknown): v is ConsultationType {
   );
 }
 
-export async function saveConsultation(input: any) {
-  const { customer, profile, checklist, memo, userId, consultationType } = input;
+function asNonEmptyString(v: unknown): string | null {
+  if (typeof v !== 'string') return null;
+  const s = v.trim();
+  return s.length > 0 ? s : null;
+}
 
-  if (!customer?.name || !customer?.phone) {
-    throw new Error('고객명·전화번호는 필수입니다.');
+function parseSaveConsultationInput(raw: unknown): SaveConsultationInput {
+  if (raw == null || typeof raw !== 'object') {
+    throw new HttpError('요청 본문이 올바르지 않습니다.', 400);
   }
-  if (!profile?.region || !profile?.age || !profile?.gender || !profile?.vehicle) {
-    throw new Error('프로필(지역·연령·성별·차종)은 필수입니다.');
+  const body = raw as Record<string, unknown>;
+
+  const customerRaw =
+    body.customer != null && typeof body.customer === 'object'
+      ? (body.customer as Record<string, unknown>)
+      : null;
+  const profileRaw =
+    body.profile != null && typeof body.profile === 'object'
+      ? (body.profile as Record<string, unknown>)
+      : null;
+
+  const name = asNonEmptyString(customerRaw?.name);
+  const phone = asNonEmptyString(customerRaw?.phone);
+  if (!name || !phone) {
+    throw new HttpError('고객명·전화번호는 필수입니다.', 400);
   }
-  if (!userId) {
-    throw new Error('userId(상담원)가 필요합니다.');
+
+  const region = asNonEmptyString(profileRaw?.region);
+  const age = asNonEmptyString(profileRaw?.age);
+  const gender = asNonEmptyString(profileRaw?.gender);
+  const vehicle = asNonEmptyString(profileRaw?.vehicle);
+  if (!region || !age || !gender || !vehicle) {
+    throw new HttpError('프로필(지역·연령·성별·차종)은 필수입니다.', 400);
   }
-  if (!isConsultationType(consultationType)) {
-    throw new Error(
+
+  if (body.userId == null || body.userId === '') {
+    throw new HttpError('userId(상담원)가 필요합니다.', 400);
+  }
+
+  if (!isConsultationType(body.consultationType)) {
+    throw new HttpError(
       '상담 유형은 NEW|RENEWAL|CLAIM|COVERAGE_ANALYSIS|OTHER 중 하나여야 합니다.',
+      400,
     );
   }
+
+  const checklist =
+    body.checklist != null && typeof body.checklist === 'object'
+      ? (body.checklist as Record<string, unknown>)
+      : undefined;
+
+  const memo =
+    typeof body.memo === 'string'
+      ? body.memo
+      : body.memo == null
+        ? null
+        : String(body.memo);
+
+  return {
+    customer: { name, phone },
+    profile: { region, age, gender, vehicle },
+    checklist,
+    memo,
+    userId: body.userId as string | number,
+    consultationType: body.consultationType,
+  };
+}
+
+export async function saveConsultation(raw: unknown) {
+  const { customer, profile, checklist, memo, userId, consultationType } =
+    parseSaveConsultationInput(raw);
 
   // 1) AI 재추론 — 프론트 prediction 무시
   const ai = await predictRisk({
@@ -233,14 +311,14 @@ export async function saveConsultation(input: any) {
         user_id: BigInt(userId),
         customer_memo: customer.name,
         age_group: profile.age,
-        gender: mapGender(profile.gender) as any,
+        gender: mapGender(profile.gender),
         vehicle_type: profile.vehicle,
         district_id: district.district_id,
         driving_time_slot: 'DAY',
         weather_condition: '맑음',
         road_condition: '건조',
         risk_score: Number(ai.위험도 ?? 0),
-        risk_grade: mapRiskGrade(String(ai.예측등급 ?? 'LOW')) as any,
+        risk_grade: mapRiskGrade(String(ai.예측등급 ?? 'LOW')),
         severe_injury_probability: 0,
         model_version: String(ai.버전 ?? 'ins_v1'),
       },
@@ -297,7 +375,10 @@ export async function saveConsultation(input: any) {
         data: {
           consultation_id: consultation.consultation_id,
           rider_key: r.riderKey,
-          badge: (BADGE_MAP as any)[r.badge] ?? 'FURTHER_CHECK_REQUIRED',
+          badge:
+            r.badge in BADGE_MAP
+              ? BADGE_MAP[r.badge as RiderBadge]
+              : 'FURTHER_CHECK_REQUIRED',
           reason_text: r.reasonText.slice(0, 255),
           additional_check_text: r.additionalCheckText,
         },

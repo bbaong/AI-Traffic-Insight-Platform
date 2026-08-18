@@ -26,14 +26,14 @@
 
 | 문서 | 설명 |
 |------|------|
-| [validation_v1_0_4.md](validation_v1_0_4.md) | InsureGuard v1.0.4 검증 요약 |
-| [validation_v1_0_4_results.json](validation_v1_0_4_results.json) | 검증 수치 |
-| [ins_sklearn_model_compare.md](ins_sklearn_model_compare.md) | Ins sklearn 알고리즘 비교 (회귀·분류) |
-| [ins_sklearn_model_compare.json](ins_sklearn_model_compare.json) | Ins 비교 수치 |
-| [gov_v1_0_4_b1_vs_b2.md](gov_v1_0_4_b1_vs_b2.md) | B1(share) vs B2(log건수) + 캡 비교 (산식 선정 기록) |
-| [gov_v1_0_4_b1_vs_b2.json](gov_v1_0_4_b1_vs_b2.json) | 비교 수치 |
-| [gov_sklearn_rate_compare.md](gov_sklearn_rate_compare.md) | Gov B1+last×2 고정, rate 알고리즘 sklearn 비교 |
-| [gov_sklearn_rate_compare.json](gov_sklearn_rate_compare.json) | Gov rate 비교 수치 |
+| [ins_validation_v1_0_4.md](ins_validation_v1_0_4.md) | InsureGuard v1.0.4 검증 요약 |
+| [ins_validation_v1_0_4_results.json](ins_validation_v1_0_4_results.json) | 검증 수치 |
+| [ins_compare_sklearn.md](ins_compare_sklearn.md) | Ins sklearn 알고리즘 비교 (회귀·분류) |
+| [ins_compare_sklearn.json](ins_compare_sklearn.json) | Ins 비교 수치 |
+| [gov_compare_b1_b2_v1_0_4.md](gov_compare_b1_b2_v1_0_4.md) | B1(share) vs B2(log건수) + 캡 비교 (산식 선정 기록) |
+| [gov_compare_b1_b2_v1_0_4.json](gov_compare_b1_b2_v1_0_4.json) | 비교 수치 |
+| [gov_compare_rate_sklearn.md](gov_compare_rate_sklearn.md) | Gov B1+last×2 고정, rate 알고리즘 sklearn 비교 |
+| [gov_compare_rate_sklearn.json](gov_compare_rate_sklearn.json) | Gov rate 비교 수치 |
 | [prediction_latency.md](prediction_latency.md) | Ins/Gov 예측 응답 시간 측정 요약 |
 | [prediction_latency.json](prediction_latency.json) | 지연 시간 원시 수치 |
 | [prediction_latency_e2e.md](prediction_latency_e2e.md) | AI + Backend(+FE HTML) 전체 스택 지연 |

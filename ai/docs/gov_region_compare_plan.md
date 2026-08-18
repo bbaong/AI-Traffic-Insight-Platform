@@ -15,7 +15,7 @@
 | 사고유형 대구 평균 | **백엔드 집계** (gov 모델 업그레이드 1차 불필요) |
 | 분기 추세 대구 선 | **구·군 건수의 평균** (합 아님) |
 | 예측 점선 | **DB 스냅샷** (`gov_forecast`). 요청 시 pkl 로드 안 함 |
-| AI 쪽 유지 | 기존 `batch_gov_forecast.py` **주 1회** 갱신만 |
+| AI 쪽 유지 | 기존 `gov_batch_forecast.py` **주 1회** 갱신만 |
 
 ---
 
@@ -128,7 +128,7 @@ CSV (`주야`, `사고유형`, `법규위반`, `사고내용` 등)로 파생 가
 [페이지 요청] DB만 읽기  (pkl 로드 없음)
 ```
 
-이미 `scripts/batch_gov_forecast.py` → `gov_forecast_runs` / `gov_forecast_districts` 패턴이 있다.
+이미 `scripts/gov_batch_forecast.py` → `gov_forecast_runs` / `gov_forecast_districts` 패턴이 있다.
 
 ### 5.2 옵션
 
@@ -145,7 +145,7 @@ CSV (`주야`, `사고유형`, `법규위반`, `사고내용` 등)로 파생 가
 1. (기존) 원천 → benchmark ETL  
 1a. **`etl_district_monthly_trend.py`** → `district_monthly_trend` (추세 실선)  
 1b. (A안) `etl_accident_condition_type.py` → `accident_condition_stats` (`ACCIDENT_TYPE`)  
-2. (기존) `batch_gov_forecast.py` → `gov_forecast_*`  
+2. (기존) `gov_batch_forecast.py` → `gov_forecast_*`  
 3. (선택) 같은 배치에서 `risk_score` 계산·저장  
 4. (선택) history forecast 포인트 추가 적재  
 5. `region-compare` API = DB만 읽기  
@@ -183,9 +183,9 @@ CSV (`주야`, `사고유형`, `법규위반`, `사고내용` 등)로 파생 가
 |------|------|
 | `backend/docs/gov-region-compare.md` | 백엔드 API·섹션 현황 |
 | `scripts/gov_v1_0_5.py` / `models/gov_model_v1.0.5.pkl` | 분기 예측 (배치) |
-| `scripts/batch_gov_forecast.py` | pkl → DB 적재 |
+| `scripts/gov_batch_forecast.py` | pkl → DB 적재 |
 | `scripts/etl_accident_condition_type.py` | CSV → `accident_condition_stats` (유형 대분류) |
 | `scripts/etl_district_monthly_trend.py` | CSV → `district_monthly_trend` (월별 추세 실적) |
-| `scripts/batch_gov_forecast.py` | pkl → `gov_forecast_*` |
+| `scripts/gov_batch_forecast.py` | pkl → `gov_forecast_*` |
 | `src/gov_inference.py` | 실시간 추론 헬퍼 (대시보드 폴백) |
 | `docs/gov_v1_0_5_feature_spec.md` | GovGuard 피처 명세 |

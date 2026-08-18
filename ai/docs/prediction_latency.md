@@ -1,7 +1,7 @@
 # 예측 응답 시간 측정
 
 측정일: 로컬 Windows, AI FastAPI `127.0.0.1:8000`  
-스크립트: `scripts/measure_prediction_latency.py`  
+스크립트: `scripts/measure_latency.py`  
 원시 결과: [`prediction_latency.json`](prediction_latency.json)
 
 > 브라우저 → Express → AI 전체 E2E는 Backend가 꺼져 있어 미측정.  
@@ -31,5 +31,5 @@
 ```bash
 cd ai
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-python scripts/measure_prediction_latency.py
+python scripts/measure_latency.py
 ```

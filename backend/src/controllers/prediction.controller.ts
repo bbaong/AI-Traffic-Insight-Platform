@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
-import { ok, fail } from '../lib/http';
+import { ok, fail, handleRouteError, HttpError } from '../lib/http';
 import { getLatestGovForecast } from '../services/govForecast.service';
 import {
-  AiHttpError,
   predictRisk,
   predictGov as aiPredictGov,
   predictGovHistory as aiPredictGovHistory,
@@ -13,25 +12,13 @@ import {
   buildGovReportPdf,
 } from '../services/pdf/govReportPdf.service';
 
-function handleAiError(
-  res: Response,
-  error: unknown,
-  fallbackMessage: string,
-) {
-  console.error(error);
-  if (error instanceof AiHttpError) {
-    return fail(res, error.status, fallbackMessage, error.detail);
-  }
-  return fail(res, 500, fallbackMessage, error);
-}
-
 /** POST /api/prediction/predict-ins — 사고예측 요청 */
 export const predictIns = async (req: Request, res: Response) => {
   try {
     const { 구군, 연령대, 성별, 차종, 주야, 노면상태 } = req.body;
 
     if (!구군 || !연령대 || !성별 || !차종) {
-      return fail(res, 400, '구군, 연령대, 성별, 차종은 필수입니다.');
+      throw new HttpError('구군, 연령대, 성별, 차종은 필수입니다.', 400);
     }
 
     const data = await predictRisk({
@@ -44,7 +31,7 @@ export const predictIns = async (req: Request, res: Response) => {
     });
     return ok(res, data);
   } catch (error) {
-    return handleAiError(res, error, 'AI 서버 추론 실패');
+    return handleRouteError(res, error, 'AI 서버 추론 실패');
   }
 };
 
@@ -55,7 +42,7 @@ export const predictGov = async (req: Request, res: Response) => {
     const data = await aiPredictGov({ 지역, as_of, freq });
     return ok(res, data);
   } catch (error) {
-    return handleAiError(res, error, 'AI 서버(지자체) 추론 실패');
+    return handleRouteError(res, error, 'AI 서버(지자체) 추론 실패');
   }
 };
 
@@ -76,12 +63,7 @@ export const getGovForecasts = async (req: Request, res: Response) => {
     }
     return ok(res, data);
   } catch (error) {
-    console.error(error);
-    return fail(
-      res,
-      500,
-      error instanceof Error ? error.message : 'forecast 조회 실패',
-    );
+    return handleRouteError(res, error, 'forecast 조회 실패');
   }
 };
 
@@ -97,7 +79,7 @@ export const predictGovHistory = async (req: Request, res: Response) => {
     const data = await aiPredictGovHistory({ 지역, as_of, n_history });
     return ok(res, data);
   } catch (error) {
-    return handleAiError(res, error, 'AI 서버(지자체 history) 추론 실패');
+    return handleRouteError(res, error, 'AI 서버(지자체 history) 추론 실패');
   }
 };
 
@@ -112,7 +94,7 @@ export const predictGovHotspots = async (req: Request, res: Response) => {
     const data = await fetchHotspots({ year, refresh, include_polygon });
     return ok(res, data);
   } catch (error) {
-    return handleAiError(res, error, 'AI 서버(다발지역) 조회 실패');
+    return handleRouteError(res, error, 'AI 서버(다발지역) 조회 실패');
   }
 };
 
@@ -130,16 +112,6 @@ export const predictGovReportPdf = async (req: Request, res: Response) => {
     );
     return res.send(buf);
   } catch (error) {
-    console.error(error);
-    const message =
-      error instanceof Error ? error.message : 'PDF 생성 실패';
-    if (
-      message.includes('필수') ||
-      message.includes('필요합니다') ||
-      message.includes('스냅샷')
-    ) {
-      return fail(res, 400, message);
-    }
-    return fail(res, 500, 'GOV PDF 생성 실패', error);
+    return handleRouteError(res, error, 'GOV PDF 생성 실패');
   }
 };

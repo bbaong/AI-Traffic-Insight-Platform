@@ -41,7 +41,7 @@ warnings.filterwarnings("ignore", category=UserWarning)
 ROOT = Path(__file__).resolve().parent.parent
 DATA_PATH = ROOT / "data" / "raw" / "사고분석_2016~2025_원본합본.csv"
 MODEL_DIR = ROOT / "models"
-FIG_DIR = ROOT / "docs" / "figures" / "insureguard_v1_0_4"
+FIG_DIR = ROOT / "docs" / "figures" / "ins_v1_0_4"
 
 MODEL_NAME = "InsureGuard AI"
 MODEL_VERSION = "1.0.4"

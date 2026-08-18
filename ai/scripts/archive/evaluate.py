@@ -15,7 +15,7 @@ from sklearn.metrics import (
 )
 from sklearn.pipeline import Pipeline
 
-from src.inference import predict_risk_score
+from src.ins_inference import predict_risk_score
 
 
 def evaluate_classifier(

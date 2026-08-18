@@ -119,9 +119,9 @@ print(f"=====================================")
 
 로컬에서 모델이 정상 가동하는지 빠르고 쉽게 검증하기 위해 CLI(Command Line Interface) 환경에서 임시 테스트 스크립트를 작성하여 구동할 수 있습니다.
 
-1. 위의 코드를 복사하여 `test_model.py` 파일로 저장합니다.
+1. 위의 코드를 복사하여 `scripts/ins_smoke.py` 파일로 저장합니다.
 2. 터미널/PowerShell 창에서 아래 명령어를 실행하여 올바른 예측값이 출력되는지 테스트합니다:
    ```bash
-   python test_model.py
+   python scripts/ins_smoke.py
    ```
 3. `new_customer_data` 딕셔너리의 내부 값을 변경하여 다양한 시나리오(예: '65세 이상', '여', '노면상태: 건조' 등)의 조건별 예측 거동 변화를 확인해봅니다.

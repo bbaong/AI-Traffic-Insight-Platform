@@ -1,7 +1,13 @@
-"""ins_model_v1.0.5.pkl 로컬 검증용."""
+"""ins_model_v1.0.5.pkl 로컬 스모크."""
+
 from __future__ import annotations
 
-from src.inference import predict_from_input
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from src.ins_inference import predict_from_input
 
 
 def main() -> None:

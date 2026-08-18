@@ -22,7 +22,8 @@ from src.consult_copy import (
     build_consult_point,
     score_to_level,
 )
-from src.coverage_rules import recommend_coverages
+from src.ins_coverage_rules import recommend_coverages
+
 from src import MODEL_DIR
 
 MODEL_PATH = MODEL_DIR / "ins_model_v1.0.5.pkl"

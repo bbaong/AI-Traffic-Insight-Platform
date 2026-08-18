@@ -8,7 +8,7 @@
 > **v1.0.3:** 건수 직접 회귀 메인  
 > **v1.0.4:** **점유율×시전체(B1) + 직전 실적×2 캡**
 
-비교 실험: [gov_v1_0_4_b1_vs_b2.md](gov_v1_0_4_b1_vs_b2.md)
+비교 실험: [gov_compare_b1_b2_v1_0_4.md](../gov_compare_b1_b2_v1_0_4.md)
 
 현재 `src/gov_inference.py`는 **v1.0.5**을 로드합니다. (본 문서는 v1.0.4 보관본)
 
@@ -76,4 +76,4 @@ predict_gov_history(지역="군위군")
 | `scripts/gov_v1_0_5.py` | 현재 서빙 |
 | `models/gov_model_v1.0.4.pkl` | 패키지 (있을 경우) |
 | `src/gov_inference.py` | FastAPI 헬퍼 |
-| `docs/gov_v1_0_4_b1_vs_b2.md` | B1/B2 실험 |
+| `docs/gov_compare_b1_b2_v1_0_4.md` | B1/B2 실험 |

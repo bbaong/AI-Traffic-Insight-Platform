@@ -1,13 +1,9 @@
-import 'dotenv/config';
-import { PrismaClient } from '../generated/prisma/client';
+import { prisma } from '../lib/prisma';
+import { mapMetricsWithCounts } from './govComparison.service';
 import {
-  getComparisonByDistrictId,
-  mapMetricsWithCounts,
-} from './govComparison.service';
-import { listSuggestions, listTrend } from './govForecast.service';
-
-const prisma = new PrismaClient();
-
+  listTrendByDistrictIds,
+  suggestionsFromMetrics,
+} from './govForecast.service';
 /** UI 기본 3, 서버 상한 8 */
 export const REGION_COMPARE_MAX_DISTRICTS = 8;
 
@@ -347,8 +343,10 @@ export async function getRegionCompare(districtIds: number[]) {
       : 50,
   );
 
+
   const typeMix = await loadAccidentTypeMix(districtIds);
   const cityTrend = await loadCityAvgTrendSafe();
+  const trendById = await listTrendByDistrictIds(districtIds);
 
   const districts = [];
   for (const id of districtIds) {
@@ -358,18 +356,19 @@ export async function getRegionCompare(districtIds: number[]) {
       return { error: 'unknown_district' as const, districtId: id };
     }
 
-    const comparison = await getComparisonByDistrictId(id);
-    if (!comparison) {
+    const bench = benchById.get(id);
+    if (!bench) {
       return { error: 'no_benchmark' as const };
     }
 
-    const suggestions = await listSuggestions(id);
+    const suggestions = suggestionsFromMetrics(bench, cityBenchmark);
     const tags = suggestions
       .map((s) => TAG_BY_SUGGESTION_KEY[s.key] ?? s.title)
       .slice(0, 2);
 
     const scored = scoredAll.find((s) => s.districtId === id);
-    const trendHistory = await listTrend(id);
+    const trendHistory = trendById.get(id) ?? [];
+
     const forecastPoint = {
       quarterLabel: run.forecast_label ?? 'forecast',
       total: fr?.predicted_accident_count ?? 0,
@@ -393,7 +392,7 @@ export async function getRegionCompare(districtIds: number[]) {
             ? toNum(fr.predicted_severe_rate_pct)
             : null,
       },
-      metrics: comparison.district,
+      metrics: mapMetricsWithCounts(bench),
       accidentTypes: typeMix.byDistrict.get(id) ?? {
         차대차: 0,
         차대사람: 0,

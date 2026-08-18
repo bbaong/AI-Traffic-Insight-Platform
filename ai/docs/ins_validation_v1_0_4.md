@@ -1,6 +1,6 @@
 # InsureGuard AI v1.0.4 — 엄격 검증 결과 (A~C)
 
-스크립트: `scripts/validate_ins_v1_0_4.py`  
+스크립트: `scripts/ins_validate_v1_0_4.py`  
 Test 연도(A/B time): `[2024, 2025]`
 
 ## 연도별 행 수
@@ -50,5 +50,5 @@ Test 연도(A/B time): `[2024, 2025]`
 
 ## 산출 파일
 
-- `docs\validation_v1_0_4_results.json`
-- `docs\validation_v1_0_4.md`
+- `docs\ins_validation_v1_0_4_results.json`
+- `docs\ins_validation_v1_0_4.md`

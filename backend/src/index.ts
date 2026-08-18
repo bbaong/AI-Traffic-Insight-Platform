@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
 import cors from 'cors';
-import { jsonReplacer } from './lib/http';
+import { jsonReplacer, ok } from './lib/http';
 import userRoutes from './routes/user.route';
 import predictionRoutes from './routes/prediction.route';
 import insuranceRoutes from './routes/insurance';
@@ -30,7 +30,7 @@ app.use('/api/gov', govRoutes);
 
 
 app.get('/health', (_req: Request, res: Response) => {
-  res.status(200).json({ success: true, data: { status: 'ok' } });
+  return ok(res, { status: 'ok' }, 200);
 });
 
 app.get('/', (_req: Request, res: Response) => {

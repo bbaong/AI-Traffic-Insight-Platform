@@ -1,19 +1,20 @@
+import { HttpError } from '../lib/http';
+
 /**
  * AI 서비스 HTTP 클라이언트 (예측 / 핫스팟 / PDF 프록시)
  */
 const AI_BASE = process.env.AI_SERVICE_URL ?? 'http://localhost:8000';
+const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS) || 20_000;
 
-export class AiHttpError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-    public readonly detail: string,
-  ) {
-    super(message);
+/* AI 서비스 HTTP 에러 */
+export class AiHttpError extends HttpError {
+  constructor(message: string, status: number, detail: string) {
+    super(message, status, detail, false);
     this.name = 'AiHttpError';
   }
 }
 
+/* 에러 상세 읽기 */
 async function readErrorDetail(res: globalThis.Response): Promise<string> {
   try {
     return await res.text();
@@ -22,36 +23,69 @@ async function readErrorDetail(res: globalThis.Response): Promise<string> {
   }
 }
 
+/* AI 상태 매핑 */
 function mapAiStatus(aiStatus: number, preferPassThrough: number[] = [400]): number {
   if (preferPassThrough.includes(aiStatus)) return aiStatus;
   if (aiStatus === 503) return 503;
   return 502;
 }
 
-async function postJson(path: string, body: unknown): Promise<unknown> {
-  const res = await fetch(`${AI_BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const detail = await readErrorDetail(res);
-    throw new AiHttpError('AI 요청 실패', mapAiStatus(res.status), detail);
-  }
-  return res.json();
+/** 타임아웃 에러 확인 */
+function isTimeoutError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.name === 'TimeoutError' || error.name === 'AbortError')
+  );
 }
 
-async function getJson(pathWithQuery: string): Promise<unknown> {
-  const res = await fetch(`${AI_BASE}${pathWithQuery}`, { method: 'GET' });
+/* AI 요청 */
+async function requestJson(
+  method: 'GET' | 'POST',
+  path: string,
+  body?: unknown,
+  passThrough: number[] = [400],
+): Promise<unknown> {
+  let res: globalThis.Response;
+  try {
+    res = await fetch(`${AI_BASE}${path}`, {
+      method,
+      headers:
+        method === 'POST'
+          ? { 'Content-Type': 'application/json' }
+          : undefined,
+      body: method === 'POST' ? JSON.stringify(body) : undefined,
+      signal: AbortSignal.timeout(AI_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      throw new AiHttpError(
+        'AI 요청 시간 초과',
+        504,
+        `timeout ${AI_TIMEOUT_MS}ms`,
+      );
+    }
+    throw error;
+  }
+
   if (!res.ok) {
     const detail = await readErrorDetail(res);
     throw new AiHttpError(
       'AI 요청 실패',
-      mapAiStatus(res.status, [400, 503]),
+      mapAiStatus(res.status, passThrough),
       detail,
     );
   }
   return res.json();
+}
+
+/* POST 요청 */
+async function postJson(path: string, body: unknown): Promise<unknown> {
+  return requestJson('POST', path, body);
+}
+
+/* GET 요청 */
+async function getJson(pathWithQuery: string): Promise<unknown> {
+  return requestJson('GET', pathWithQuery, undefined, [400, 503]);
 }
 
 /** INS 위험도 예측 응답 */
