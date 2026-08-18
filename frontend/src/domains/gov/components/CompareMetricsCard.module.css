@@ -74,7 +74,14 @@
   display: grid;
   grid-template-columns: 118px minmax(0, 1fr);
   gap: 12px;
-  align-items: center;
+  align-items: start;
+}
+
+.rowHead {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-top: 1px;
 }
 
 .rowLabel {
@@ -83,6 +90,14 @@
   font-weight: var(--font-weight-medium);
   color: var(--color-ink);
   line-height: 1.35;
+}
+
+.rowAvg {
+  margin: 0;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
 }
 
 .plot {
@@ -139,17 +154,6 @@
   width: 9px;
   height: 9px;
   transform: translate(-50%, -50%) rotate(45deg);
-}
-
-.avgLabel {
-  position: absolute;
-  top: 50%;
-  left: 10px;
-  transform: translateY(-50%);
-  font-size: 12px;
-  font-weight: var(--font-weight-medium);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
 .axis {

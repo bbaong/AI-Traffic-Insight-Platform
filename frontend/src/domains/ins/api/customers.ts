@@ -12,12 +12,12 @@ export async function fetchCustomers(
   userId?: number,
 ): Promise<CustomerListItem[]> {
   if (userId == null) throw new Error('로그인이 필요합니다.');
-  const url = new URL(apiUrl('/api/customers'));
-  url.searchParams.set('userId', String(userId));
-  const query = q?.trim();
-  if (query) url.searchParams.set('q', query);
-  
-  const res = await fetch(url.toString());
+  const res = await fetch(
+    apiUrl('/api/customers', {
+      userId,
+      q: q?.trim() || undefined,
+    }),
+  );
   const json = await readJson<ApiResponse<CustomerListItem[]>>(res);
 
   if (!res.ok || !json.success || !Array.isArray(json.data)) {
@@ -40,11 +40,12 @@ export async function hideCustomer(
   customerId: string,
   userId: number,
 ): Promise<HideCustomerResult> {
-  const url = new URL(
-    apiUrl(`/api/customers/${encodeURIComponent(customerId)}/hide`),
+  const res = await fetch(
+    apiUrl(`/api/customers/${encodeURIComponent(customerId)}/hide`, {
+      userId,
+    }),
+    { method: 'PATCH' },
   );
-  url.searchParams.set('userId', String(userId));
-  const res = await fetch(url.toString(), { method: 'PATCH' });
   const json = await readJson<ApiResponse<HideCustomerResult>>(res);
 
   if (res.status === 404) {
@@ -101,11 +102,11 @@ export async function fetchCustomerConsultations(
   customerId: string,
   userId: number,
 ): Promise<ConsultationsResponse> {
-  const url = new URL(
-    apiUrl(`/api/customers/${encodeURIComponent(customerId)}/consultations`),
+  const res = await fetch(
+    apiUrl(`/api/customers/${encodeURIComponent(customerId)}/consultations`, {
+      userId,
+    }),
   );
-  url.searchParams.set('userId', String(userId));
-  const res = await fetch(url.toString());
   const json = await readJson<
     {
       success: boolean;

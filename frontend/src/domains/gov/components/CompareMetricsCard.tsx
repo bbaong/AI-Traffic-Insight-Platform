@@ -84,7 +84,15 @@ export function CompareMetricsCard({
 
           return (
             <li key={metric.id} className={styles.row}>
-              <p className={styles.rowLabel}>{metric.label}</p>
+              <div className={styles.rowHead}>
+                <p className={styles.rowLabel}>{metric.label}</p>
+                <p
+                  className={styles.rowAvg}
+                  style={{ color: CITY_AVG_COLOR }}
+                >
+                  평균 {formatPct1(cityPct)}
+                </p>
+              </div>
               <div className={styles.plot}>
                 <div
                   className={styles.plotInner}
@@ -118,17 +126,12 @@ export function CompareMetricsCard({
                   <span
                     className={styles.avgLine}
                     style={{ left: `${cityLeft}%`, borderColor: CITY_AVG_COLOR }}
+                    aria-hidden
                   >
                     <span
                       className={styles.avgDiamond}
                       style={{ background: CITY_AVG_COLOR }}
                     />
-                    <span
-                      className={styles.avgLabel}
-                      style={{ color: CITY_AVG_COLOR }}
-                    >
-                      평균 {formatPct1(cityPct)}
-                    </span>
                   </span>
                 </div>
               </div>

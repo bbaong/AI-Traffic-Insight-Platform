@@ -6,8 +6,6 @@ export function apiUrl(
   params?: Record<string, string | number | boolean | undefined | null>,
 ): string {
   const url = new URL(path, API_BASE.endsWith('/') ? API_BASE : `${API_BASE}/`);
-  // path가 '/api/...'이면 API_BASE origin + path
-  // 구현 시 new URL(API_BASE) 후 pathname 붙이는 편이 안전
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       if (v == null || v === '') continue;
