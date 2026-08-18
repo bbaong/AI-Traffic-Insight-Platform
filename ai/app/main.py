@@ -17,6 +17,7 @@ from app.schemas import (
     PredictResponse,
 )
 from src.gov_inference import (
+    _gov_mod as load_gov_script,
     load_model as load_gov_model,
     predict_gov_history,
     predict_gov_rates,
@@ -29,11 +30,14 @@ load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    # 기동 시 pkl 로드 (첫 요청 지연 감소)
+    # 기동 시 pkl + gov 학습스크립트 로드 (첫 요청 지연 감소)
     try:
         load_gov_model()
+        load_gov_script()
     except FileNotFoundError as e:
         print(f"[warmup] gov model skip: {e}")
+    except Exception as e:
+        print(f"[warmup] gov script skip: {e}")
     try:
         load_ins_model()
     except Exception as e:
