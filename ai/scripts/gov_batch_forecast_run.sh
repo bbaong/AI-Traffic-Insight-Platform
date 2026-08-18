@@ -21,6 +21,6 @@ fi
 
 {
   echo "[$(date -Iseconds)] start GOV_FREQ=$GOV_FREQ GOV_SCOPE=$GOV_SCOPE"
-  "$PYTHON" scripts/batch_gov_forecast.py
+  "$PYTHON" scripts/gov_batch_forecast.py
   echo "[$(date -Iseconds)] ok"
 } 2>&1 | tee -a "$LOG"

@@ -1,7 +1,7 @@
 # GovGuard — sklearn 점유율(rate) 모델 비교 (B1 + last×2 고정)
 
 > 파이프라인(B1 × 시전체 + `last×2` cap)은 고정하고, **점유율 회귀 알고리즘만** 비교.
-> 서빙 구조(B1 vs B2 vs 건수회귀) 비교는 [`gov_v1_0_4_b1_vs_b2.md`](gov_v1_0_4_b1_vs_b2.md) 참고.
+> 서빙 구조(B1 vs B2 vs 건수회귀) 비교는 [`gov_compare_b1_b2_v1_0_4.md`](gov_compare_b1_b2_v1_0_4.md) 참고.
 
 ## 설정
 
@@ -36,7 +36,7 @@
 - **해석**
   1. `last×2` 캡이 강하면 **알고리즘 격차가 축소**되고, jump 상한(2.0)에 걸린 트리는 건수 KPI에서 Ridge에 밀릴 수 있다.
   2. 그래도 HGBR/RF도 R²≈0.97·MAE≈20으로 **서비스 참고용 적합 구간**이다.
-  3. **더 중요한 선정 근거**는 알고리즘이 아니라 파이프라인이다 → [`gov_v1_0_4_b1_vs_b2.md`](gov_v1_0_4_b1_vs_b2.md) (건수 직접회귀 vs B1).
+  3. **더 중요한 선정 근거**는 알고리즘이 아니라 파이프라인이다 → [`gov_compare_b1_b2_v1_0_4.md`](gov_compare_b1_b2_v1_0_4.md) (건수 직접회귀 vs B1).
   4. 운영상 HGBR 유지 근거: 기존 pkl·중대/경중 헤드와 동일 스택, Top-3 동등. Ridge로 바꾸려면 재학습·캡 상호작용을 별도 검증해야 한다.
 
-스크립트: `scripts/compare_gov_rate_sklearn.py`
+스크립트: `scripts/gov_compare_rate_sklearn.py`

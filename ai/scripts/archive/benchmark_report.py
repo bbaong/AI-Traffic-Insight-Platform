@@ -24,7 +24,7 @@ from sklearn.model_selection import train_test_split
 ROOT = Path(__file__).resolve().parents[2]  # scripts/archive -> ai
 sys.path.insert(0, str(ROOT))
 
-from src.inference import predict_risk_score  # noqa: E402
+from src.ins_inference import predict_risk_score  # noqa: E402
 from src.preprocess import FEATURE_COLS, TARGET_COL, prepare_training_data  # noqa: E402
 
 MODEL_DIR = ROOT / "models"
@@ -161,7 +161,7 @@ def main() -> None:
             "memory": mem,
         }
 
-    out = ROOT / "docs" / "benchmark_results.json"
+    out = ROOT / "docs" / "archive" / "ins_train_weighted_results.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(results, ensure_ascii=False, indent=2))

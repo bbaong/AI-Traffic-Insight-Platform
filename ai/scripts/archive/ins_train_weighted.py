@@ -20,7 +20,7 @@ from sklearn.utils.class_weight import compute_sample_weight
 
 from src import MODEL_DIR
 from src.evaluate import evaluate_classifier, measure_inference_latency, print_evaluation
-from src.inference import predict_risk_score, VARIANTS
+from src.ins_inference import predict_risk_score, VARIANTS
 from src.preprocess import FEATURE_COLS, prepare_training_data, TARGET_COL
 
 

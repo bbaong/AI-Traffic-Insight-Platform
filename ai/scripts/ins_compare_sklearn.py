@@ -4,8 +4,8 @@ InsureGuard — sklearn-only algorithm comparison (v1.0.4 target fixed).
 
 Compares regressors / classifiers under identical data, cleaning, features, and target.
 Outputs:
-  docs/ins_sklearn_model_compare.json
-  docs/ins_sklearn_model_compare.md
+  docs/ins_compare_sklearn.json
+  docs/ins_compare_sklearn.md
 """
 
 from __future__ import annotations
@@ -41,8 +41,8 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "ins_v1_0_4.py"
-OUT_JSON = ROOT / "docs" / "ins_sklearn_model_compare.json"
-OUT_MD = ROOT / "docs" / "ins_sklearn_model_compare.md"
+OUT_JSON = ROOT / "docs" / "ins_compare_sklearn.json"
+OUT_MD = ROOT / "docs" / "ins_compare_sklearn.md"
 
 RANDOM_STATE = 42
 TEST_YEARS = {2024, 2025}
@@ -58,7 +58,7 @@ def _load_ins():
 
 
 def risk_level_from_score(score: float) -> str:
-    """Same thresholds as ai/src/inference.py."""
+    """Same thresholds as ai/src/ins_inference.py."""
     if score >= 75:
         return "CRITICAL"
     if score >= 50:
@@ -371,7 +371,7 @@ def write_md(payload: dict) -> None:
             "(~0.5%p 내외) **현행 RF 유지가 합리적**. macro-F1도 전체적으로 낮아 "
             "메인 KPI로 쓰기 어렵다.",
             "",
-            "생성: 스크립트 `scripts/compare_ins_sklearn.py`",
+            "생성: 스크립트 `scripts/ins_compare_sklearn.py`",
             "",
         ]
     )

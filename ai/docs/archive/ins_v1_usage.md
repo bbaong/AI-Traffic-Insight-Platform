@@ -1,15 +1,15 @@
-> ⚠️ **보관 문서** — 레거시 `traffic_accident_model.pkl` / `new_model` 기준입니다. 현재 서빙 모델과 무관합니다.  
+> ⚠️ **보관 문서** — 레거시 `ins_model_v1.pkl` / `ins_v1.py` 기준입니다. 현재 서빙 모델과 무관합니다.  
 > 설치·추론: [../README.md](../README.md) · 문서 목차: [README.md](README.md)
 
-# traffic_accident_model.pkl 테스트 및 사용 가이드
+# ins_model_v1.pkl 테스트 및 사용 가이드
 
-본 문서는 `new_model.py`를 통해 생성된 학습 모델 패키지 파일(`traffic_accident_model.pkl`)을 로드하여 실제 개발 환경이나 테스트 환경에서 활용하는 방법을 설명합니다.
+본 문서는 `ins_v1.py`를 통해 생성된 학습 모델 패키지 파일(`ins_model_v1.pkl`)을 로드하여 실제 개발 환경이나 테스트 환경에서 활용하는 방법을 설명합니다.
 
 ---
 
 ## 1. 모델 패키지 구조 (.pkl)
 
-`traffic_accident_model.pkl` 파일은 Python의 `pickle` 모듈을 사용해 바이너리로 저장되어 있습니다. 저장된 딕셔너리의 내부 구조는 다음과 같습니다:
+`ins_model_v1.pkl` 파일은 Python의 `pickle` 모듈을 사용해 바이너리로 저장되어 있습니다. 저장된 딕셔너리의 내부 구조는 다음과 같습니다:
 
 ```python
 {
@@ -40,7 +40,7 @@ import pickle
 import numpy as np
 
 # 1. 모델 패키지 로드
-with open('traffic_accident_model.pkl', 'rb') as f:
+with open('ins_model_v1.pkl', 'rb') as f:
     model_package = pickle.load(f)
 
 # 2. 예측에 사용할 신규 입력 데이터 정의
@@ -119,9 +119,9 @@ print(f"=====================================")
 
 로컬에서 모델이 정상 가동하는지 빠르고 쉽게 검증하기 위해 CLI(Command Line Interface) 환경에서 임시 테스트 스크립트를 작성하여 구동할 수 있습니다.
 
-1. 위의 코드를 복사하여 `test_model.py` 파일로 저장합니다.
+1. 위의 코드를 복사하여 `scripts/ins_smoke.py` 파일로 저장합니다.
 2. 터미널/PowerShell 창에서 아래 명령어를 실행하여 올바른 예측값이 출력되는지 테스트합니다:
    ```bash
-   python test_model.py
+   python scripts/ins_smoke.py
    ```
 3. `new_customer_data` 딕셔너리의 내부 값을 변경하여 다양한 시나리오(예: '65세 이상', '여', '노면상태: 건조' 등)의 조건별 예측 거동 변화를 확인해봅니다.

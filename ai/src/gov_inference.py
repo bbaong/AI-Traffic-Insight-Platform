@@ -22,6 +22,7 @@ def load_model() -> dict[str, Any]:
         return pickle.load(f)
 
 
+@lru_cache(maxsize=1)
 def _gov_mod():
     spec = importlib.util.spec_from_file_location("gov_v1_0_5", SCRIPT_PATH)
     mod = importlib.util.module_from_spec(spec)

@@ -17,6 +17,9 @@ python -m venv .venv
 #   $env:PYTHONUTF8 = "1"
 python -m pip install -r requirements.txt
 
+copy .env.example .env                # Windows — KOROAD_AUTH_KEY 등 채우기
+# cp .env.example .env                # macOS/Linux
+
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -24,12 +27,15 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - Health: `http://localhost:8000/health`
 - Swagger: `http://localhost:8000/docs`
 
+`GET /hotspots`는 `.env`의 `KOROAD_AUTH_KEY`가 필요합니다. Ins/Gov 예측은 pkl만 있으면 됩니다.
+
 ## 시스템 연결
 
 ```text
 [Frontend]
   POST /api/prediction/predict-ins  →  보험 대시보드
   POST /api/prediction/predict-gov  →  지자체 대시보드
+  POST /api/prediction/predict-gov-history → 분기 history
   GET  /api/prediction/predict-gov-hotspots → 공식 다발지역 원
         │
         ▼
@@ -38,9 +44,10 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
         │
         ▼
 [AI]  python -m uvicorn app.main:app  (http://localhost:8000)
-  POST /predict      →  InsureGuard v1.0.4
-  POST /predict/gov  →  GovGuard v1.0.5
-  GET  /hotspots     →  대구 공식 사고다발 TOP3 (캐시)
+  POST /predict             →  InsureGuard v1.0.4
+  POST /predict/gov         →  GovGuard v1.0.5
+  POST /predict/gov/history →  GovGuard 분기 history
+  GET  /hotspots            →  대구 공식 사고다발 TOP3 (캐시)
   GET  /health
 ```
 
@@ -49,7 +56,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 | 보험 | `models/ins_model_v1.0.4.pkl` | `scripts/ins_v1_0_4.py` | `docs/ins_v1_0_4_feature_spec.md` |
 | 지자체 | `models/gov_model_v1.0.5.pkl` | `scripts/gov_v1_0_5.py` | `docs/gov_v1_0_5_feature_spec.md` |
 
-이전 버전 pkl(`ins_model_v1.0.2`~`1.0.3`, `gov_model_v1.0.0`~`1.0.4`)은 보존·비교용입니다.
+이전 버전 pkl(`ins_model_v1.0.2`~`1.0.3`, `gov_model_v1.0.0`~`1.0.4`, `traffic_accident_model.pkl`)은 보존·비교용입니다. API는 위 두 파일만 로드합니다.
 
 ---
 
@@ -57,24 +64,45 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 ```text
 ai/
-├── app/                 # FastAPI (main.py, schemas.py)
+├── app/                          # FastAPI
+│   ├── main.py                   # 엔드포인트
+│   └── schemas.py                # 요청·응답 스키마
 ├── src/
-│   ├── inference.py     # InsureGuard 로드·추론 (v1.0.4)
-│   ├── gov_inference.py # GovGuard 로드·추론 (v1.0.5)
-│   ├── hotspots.py      # 공식 다발지역 REST + 파일 캐시
-│   └── preprocess.py    # 인구 join 등 (선택)
-├── scripts/             # 현재 학습·검증·실험
-│   └── archive/         # 이전 버전 스크립트
-├── models/              # *.pkl (Git 제외, 학습 후 생성)
-├── data/
-│   ├── raw/             # 원천 CSV (Git 제외)
-│   └── processed/       # 전처리 결과
-├── docs/                # 현재 명세·검증 (목차: docs/README.md)
-│   └── archive/         # 이전 명세·실험 기록
+│   ├── ins_inference.py          # InsureGuard 로드·추론 (v1.0.4)
+│   ├── ins_coverage_rules.py     # 보험 담보 추천 규칙
+│   ├── gov_inference.py          # GovGuard 로드·추론 (v1.0.5)
+│   ├── gov_hotspots.py           # 공식 다발지역 REST + 파일 캐시
+│   ├── ins_package_codec.py      # Ins 패키지 호환 헬퍼 (API 미사용)
+│   └── preprocess.py             # 레거시 인구 join (API 미사용)
+├── scripts/                      # 현재 학습·검증·ETL·배치
+│   ├── ins_v1_0_4.py             # 보험 학습
+│   ├── gov_v1_0_5.py             # 지자체 학습 (서빙 시에도 로드)
+│   ├── gov_batch_forecast.py     # 구·군 예측 → MySQL
+│   ├── gov_batch_forecast_run.sh # 위 배치 cron 래퍼
+│   ├── etl_accident_condition_type.py   # 사고유형 실적 ETL
+│   ├── etl_district_monthly_trend.py    # 월별 추세 실적 ETL
+│   ├── ins_validate_v1_0_4.py
+│   ├── ins_compare_sklearn.py / gov_compare_rate_sklearn.py
+│   ├── measure_latency.py / measure_latency_e2e.py
+│   ├── ins_plot_validate_design.py
+│   ├── gov_compare_b1_b2_v1_0_4.py # B1 vs B2 산식 선정 기록
+│   ├── ins_smoke.py              # InsureGuard 로컬 스모크
+│   └── archive/                  # 이전 버전 스크립트
+├── models/                       # *.pkl (Git 제외, 학습 후 생성)
+├── data/                         # Git 제외
+│   ├── raw/                      # 원천 CSV (학습·ETL)
+│   └── cache/hotspots/           # GET /hotspots 파일 캐시
+├── docs/                         # 현재 명세·검증 (목차: docs/README.md)
+│   ├── archive/                  # 이전 명세·실험 기록
+│   └── figures/                  # 버전·실험 차트
+├── notebooks/                    # 탐색용 Jupyter
+├── Dockerfile                    # app/ + src/ + models/ 복사
+├── .env.example                  # KOROAD·배치 환경변수 예시
 └── requirements.txt
 ```
 
-문서 목차·현재/보관 구분은 [`docs/README.md`](docs/README.md)를 보세요.
+문서 목차·현재/보관 구분은 [`docs/README.md`](docs/README.md)를 보세요.  
+이전 학습 스크립트는 [`scripts/archive/README.md`](scripts/archive/README.md)입니다.
 
 ---
 
@@ -90,6 +118,9 @@ python -m venv .venv
 # Windows(cp949)에서 requirements 주석 UTF-8 오류가 나면:
 #   $env:PYTHONUTF8 = "1"
 python -m pip install -r requirements.txt
+
+copy .env.example .env                # Windows
+# cp .env.example .env                # macOS/Linux
 ```
 
 상담·행정 **참고 PDF**는 AI가 아닌 Backend(Express + Playwright + EJS)에서 생성합니다.  
@@ -97,10 +128,12 @@ Chromium 설치는 [backend/README.md](../backend/README.md)를 보세요.
 
 ### 원천 데이터
 
-`data/raw/`에 배치 (Git 미포함) — **학습·재학습용**:
+`data/raw/`에 배치 (Git 미포함) — **학습·재학습·ETL용**:
 
-- `사고분석_2016~2025_원본합본.csv` — Insure / Gov 학습 공용
-- (선택) `대구_구군_연령별_주민등록인구_2020_2025.csv` — 인구 전처리용
+- `사고분석_2016~2025_원본합본.csv` — Insure / Gov 학습 및 ETL 공용
+- (선택) `대구_구군_연령별_주민등록인구_2020_2025.csv` — `src/preprocess.py` 전처리용. 현재 API 서빙에는 쓰이지 않습니다.
+
+`data/processed/`는 preprocess가 만들 수 있는 출력 경로입니다. 현재 서빙에는 필요 없습니다.
 
 **GovGuard 서빙**에는 CSV가 필요 없습니다. 필요 파일:
 
@@ -132,9 +165,9 @@ python scripts/gov_v1_0_5.py
 # DATABASE_URL=mysql://user:pass@host:3306/dbname
 # 미설정 시(로컬 전용) backend/.env 의 DATABASE_URL 을 읽습니다.
 # AI·DB 서버가 다르면 AI 쪽에서 remote DB URL을 환경변수로 넣으세요.
-python scripts/batch_gov_forecast.py
+python scripts/gov_batch_forecast.py
 # 또는 로그 래퍼:
-# bash scripts/run_gov_forecast_batch.sh
+# bash scripts/gov_batch_forecast_run.sh
 ```
 
 선택 환경 변수: `GOV_AS_OF`(예: `2025Q3`), `GOV_FREQ`(`Q`|`H`), `GOV_SCOPE`(기본 `DAEGU`).
@@ -165,6 +198,8 @@ python scripts/etl_district_monthly_trend.py
 
 기본 기간은 CSV 최신 연도 기준 **직전 3개 연도**. 적재 후 `GET /api/gov/region-compare`의 `trend.history`가 채워집니다.
 
+지역비교 점수·역할 분담은 새 pkl 없이 Backend가 담당합니다. 결정 기록: [`docs/gov_region_compare_plan.md`](docs/gov_region_compare_plan.md).
+
 #### 배치 스케줄 (AI ≠ DB 서버 — 권장 운영)
 
 개발자 PC에 Windows 작업 스케줄러를 **등록하지 않습니다.**  
@@ -172,13 +207,13 @@ cron / systemd timer는 **AI 서버**(pkl·배치 스크립트가 있는 곳)에
 
 | 구성 | 역할 |
 |------|------|
-| **AI 서버** | 추론 + `batch_gov_forecast.py` + **스케줄 등록** |
+| **AI 서버** | 추론 + `gov_batch_forecast.py` + **스케줄 등록** |
 | **MySQL** (별도 호스트) | `gov_forecast_*` 적재. AI 출구 IP를 Trusted sources에 허용 |
 | **Backend** | `GET /api/prediction/gov-forecasts` 조회만. 배치 실행에 불필요 |
 
 ```text
 [ cron on AI server ]
-        │  batch_gov_forecast.py (로컬 pkl)
+        │  gov_batch_forecast.py (로컬 pkl)
         ▼
 [ MySQL ]  ◄── DATABASE_URL (AI → DB 네트워크 허용)
         ▲
@@ -192,7 +227,7 @@ CRON_TZ=Asia/Seoul
 0 3 * * 1 cd /opt/ai-traffic/ai && . .venv/bin/activate && \
   export DATABASE_URL='mysql://USER:PASS@DB_HOST:3306/DBNAME' \
   GOV_FREQ=Q GOV_SCOPE=DAEGU && \
-  bash scripts/run_gov_forecast_batch.sh
+  bash scripts/gov_batch_forecast_run.sh
 ```
 
 - 주 1회는 파이프라인 생존·데모용. 동일 `as_of`면 수치가 거의 같고 run 행만 늘 수 있음.
@@ -224,10 +259,12 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 | 항목 | 내용 |
 |------|------|
 | 입력 (4) | 구군, 연령대, 성별, 차종 |
-| 출력 | 위험도(0~100), 등급, 법규위반 Top3, 사고경중 비율 |
+| 출력 | 위험도(0~100), 등급, 법규위반 Top3, 사고경중 비율, **담보추천** |
 | v1.0.4 | v1.0.3 산식 + **군위 2016.1~2023.6** 포함 |
 | v1.0.3 | 프로파일 **심각도 + 빈도** 블렌드 (`scripts/archive/ins_v1_0_3.py`) |
 | v1.0.2 | 심각도만 (`scripts/archive/ins_v1_0_2.py`) |
+
+담보추천은 `src/ins_coverage_rules.py`가 등급·연령·법규위반 확률로 표준약관 6대 담보를 규칙 기반으로 붙입니다.
 
 ### GovGuard (지자체) — API `POST /predict/gov`
 
@@ -247,7 +284,7 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 | Method | Path | 설명 |
 |--------|------|------|
 | GET | `/health` | 헬스체크 |
-| POST | `/predict` | InsureGuard 위험도 |
+| POST | `/predict` | InsureGuard 위험도 + 담보추천 |
 | POST | `/predict/gov` | GovGuard 지역 예측 |
 | POST | `/predict/gov/history` | GovGuard 분기 history |
 | GET | `/hotspots` | 대구 공식 사고다발 TOP3 (지도 원) |
@@ -279,7 +316,16 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
     "중상사고": 0.22,
     "경상사고": 0.65,
     "부상신고사고": 0.12
-  }
+  },
+  "담보추천": [
+    {
+      "id": "대인배상 I",
+      "name": "대인배상 I",
+      "recommended": true,
+      "script": "…",
+      "reason": "…"
+    }
+  ]
 }
 ```
 
@@ -300,6 +346,18 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 | `freq` | `"Q"` 분기(기본) / `"H"` 반기(중대 보조) |
 
 분기 응답에 포함되는 주요 필드: `예측사고건수`, `예측사고율_퍼센트`, `예측중대사고율_퍼센트`, `중대사고등급`, `예측사고경중_퍼센트` 등.
+
+### `POST /predict/gov/history`
+
+한 구·군의 분기 실적 + 다음 분기 예측입니다.
+
+```json
+{
+  "지역": "달서구",
+  "as_of": null,
+  "n_history": 3
+}
+```
 
 ### `GET /hotspots` (공식 다발지역)
 
@@ -343,13 +401,15 @@ curl "http://localhost:5000/api/prediction/predict-gov-hotspots?year=2025119"
 
 ```bash
 # 보험 CLI 스모크 (Python)
-python -c "from src.inference import predict_from_input; print(predict_from_input('중구','21-30세','남','승용'))"
+python -c "from src.ins_inference import predict_from_input; print(predict_from_input('중구','21-30세','남','승용'))"
+# 또는
+python scripts/ins_smoke.py
 
 # 지자체 CLI 스모크
 python -c "from src.gov_inference import predict_gov_rates; print(predict_gov_rates()[:3])"
 
 # 보험 엄격 검증 A~C
-python scripts/validate_ins_v1_0_4.py
+python scripts/ins_validate_v1_0_4.py
 
 # 지자체 중대율 EB/반기 실험 (보관 스크립트)
 python scripts/archive/gov_severe_experiments.py
@@ -362,11 +422,13 @@ docker build -t ai-traffic-risk .
 docker run -p 8000:8000 ai-traffic-risk
 ```
 
+현재 `Dockerfile`은 `app/`, `src/`, `models/`만 복사합니다. Gov 추론은 런타임에 `scripts/gov_v1_0_5.py`를 로드하므로, 컨테이너에서 `/predict/gov`를 쓰려면 이미지에 `scripts/`를 넣거나 로컬 `uvicorn`을 사용하세요. 다발지역 조회는 `.env`의 `KOROAD_AUTH_KEY`도 필요합니다.
+
 ---
 
 ## 참고
 
 - 이 폴더는 **Python / pip** 기준입니다 (`npm` 아님).
-- `data/`, `models/*.pkl`은 보통 Git 제외입니다.
-- 레거시 `src/train.py`·구형 weighted pkl 경로는 **현재 API 서빙에 사용하지 않습니다.** 학습은 `scripts/ins_*.py` / `scripts/gov_*.py`를 사용하세요.
+- `data/`, `models/*.pkl`은 Git 제외입니다 (`.gitignore`).
+- 레거시 `scripts/archive/train.py`·구형 weighted pkl(`traffic_accident_model.pkl`)은 **현재 API 서빙에 사용하지 않습니다.** 학습은 `scripts/ins_v1_0_4.py` / `scripts/gov_v1_0_5.py`를 사용하세요.
 - 상세 피처·지표는 `docs/` 명세 문서를 보세요.

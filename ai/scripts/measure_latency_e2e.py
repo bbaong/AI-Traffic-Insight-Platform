@@ -11,8 +11,8 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT_JSON = ROOT / "docs" / "prediction_latency_e2e.json"
-OUT_MD = ROOT / "docs" / "prediction_latency_e2e.md"
+OUT_JSON = ROOT / "docs" / "measure_latency_e2e.json"
+OUT_MD = ROOT / "docs" / "measure_latency_e2e.md"
 
 AI = "http://127.0.0.1:8000"
 BE = "http://127.0.0.1:5000"
@@ -242,7 +242,7 @@ def main() -> None:
         "- Backend 오버헤드가 작으면 Express 중계 비용은 무시할 수준.",
         "- 첫 요청은 콜드/연결 때문에 더 길 수 있음.",
         "",
-        "재측정: `python scripts/measure_prediction_latency_e2e.py`",
+        "재측정: `python scripts/measure_latency_e2e.py`",
         "",
     ]
     OUT_MD.write_text("\n".join(lines), encoding="utf-8")

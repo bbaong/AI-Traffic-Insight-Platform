@@ -29,7 +29,7 @@
 | 전처리 후 | 115,482행 (기타불명·결측 제거). 이 중 군위 **946건** |
 | 회귀기 | `HistGradientBoostingRegressor` |
 | 분류기 | 법규위반 Top3 / 사고경중 비율 (`RandomForestClassifier`) |
-| API 서빙 | `src/inference.py` → `POST /predict` (기본 v1.0.4) |
+| API 서빙 | `src/ins_inference.py` → `POST /predict` (기본 v1.0.4) |
 
 현재 pkl에 저장된 학습 지표 (군위 2016–2023.6 포함 재학습):
 
@@ -304,8 +304,8 @@ graph TD
    - 개별 EPDO를 타깃으로 둔 baseline과 병기  
    - 빈도 대신 **인구·등록대수 대비 발생률**로 노출 보정  
 
-   → **A~C 실행 결과:** `docs/validation_v1_0_4.md`  
-   (`python scripts/validate_ins_v1_0_4.py`)
+   → **A~C 실행 결과:** `docs/ins_validation_v1_0_4.md`  
+   (`python scripts/ins_validate_v1_0_4.py`)
 3. **비즈니스 KPI:** R²보다 프로파일별 중대사고율·클레임 비용과의 순위 상관(Spearman)을 권장.
 
 ---
@@ -367,10 +367,10 @@ v1.0.3 → v1.0.4는 산식 변경이 아니라 **군위 시계열을 맞춘 데
 |------|------|
 | `scripts/ins_v1_0_4.py` | v1.0.4 학습·추론·그래프 |
 | `models/ins_model_v1.0.4.pkl` | v1.0.4 패키지 |
-| `src/inference.py` | FastAPI 추론 (기본 v1.0.4) |
+| `src/ins_inference.py` | FastAPI 추론 (기본 v1.0.4) |
 | `data/raw/사고분석_2016~2025_원본합본.csv` | 학습 CSV (군위 2016–2025 포함) |
 | `data/raw/사고분석-군위군.csv` | 편입 전 군위 원본 (808건) |
-| `docs/figures/insureguard_v1_0_4/` | 성별·연령·차종 분기 그래프 |
+| `docs/figures/ins_v1_0_4/` | 성별·연령·차종 분기 그래프 |
 | `docs/archive/ins_v1_0_3_feature_spec.md` | v1.0.3 (빈도 도입, 군위 2.5년) |
 | `docs/archive/ins_v1_0_2_feature_spec.md` | v1.0.2 (심각도만) 명세서 |
 | `docs/archive/feature_specification.md` | v1(6피처) 명세서 |

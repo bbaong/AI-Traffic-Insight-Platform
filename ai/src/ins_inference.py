@@ -11,7 +11,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from src.coverage_rules import recommend_coverages
+from src.ins_coverage_rules import recommend_coverages
 
 from src import MODEL_DIR
 
