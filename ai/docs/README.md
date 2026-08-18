@@ -31,10 +31,10 @@
 | [gov_compare_b1_b2_v1_0_4.json](gov_compare_b1_b2_v1_0_4.json) | 비교 수치 |
 | [gov_compare_rate_sklearn.md](gov_compare_rate_sklearn.md) | Gov B1+last×2 고정, rate 알고리즘 sklearn 비교 |
 | [gov_compare_rate_sklearn.json](gov_compare_rate_sklearn.json) | Gov rate 비교 수치 |
-| [prediction_latency.md](prediction_latency.md) | Ins/Gov 예측 응답 시간 측정 요약 |
-| [prediction_latency.json](prediction_latency.json) | 지연 시간 원시 수치 |
-| [prediction_latency_e2e.md](prediction_latency_e2e.md) | AI + Backend(+FE HTML) 전체 스택 지연 |
-| [prediction_latency_e2e.json](prediction_latency_e2e.json) | E2E 지연 원시 수치 |
+| [measure_latency.md](measure_latency.md) | Ins/Gov 예측 응답 시간 측정 요약 |
+| [measure_latency.json](measure_latency.json) | 지연 시간 원시 수치 |
+| [measure_latency_e2e.md](measure_latency_e2e.md) | AI + Backend(+FE HTML) 전체 스택 지연 |
+| [measure_latency_e2e.json](measure_latency_e2e.json) | E2E 지연 원시 수치 |
 | `figures/gov_v1_0_4_compare/` | 군위 등 케이스 차트 |
 | `figures/` | 버전·실험별 차트 PNG |
 

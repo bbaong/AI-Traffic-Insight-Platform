@@ -2,7 +2,7 @@
 
 측정일: 로컬 Windows, AI FastAPI `127.0.0.1:8000`  
 스크립트: `scripts/measure_latency.py`  
-원시 결과: [`prediction_latency.json`](prediction_latency.json)
+원시 결과: [`measure_latency.json`](measure_latency.json)
 
 > 브라우저 → Express → AI 전체 E2E는 Backend가 꺼져 있어 미측정.  
 > 아래 HTTP는 **AI 직접 호출** 기준.

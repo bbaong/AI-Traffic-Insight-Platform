@@ -161,7 +161,7 @@ def main() -> None:
             "memory": mem,
         }
 
-    out = ROOT / "docs" / "benchmark_results.json"
+    out = ROOT / "docs" / "archive" / "ins_train_weighted_results.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(results, ensure_ascii=False, indent=2))

@@ -11,8 +11,8 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OUT_JSON = ROOT / "docs" / "prediction_latency_e2e.json"
-OUT_MD = ROOT / "docs" / "prediction_latency_e2e.md"
+OUT_JSON = ROOT / "docs" / "measure_latency_e2e.json"
+OUT_MD = ROOT / "docs" / "measure_latency_e2e.md"
 
 AI = "http://127.0.0.1:8000"
 BE = "http://127.0.0.1:5000"
