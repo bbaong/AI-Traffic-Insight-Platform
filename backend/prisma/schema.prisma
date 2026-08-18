@@ -85,7 +85,7 @@ model consultations {
   consultation_checklist_answers consultation_checklist_answers[]
   consultation_discount_riders   consultation_discount_riders[]
   customers                      customers                        @relation(fields: [customer_id], references: [customer_id], onUpdate: Restrict, map: "fk_consultation_customer")
-  customer_risk_profiles         customer_risk_profiles?          @relation(fields: [profile_id], references: [profile_id], onUpdate: Restrict, map: "fk_consultation_profile")
+  customer_risk_profiles         customer_risk_profiles?          @relation(fields: [profile_id], references: [profile_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_consultation_profile")
   users                          users                            @relation(fields: [user_id], references: [user_id], onUpdate: Restrict, map: "fk_consultation_user")
 
   @@index([profile_id], map: "fk_consultation_profile")
@@ -118,7 +118,7 @@ model customer_risk_profiles {
   model_version                String                                   @default("customer_score_v1") @db.VarChar(30)
   analyzed_at                  DateTime                                 @default(now()) @db.DateTime(0)
   consultations                consultations[]
-  customer_risk_profiles       customer_risk_profiles?                  @relation("customer_risk_profilesTocustomer_risk_profiles", fields: [based_on_profile_id], references: [profile_id], onUpdate: Restrict, map: "fk_profile_based_on")
+  customer_risk_profiles       customer_risk_profiles?                  @relation("customer_risk_profilesTocustomer_risk_profiles", fields: [based_on_profile_id], references: [profile_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_profile_based_on")
   other_customer_risk_profiles customer_risk_profiles[]                 @relation("customer_risk_profilesTocustomer_risk_profiles")
   districts                    districts                                @relation(fields: [district_id], references: [district_id], onUpdate: Restrict, map: "fk_profile_district")
   users                        users                                    @relation(fields: [user_id], references: [user_id], onUpdate: Restrict, map: "fk_profile_user")
@@ -222,7 +222,7 @@ model users {
   customer_risk_profiles customer_risk_profiles[]
   customers              customers[]
   user_login_logs        user_login_logs[]
-  departments            departments?             @relation(fields: [department_id], references: [department_id], onUpdate: Restrict, map: "fk_users_department")
+  departments            departments?             @relation(fields: [department_id], references: [department_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_users_department")
 
   @@index([department_id], map: "fk_users_department")
 }

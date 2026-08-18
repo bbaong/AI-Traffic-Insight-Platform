@@ -3,10 +3,7 @@ import { fetchDepartments } from '../../domains/auth/api/signup';
 import { changeEmail } from '../../shared/api/user';
 import { useAuthStore } from '../../shared/stores/authStore';
 import styles from './MyPage.module.css';
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
+import { isValidEmail } from '../../shared/utils/email';
 
 function formatDateOnly(value: string | null): string | null {
   if (!value) return null;

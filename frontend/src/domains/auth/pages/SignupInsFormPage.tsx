@@ -14,10 +14,7 @@ import { Toast } from '../../../shared/components/ui/Toast';
 import { ROUTES } from '../../../shared/constants/routes';
 import type { SignupInsPayload } from '../types/signup';
 import styles from './SignupFormPage.module.css';
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
+import { isValidEmail } from '../../../shared/utils/email';
 
 export function SignupInsFormPage() {
   const [params] = useSearchParams();
