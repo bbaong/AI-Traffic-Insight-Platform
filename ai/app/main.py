@@ -44,7 +44,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(
     title="AI Traffic Insight - Risk Prediction API",
     description="InsureGuard + GovGuard 예측 서빙 API",
-    version="1.0.4",
+    version="1.0.5",
     lifespan=lifespan,
 )
 

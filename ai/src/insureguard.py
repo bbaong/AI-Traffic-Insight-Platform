@@ -1,4 +1,4 @@
-"""InsureGuard AI — 추론 전용 헬퍼 (v1.0.2~v1.0.4 패키지 호환)."""
+"""InsureGuard AI — 추론 전용 헬퍼 (v1.0.2~v1.0.5 패키지 호환)."""
 
 from __future__ import annotations
 
@@ -76,7 +76,7 @@ def predict_insureguard(data_input: dict, package: dict) -> dict[str, Any]:
 
     return {
         "모델": package.get("name", "InsureGuard AI"),
-        "버전": package.get("version", "1.0.4"),
+        "버전": package.get("version", "1.0.5"),
         "위험점수": round(risk, 1),
         "위험등급": risk_level_from_score(risk),
         "법규위반_Top3_퍼센트": top3_pct,

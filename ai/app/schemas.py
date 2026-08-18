@@ -24,6 +24,13 @@ class PredictRequest(BaseModel):
     model_config = {"populate_by_name": True}
 
 
+class RiskAxis(BaseModel):
+    점수: float
+    등급: str
+    라벨: str
+    설명: str
+
+
 class PredictResponse(BaseModel):
     버전: str
     variant: str
@@ -37,6 +44,14 @@ class PredictResponse(BaseModel):
         default_factory=list,
         description="표준약관 6대 담보 추천",
     )
+    발생위험: Optional[RiskAxis] = Field(
+        None, description="인구 대비 발생률 순위 (0~100)"
+    )
+    심도위험: Optional[RiskAxis] = Field(
+        None, description="건당 심도(EPDO·중대율) 순위 (0~100)"
+    )
+    상담포인트: Optional[str] = Field(None, description="발생×심도 상담 한 줄")
+    발생률_1만명당: Optional[float] = None
 
 
 class HealthResponse(BaseModel):

@@ -1,3 +1,6 @@
+> **보관에 가깝습니다.** 현재 API 서빙은 **v1.0.5**  
+> (`docs/ins_v1_0_5_feature_spec.md`, `scripts/ins_v1_0_5.py`) 입니다.
+
 # InsureGuard AI v1.0.4 — 피처 명세서 & R² 해석 가이드
 
 본 문서는 `scripts/ins_v1_0_4.py`로 학습된 **InsureGuard AI v1.0.4**

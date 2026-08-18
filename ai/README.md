@@ -38,7 +38,7 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
         │
         ▼
 [AI]  python -m uvicorn app.main:app  (http://localhost:8000)
-  POST /predict      →  InsureGuard v1.0.4
+  POST /predict      →  InsureGuard v1.0.5
   POST /predict/gov  →  GovGuard v1.0.5
   GET  /hotspots     →  대구 공식 사고다발 TOP3 (캐시)
   GET  /health
@@ -46,10 +46,10 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 | 역할 | 현재 서빙 모델 | 학습 스크립트 | 명세 |
 |------|----------------|---------------|------|
-| 보험 | `models/ins_model_v1.0.4.pkl` | `scripts/ins_v1_0_4.py` | `docs/ins_v1_0_4_feature_spec.md` |
+| 보험 | `models/ins_model_v1.0.5.pkl` | `scripts/ins_v1_0_5.py` | `docs/ins_v1_0_5_feature_spec.md` |
 | 지자체 | `models/gov_model_v1.0.5.pkl` | `scripts/gov_v1_0_5.py` | `docs/gov_v1_0_5_feature_spec.md` |
 
-이전 버전 pkl(`ins_model_v1.0.2`~`1.0.3`, `gov_model_v1.0.0`~`1.0.4`)은 보존·비교용입니다.
+이전 버전 pkl(`ins_model_v1.0.2`~`1.0.4`, `gov_model_v1.0.0`~`1.0.4`)은 보존·비교용입니다.
 
 ---
 
@@ -59,7 +59,8 @@ python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ai/
 ├── app/                 # FastAPI (main.py, schemas.py)
 ├── src/
-│   ├── inference.py     # InsureGuard 로드·추론 (v1.0.4)
+│   ├── inference.py     # InsureGuard 로드·추론 (v1.0.5, pkl only)
+│   ├── consult_copy.py  # 발생×심도 상담 문구
 │   ├── gov_inference.py # GovGuard 로드·추론 (v1.0.5)
 │   ├── hotspots.py      # 공식 다발지역 REST + 파일 캐시
 │   └── preprocess.py    # 인구 join 등 (선택)
@@ -110,8 +111,8 @@ Chromium 설치는 [backend/README.md](../backend/README.md)를 보세요.
 ### 모델 학습 (pkl 생성)
 
 ```bash
-# 보험 (심각도 70% + 빈도 30%, 군위 2016~ 포함) → models/ins_model_v1.0.4.pkl
-python scripts/ins_v1_0_4.py
+# 보험 (기대손실 = 발생률×심도) → models/ins_model_v1.0.5.pkl
+python scripts/ins_v1_0_5.py
 
 # 지자체 (share×시전체 + last×2 캡, 군위 2016~ 포함) → models/gov_model_v1.0.5.pkl
 python scripts/gov_v1_0_5.py
@@ -224,8 +225,9 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 | 항목 | 내용 |
 |------|------|
 | 입력 (4) | 구군, 연령대, 성별, 차종 |
-| 출력 | 위험도(0~100), 등급, 법규위반 Top3, 사고경중 비율 |
-| v1.0.4 | v1.0.3 산식 + **군위 2016.1~2023.6** 포함 |
+| 출력 | 위험도(기대손실 순위), 발생·심도 참고, 등급, 법규위반 Top3, 사고경중, 상담포인트 |
+| v1.0.5 | **발생률 × 건당 심도** + 참고 축 (`scripts/ins_v1_0_5.py`) |
+| v1.0.4 | 심각도 70% + 건수 30% (`scripts/archive/ins_v1_0_4.py`) |
 | v1.0.3 | 프로파일 **심각도 + 빈도** 블렌드 (`scripts/archive/ins_v1_0_3.py`) |
 | v1.0.2 | 심각도만 (`scripts/archive/ins_v1_0_2.py`) |
 
@@ -269,17 +271,31 @@ Backend는 `AI_SERVICE_URL=http://localhost:8000` (기본값)으로 이 서버�
 
 ```json
 {
-  "버전": "InsureGuard AI v1.0.4",
-  "variant": "ins_v1.0.4",
-  "예측등급": "MODERATE",
-  "위험도": 33.8,
-  "등급확률": { "…법규위반 Top3…" },
+  "버전": "InsureGuard AI v1.0.5",
+  "variant": "ins_v1.0.5",
+  "예측등급": "CRITICAL",
+  "위험도": 90.6,
+  "등급확률": { "안전운전불이행": 0.60 },
   "사고경중비율": {
     "사망사고": 0.01,
     "중상사고": 0.22,
     "경상사고": 0.65,
     "부상신고사고": 0.12
-  }
+  },
+  "발생위험": {
+    "점수": 96.4,
+    "등급": "CRITICAL",
+    "라벨": "위험",
+    "설명": "인구 대비 사고가 매우 잦습니다"
+  },
+  "심도위험": {
+    "점수": 32.9,
+    "등급": "MODERATE",
+    "라벨": "보통",
+    "설명": "나면 심도는 대구 평균 수준입니다"
+  },
+  "상담포인트": "잔사고·접촉 빈도가 높은 편입니다. …"
+
 }
 ```
 

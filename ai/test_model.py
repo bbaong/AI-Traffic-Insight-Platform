@@ -1,4 +1,4 @@
-"""ins_model_v1.0.4.pkl 로컬 검증용."""
+"""ins_model_v1.0.5.pkl 로컬 검증용."""
 from __future__ import annotations
 
 from src.inference import predict_from_input
@@ -16,6 +16,11 @@ def main() -> None:
     print("=====================================")
     print(f"모델: {result['버전']} / {result['variant']}")
     print(f"위험 점수: {result['위험도']} / 100")
+    occ = result.get("발생위험") or {}
+    sev = result.get("심도위험") or {}
+    print(f"발생 위험: {occ.get('점수')} ({occ.get('라벨')}) — {occ.get('설명')}")
+    print(f"심도 위험: {sev.get('점수')} ({sev.get('라벨')}) — {sev.get('설명')}")
+    print(f"상담 포인트: {result.get('상담포인트')}")
     print("-------------------------------------")
     print("법규위반 Top3:")
     for i, (cause, prob) in enumerate(result["등급확률"].items(), 1):
