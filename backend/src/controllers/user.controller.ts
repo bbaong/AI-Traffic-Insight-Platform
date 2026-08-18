@@ -90,12 +90,17 @@ export const loginUsers = async (req: Request, res: Response) => {
 };
 
 //회원 전체 조회
-export const getUsers = async (req: Request, res: Response) => {
-  const users = await prisma.users.findMany();
-  res.json(users.map((user: any) => {
-    const { password_hash, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }));
+export const getUsers = async (_req: Request, res: Response) => {
+  try {
+    const users = await prisma.users.findMany();
+    const data = users.map((user) => {
+      const { password_hash: _, ...userWithoutPassword } = user;
+      return userWithoutPassword;
+    });
+    return res.json(data);
+  } catch (error) {
+    return handleRouteError(res, error, '회원 조회 실패');
+  }
 };
 
 //id 중복 확인
