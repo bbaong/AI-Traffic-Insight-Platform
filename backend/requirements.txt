@@ -36,3 +36,7 @@
 # Routes:    POST /api/insurance/report-pdf
 #            POST /api/prediction/gov-report-pdf
 # AI FastAPI no longer generates PDFs.
+
+# --- 보험 챗봇 CLI (Python, npm과 별개) ---
+# pip install -r scripts/requirements-chatbot.txt
+# 문서: docs/ins-chatbot.md

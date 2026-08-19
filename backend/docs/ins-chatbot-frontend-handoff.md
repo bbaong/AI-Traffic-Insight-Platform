@@ -20,7 +20,7 @@
 
 - Express에 **챗봇 전용 HTTP 라우트는 없습니다.**
 - Gemini 키·모델은 **백엔드 `.env`** (`GEMINI_API_KEY`, `GEMINI_MODEL`).
-- 고객 범위는 **`INS_CHAT_USER_ID` = `users.user_id` 숫자**. JWT 세션과 무관.
+- CLI는 `INS_CHAT_LOGIN_ID` / `INS_CHAT_PASSWORD` 로 `POST /api/user/login` 한 뒤 `Authorization: Bearer` 를 붙입니다. 화면은 로그인 스토어의 Access 토큰을 쓰면 됩니다.
 
 프론트에 넣을 때는 **브라우저에 Gemini 키를 두지 마세요.**
 
@@ -221,5 +221,5 @@ CLI 단독 검증은 [ins-chatbot.md](./ins-chatbot.md) 참고.
 ## 7. 알려진 제한
 
 - 고위험·기간 필터는 서버가 아니라 **목록 전체 받은 뒤 필터**
-- `google.generativeai` 구 SDK (경고). 모델명은 `.env` `GEMINI_MODEL` (예: `gemini-3.6-flash`)
+- SDK: `google-genai`. 모델명은 `.env` `GEMINI_MODEL` (예: `gemini-3.6-flash`)
 - DB 복구 중이면 고객 0건 → 빈 답변이 정상

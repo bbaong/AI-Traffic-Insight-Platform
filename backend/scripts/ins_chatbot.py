@@ -4,8 +4,8 @@
 프론트와 무관. 조회·분석만 하며 고객 숨김/상담 저장은 하지 않습니다.
 
 필요:
-  pip install google-generativeai python-dotenv
-  backend/.env 에 GEMINI_API_KEY, INS_CHAT_USER_ID
+  pip install -r scripts/requirements-chatbot.txt
+  backend/.env 에 GEMINI_API_KEY, INS_CHAT_LOGIN_ID, INS_CHAT_PASSWORD
   Express 서버: npm run dev  (http://localhost:5000)
 
 실행:
@@ -34,11 +34,17 @@ load_dotenv(ROOT / ".env")
 
 BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:5000").rstrip("/")
 INS_CHAT_USER_ID = os.environ.get("INS_CHAT_USER_ID", "").strip()
+INS_CHAT_LOGIN_ID = os.environ.get("INS_CHAT_LOGIN_ID", "").strip()
+INS_CHAT_PASSWORD = os.environ.get("INS_CHAT_PASSWORD", "").strip()
+INS_CHAT_ACCESS_TOKEN = os.environ.get("INS_CHAT_ACCESS_TOKEN", "").strip()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash").strip()
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash").strip()
 HTTP_TIMEOUT_SEC = float(os.environ.get("INS_CHAT_TIMEOUT", "20"))
 
 KST = timezone(timedelta(hours=9))
+
+_access_token: str | None = None
+_user_id: str = INS_CHAT_USER_ID
 
 
 # ---------------------------------------------------------------------------
@@ -56,6 +62,7 @@ def _request(
     *,
     query: dict[str, Any] | None = None,
     body: dict[str, Any] | None = None,
+    auth: bool = True,
 ) -> Any:
     params = {k: v for k, v in (query or {}).items() if v is not None and v != ""}
     url = f"{BACKEND_URL}{path}"
@@ -64,6 +71,8 @@ def _request(
 
     data = None
     headers = {"Accept": "application/json"}
+    if auth and _access_token:
+        headers["Authorization"] = f"Bearer {_access_token}"
     if body is not None:
         data = json.dumps(body, ensure_ascii=False).encode("utf-8")
         headers["Content-Type"] = "application/json; charset=utf-8"
@@ -173,11 +182,46 @@ def _slim_consultation(row: dict[str, Any], *, with_checklist: bool) -> dict[str
 
 
 def _need_user_id() -> str:
-    if not INS_CHAT_USER_ID:
+    if not _user_id:
         raise BackendError(
-            "INS_CHAT_USER_ID 가 없습니다. backend/.env 에 상담원 user_id 를 넣으세요."
+            "상담원 user_id 가 없습니다. 로그인 후 user_id가 오거나 INS_CHAT_USER_ID 를 넣으세요."
         )
-    return INS_CHAT_USER_ID
+    return _user_id
+
+
+def ensure_auth() -> None:
+    """POST /api/user/login 또는 INS_CHAT_ACCESS_TOKEN 으로 JWT 확보."""
+    global _access_token, _user_id
+
+    if INS_CHAT_ACCESS_TOKEN:
+        _access_token = INS_CHAT_ACCESS_TOKEN
+        print("  auth: INS_CHAT_ACCESS_TOKEN", file=sys.stderr)
+        return
+
+    if not INS_CHAT_LOGIN_ID or not INS_CHAT_PASSWORD:
+        raise SystemExit(
+            "고객 API는 JWT가 필요합니다. backend/.env 에 "
+            "INS_CHAT_LOGIN_ID 와 INS_CHAT_PASSWORD 를 넣으세요. "
+            "(또는 INS_CHAT_ACCESS_TOKEN)"
+        )
+
+    payload = _request(
+        "POST",
+        "/api/user/login",
+        body={"id": INS_CHAT_LOGIN_ID, "password": INS_CHAT_PASSWORD},
+        auth=False,
+    )
+    data = _data(payload)
+    if not isinstance(data, dict):
+        raise BackendError("로그인 응답 형식이 올바르지 않습니다.")
+    token = data.get("accessToken")
+    if not token or not isinstance(token, str):
+        raise BackendError("로그인 응답에 accessToken이 없습니다.")
+    _access_token = token
+    user = data.get("user")
+    if isinstance(user, dict) and user.get("user_id") is not None:
+        _user_id = str(user["user_id"])
+    print(f"  auth: login ok userId={_user_id}", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
@@ -480,27 +524,30 @@ SYSTEM = """당신은 AI Traffic Insight 보험 상담 보조 챗봇입니다.
 """.format(today=datetime.now(KST).strftime("%Y-%m-%d"))
 
 
-def build_model():
-    import google.generativeai as genai
+def build_chat():
+    from google import genai
+    from google.genai import types
 
     if not GEMINI_API_KEY:
         raise SystemExit(
             "GEMINI_API_KEY 가 없습니다. backend/.env 에 Gemini API 키를 넣으세요."
         )
-    genai.configure(api_key=GEMINI_API_KEY)
-    return genai.GenerativeModel(
-        model_name=GEMINI_MODEL,
-        tools=TOOLS,
-        system_instruction=SYSTEM,
+    # Client must stay alive for the chat lifetime (httpx closes on GC).
+    client = genai.Client(api_key=GEMINI_API_KEY)
+    chat = client.chats.create(
+        model=GEMINI_MODEL,
+        config=types.GenerateContentConfig(
+            system_instruction=SYSTEM,
+            tools=TOOLS,
+        ),
     )
+    return client, chat
 
 
-def ask(model, question: str, chat=None):
-    if chat is None:
-        chat = model.start_chat(enable_automatic_function_calling=True)
+def ask(chat, question: str) -> str:
     response = chat.send_message(question)
     text = (response.text or "").strip()
-    return chat, text or "(응답이 비었습니다.)"
+    return text or "(응답이 비었습니다.)"
 
 
 def main() -> None:
@@ -509,16 +556,18 @@ def main() -> None:
     args = parser.parse_args()
 
     print(f"backend: {BACKEND_URL}")
-    print(f"userId:   {INS_CHAT_USER_ID or '(미설정)'}")
     print(f"model:    {GEMINI_MODEL}")
-    model = build_model()
+    try:
+        ensure_auth()
+    except BackendError as e:
+        raise SystemExit(f"로그인 실패: {e}") from e
+    print(f"userId:   {_user_id or '(미설정)'}")
+    client, chat = build_chat()
 
     if args.question:
-        _, text = ask(model, args.question)
-        print(text)
+        print(ask(chat, args.question))
         return
 
-    chat = model.start_chat(enable_automatic_function_calling=True)
     print("보험 상담 챗봇입니다. 종료: exit / quit")
     print('예: "최근 상담 고객 5명", "위험 점수 높은 고객", "동구 고위험 찾아줘"')
     while True:
@@ -532,8 +581,7 @@ def main() -> None:
         if q.lower() in {"exit", "quit", "q"}:
             break
         try:
-            chat, text = ask(model, q, chat)
-            print(text)
+            print(ask(chat, q))
         except Exception as e:
             print(f"오류: {e}")
 

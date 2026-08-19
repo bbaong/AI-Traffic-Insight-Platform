@@ -39,48 +39,33 @@ npm run dev
 2. Python 패키지
 
 ```bash
-pip install google-generativeai python-dotenv
+pip install -r scripts/requirements-chatbot.txt
 ```
 
-(`google-genai` 와는 **다른 패키지**입니다. 현재 스크립트는 `google.generativeai` 를 씁니다.)
+패키지: `google-genai` (`google-generativeai` 구 SDK 아님). requirements 파일은 Windows pip용 **영문 주석만** 사용합니다.
 
-3. `backend/.env` — 아래 **세 값**이 필요합니다.
+3. `backend/.env` — Gemini 키와 **상담원 로그인**이 필요합니다. 고객 API는 JWT(`requireAuth`)입니다.
 
 ```env
 GEMINI_API_KEY=발급받은키
 GEMINI_MODEL=gemini-3.6-flash
-INS_CHAT_USER_ID=3
 BACKEND_URL=http://localhost:5000
+INS_CHAT_LOGIN_ID=프론트와_같은_로그인아이디
+INS_CHAT_PASSWORD=비밀번호
 ```
 
 | 변수 | 설명 |
 |------|------|
 | `GEMINI_API_KEY` | Google AI Studio 키 |
-| `GEMINI_MODEL` | `gemini-2.0-flash` 는 **404**. 사용 가능한 모델명 (예: `gemini-3.6-flash`) |
-| `INS_CHAT_USER_ID` | `users.user_id` **숫자만**. 로그인 아이디 문자열이 아님 |
+| `GEMINI_MODEL` | 예: `gemini-3.6-flash` (`gemini-2.0-flash` 는 404) |
+| `INS_CHAT_LOGIN_ID` / `INS_CHAT_PASSWORD` | `POST /api/user/login` (`id`, `password`). Access 토큰을 받아 API에 `Authorization: Bearer` 로 붙임 |
+| `INS_CHAT_ACCESS_TOKEN` | (선택) 이미 있는 토큰이면 로그인 생략 |
+| `INS_CHAT_USER_ID` | (선택) 숫자 `users.user_id`. 비우면 로그인 응답의 `user_id` 사용 |
 | `BACKEND_URL` | Express 주소. 기본 `http://localhost:5000` |
 
-`INS_CHAT_USER_ID` 확인:
+로그인 아이디는 `users.login_id` 입니다. `user_id` 숫자를 아이디란에 넣지 마세요.
 
-```sql
-SELECT user_id, login_id, name, role FROM users;
-```
-
-`.env` 올바른 예:
-
-```env
-INS_CHAT_USER_ID=3
-```
-
-잘못된 예 (500 남):
-
-```env
-INS_CHAT_USER_ID=ai_traffic_insight_chatbot
-INS_CHAT_USER_ID= 3 user_id
-```
-
-이 챗봇은 **프론트 로그인 세션을 쓰지 않습니다.**  
-대신 `.env`의 `user_id`로 “어느 상담원의 고객인지”만 지정합니다. 그 상담원이 `registered_by`로 등록한 고객만 조회됩니다.
+비밀번호는 `.env`에만 두고 **커밋하지 마세요.**
 
 ---
 
@@ -110,8 +95,9 @@ python scripts/ins_chatbot.py -q "위험 점수 높은 고객 찾아줘"
 
 ```text
 backend: http://localhost:5000
-userId:   3
 model:    gemini-3.6-flash
+  auth: login ok userId=3
+userId:   3
 ```
 
 ---
@@ -151,10 +137,11 @@ model:    gemini-3.6-flash
 |------|------|------|
 | `404 ... gemini-2.0-flash is no longer available` | 모델 폐기 | `.env`에 `GEMINI_MODEL=gemini-3.6-flash` |
 | `백엔드에 연결하지 못했습니다` | Express 미실행 | `npm run dev` |
-| `userId: 3 user_id` 후 500 | `.env`에 설명 글자가 섞임 | `INS_CHAT_USER_ID=3` 만 |
-| `userId: (문자열 login_id)` 후 500 | 숫자가 아님 | `users.user_id` 사용 |
+| `401 인증이 필요합니다` | JWT 없음 | `INS_CHAT_LOGIN_ID` / `INS_CHAT_PASSWORD` 후 재실행. 서버 `requireAuth` |
+| `로그인 실패` | 아이디/비번 불일치 | 프론트와 같은 `login_id` |
 | 고객 0명 | 해당 상담원 고객 없음 / DB 복구 중 | HeidiSQL `customers.registered_by` 확인 |
-| `google.generativeai` FutureWarning | 구 SDK | 동작은 가능. 이후 `google-genai` 이전 예정 |
+| `UnicodeDecodeError: cp949` | requirements 한글 주석 | ASCII `requirements-chatbot.txt` 사용 |
+| TensorFlow protobuf 경고 | 구 SDK가 protobuf 5.x로 내림 | `google-genai` + `pip uninstall google-generativeai` |
 
 pip 설치 시 tensorflow와 protobuf 버전 경고가 날 수 있습니다. 챗봇 실행과는 별개입니다.
 
@@ -163,6 +150,7 @@ pip 설치 시 tensorflow와 protobuf 버전 경고가 날 수 있습니다. 챗
 ## 7. 참고
 
 - 코드: `backend/scripts/ins_chatbot.py`
+- pip: `backend/scripts/requirements-chatbot.txt`
 - env 예시: `backend/.env.example`
 - 고객 API: `src/routes/customer.route.ts`, `src/services/customer.service.ts`
 - 프론트 연동 시: [ins-chatbot-frontend-handoff.md](./ins-chatbot-frontend-handoff.md)
