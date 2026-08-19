@@ -29,6 +29,19 @@ function refreshExpiresSec(): number {
   return Math.floor(Number(process.env.JWT_REFRESH_EXPIRATION ?? 604800000) / 1000);
 }
 
+
+const KST_MS = 9 * 60 * 60 * 1000;
+
+/** DB DATETIME에 한국 벽시계가 보이게 */
+function toMysqlKst(d: Date): Date {
+  return new Date(d.getTime() + KST_MS);
+}
+
+/** Prisma가 DATETIME을 UTC로 읽은 값을 실제 instant로 */
+function fromMysqlKst(d: Date): Date {
+  return new Date(d.getTime() - KST_MS);
+}
+
 export function hashToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
@@ -54,7 +67,8 @@ export async function issueRefreshToken(userId: bigint): Promise<string> {
     data: {
       user_id: userId,
       token_hash: hashToken(token),
-      expires_at: expiresAt,
+      expires_at: toMysqlKst(expiresAt),
+      created_at: toMysqlKst(new Date()),
     },
   });
 
@@ -85,23 +99,30 @@ export async function rotateRefreshToken(oldToken: string): Promise<{
     where: { token_hash: oldHash },
   });
 
-  if (!row || row.revoked_at || row.expires_at < new Date() || row.user_id !== userId) {
+  if (!row || row.user_id !== userId) {
+    throw new Error('invalid refresh token');
+  }
+  
+  const expired = fromMysqlKst(row.expires_at) < new Date();
+  const revoked = row.revoked_at != null;
+  if (revoked || expired) {
     throw new Error('invalid refresh token');
   }
 
   await prisma.refresh_tokens.update({
     where: { token_id: row.token_id },
-    data: { revoked_at: new Date() },
+    data: { revoked_at: toMysqlKst(new Date()) },
   });
 
   const refreshToken = await issueRefreshToken(userId);
   return { userId, refreshToken };
 }
 
+/** POST /api/tokens/revoke — 리프레시 토큰 무효화 */
 export async function revokeRefreshToken(token: string): Promise<void> {
   const hash = hashToken(token);
   await prisma.refresh_tokens.updateMany({
     where: { token_hash: hash, revoked_at: null },
-    data: { revoked_at: new Date() },
+    data: { revoked_at: toMysqlKst(new Date()) },
   });
 }
