@@ -244,6 +244,7 @@ function parseSaveConsultationInput(raw: unknown): SaveConsultationInput {
   };
 }
 
+/** POST /api/consultations — 상담 저장 */
 export async function saveConsultation(raw: unknown, userId: bigint) {
   const { customer, profile, checklist, memo, consultationType } =
     parseSaveConsultationInput(raw);
@@ -279,6 +280,9 @@ export async function saveConsultation(raw: unknown, userId: bigint) {
         registered_by: BigInt(userId),
       },
     });
+    if (existing && consultationType === 'NEW') {
+      throw new HttpError('기존 고객은 신규 상담 유형을 선택할 수 없습니다.', 400);
+    }
     const savedCustomer = existing
       ? await tx.customers.update({
           where: { customer_id: existing.customer_id },

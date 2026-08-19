@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Traffic Insight — ERD</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: #f6f4f1; }
+    .slide {
+      width: 1920px;
+      height: 1080px;
+      position: relative;
+      overflow: hidden;
+      background: #f6f4f1;
+    }
+    .title {
+      position: absolute; left: 48px; top: 26px;
+      font: 700 32px/1.2 "Segoe UI", "Malgun Gothic", Arial, sans-serif;
+      color: #2b2b2b;
+    }
+    .subtitle {
+      position: absolute; left: 48px; top: 66px;
+      font: 400 16px/1.2 "Segoe UI", "Malgun Gothic", Arial, sans-serif;
+      color: #7a736c;
+    }
+    .legend {
+      position: absolute; right: 48px; top: 36px;
+      font: 400 14px/1 "Segoe UI", "Malgun Gothic", Arial, sans-serif;
+      color: #6b6560; display: flex; gap: 18px; align-items: center;
+    }
+    .swatch {
+      width: 14px; height: 14px; border-radius: 3px; background: #e39a62;
+      display: inline-block; margin-right: 6px; vertical-align: -2px;
+    }
+    .entity {
+      position: absolute; width: 280px; background: #fff;
+      border: 1px solid #d8d0c8; border-radius: 6px; overflow: hidden;
+      font-family: "Segoe UI", "Malgun Gothic", Arial, sans-serif;
+    }
+    .entity h3 {
+      margin: 0; background: #e39a62; color: #fff; text-align: center;
+      font-size: 16px; font-weight: 700; padding: 9px 10px;
+    }
+    .entity table { width: 100%; border-collapse: collapse; font-size: 13.5px; color: #2c2c2c; }
+    .entity tr:nth-child(even) td { background: #f1f0ee; }
+    .entity td { padding: 5px 12px; border-top: 1px solid #ece8e4; white-space: nowrap; }
+    .pk { font-weight: 700; }
+    .tag {
+      display: inline-block; font-size: 10px; font-weight: 700; color: #fff;
+      background: #c47a45; border-radius: 3px; padding: 1px 5px; margin-right: 6px;
+    }
+    .tag.fk { background: #8a847e; }
+    svg.lines {
+      position: absolute; inset: 0; width: 1920px; height: 1080px; pointer-events: none;
+    }
+    .note {
+      position: absolute; left: 48px; bottom: 20px; right: 48px;
+      font: 400 13px/1.3 "Segoe UI", "Malgun Gothic", Arial, sans-serif; color: #8a847e;
+    }
+  </style>
+</head>
+<body>
+  <section class="slide" id="slide-consult">
+    <div class="title">AI Traffic Insight — Database ERD (1/2)</div>
+    <div class="subtitle">회원 · 인증 · 상담 도메인</div>
+    <div class="legend"><span><i class="swatch"></i>Entity</span><span>PK 기본키</span><span>FK 외래키</span><span>──┤ 1 &nbsp;&nbsp; &gt; N</span></div>
+    <svg class="lines"></svg>
+
+    <div class="entity" data-id="departments" style="left:60px;top:120px">
+      <h3>departments</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>department_id</td></tr>
+        <tr><td>department_name</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="users" style="left:460px;top:120px">
+      <h3>users</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>user_id</td></tr>
+        <tr><td>login_id</td></tr>
+        <tr><td>password_hash</td></tr>
+        <tr><td>name</td></tr>
+        <tr><td>role  (ROLE_A / ROLE_B)</td></tr>
+        <tr><td><span class="tag fk">FK</span>department_id</td></tr>
+        <tr><td>org_name</td></tr>
+        <tr><td>email</td></tr>
+        <tr><td>is_active</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="refresh_tokens" style="left:860px;top:120px">
+      <h3>refresh_tokens</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>token_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>user_id</td></tr>
+        <tr><td>token_hash</td></tr>
+        <tr><td>expires_at</td></tr>
+        <tr><td>revoked_at</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="user_login_logs" style="left:1260px;top:120px">
+      <h3>user_login_logs</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>log_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>user_id</td></tr>
+        <tr><td>login_at</td></tr>
+        <tr><td>ip_address</td></tr>
+      </table>
+    </div>
+
+    <div class="entity" data-id="customers" style="left:60px;top:430px">
+      <h3>customers</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>customer_id</td></tr>
+        <tr><td>name</td></tr>
+        <tr><td>phone_number</td></tr>
+        <tr><td>phone_hash</td></tr>
+        <tr><td><span class="tag fk">FK</span>registered_by</td></tr>
+        <tr><td>is_hidden</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="consultations" style="left:460px;top:470px">
+      <h3>consultations</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>consultation_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>customer_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>user_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>profile_id</td></tr>
+        <tr><td>consultation_type</td></tr>
+        <tr><td>status</td></tr>
+        <tr><td>consulted_at</td></tr>
+        <tr><td>memo</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="profiles" style="left:860px;top:430px">
+      <h3>customer_risk_profiles</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>profile_id</td></tr>
+        <tr><td>profile_code</td></tr>
+        <tr><td><span class="tag fk">FK</span>user_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>district_id</td></tr>
+        <tr><td>age_group / gender</td></tr>
+        <tr><td>vehicle_type</td></tr>
+        <tr><td>risk_score / risk_grade</td></tr>
+        <tr><td>occ_score / sev_score</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="districts" style="left:1260px;top:430px">
+      <h3>districts</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>district_id</td></tr>
+        <tr><td>district_name</td></tr>
+        <tr><td>sido_name</td></tr>
+        <tr><td>population</td></tr>
+      </table>
+    </div>
+
+    <div class="entity" data-id="checklist" style="left:60px;top:760px">
+      <h3>checklist_items</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>item_id</td></tr>
+        <tr><td>item_key</td></tr>
+        <tr><td>item_label</td></tr>
+        <tr><td>input_type</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="answers" style="left:460px;top:800px">
+      <h3>consultation_checklist_answers</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>answer_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>consultation_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>item_id</td></tr>
+        <tr><td>answer_value</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="riders" style="left:860px;top:800px">
+      <h3>consultation_discount_riders</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>result_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>consultation_id</td></tr>
+        <tr><td>rider_key</td></tr>
+        <tr><td>badge</td></tr>
+        <tr><td>reason_text</td></tr>
+      </table>
+    </div>
+    <div class="note">users 1:N customers / consultations / profiles / refresh_tokens / user_login_logs · consultations 1:N answers / riders · districts 1:N profiles</div>
+  </section>
+
+  <section class="slide" id="slide-gov">
+    <div class="title">AI Traffic Insight — Database ERD (2/2)</div>
+    <div class="subtitle">지역 · 실적 · 지자체 예측 도메인</div>
+    <div class="legend"><span><i class="swatch"></i>Entity</span><span>PK 기본키</span><span>FK 외래키</span><span>district_id NULL = 대구 시 평균</span></div>
+    <svg class="lines"></svg>
+
+    <div class="entity" data-id="districts" style="left:820px;top:180px">
+      <h3>districts</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>district_id</td></tr>
+        <tr><td>district_name</td></tr>
+        <tr><td>sido_code / sigungu_code</td></tr>
+        <tr><td>sido_name</td></tr>
+        <tr><td>population</td></tr>
+        <tr><td>registered_vehicle_count</td></tr>
+        <tr><td>is_active</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="benchmark" style="left:80px;top:180px">
+      <h3>district_benchmark_metrics</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>metric_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>district_id (nullable)</td></tr>
+        <tr><td>period_start / period_end</td></tr>
+        <tr><td>total_accident_count</td></tr>
+        <tr><td>pedestrian_pct</td></tr>
+        <tr><td>night_pct</td></tr>
+        <tr><td>serious_pct</td></tr>
+        <tr><td>signal_violation_pct</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="trend" style="left:80px;top:540px">
+      <h3>district_monthly_trend</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>trend_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>district_id</td></tr>
+        <tr><td>trend_month</td></tr>
+        <tr><td>accident_count</td></tr>
+        <tr><td>severe_death_count</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="condition" style="left:80px;top:790px">
+      <h3>accident_condition_stats</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>stat_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>district_id</td></tr>
+        <tr><td>period_start / period_end</td></tr>
+        <tr><td>dimension / dimension_value</td></tr>
+        <tr><td>accident_count</td></tr>
+        <tr><td>severe_death_count</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="runs" style="left:1560px;top:180px">
+      <h3>gov_forecast_runs</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>run_id</td></tr>
+        <tr><td>freq (Q / H)</td></tr>
+        <tr><td>as_of_label</td></tr>
+        <tr><td>forecast_label</td></tr>
+        <tr><td>model_version</td></tr>
+        <tr><td>scope</td></tr>
+        <tr><td>status</td></tr>
+        <tr><td>finished_at</td></tr>
+      </table>
+    </div>
+    <div class="entity" data-id="forecasts" style="left:1560px;top:540px">
+      <h3>gov_forecast_districts</h3>
+      <table>
+        <tr><td class="pk"><span class="tag">PK</span>forecast_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>run_id</td></tr>
+        <tr><td><span class="tag fk">FK</span>district_id</td></tr>
+        <tr><td>predicted_accident_count</td></tr>
+        <tr><td>predicted_severe_rate_pct</td></tr>
+        <tr><td>predicted_share_pct</td></tr>
+        <tr><td>priority_rank</td></tr>
+        <tr><td>cap_applied</td></tr>
+      </table>
+    </div>
+    <div class="note">districts 1:N benchmark / monthly_trend / accident_condition_stats / gov_forecast_districts · gov_forecast_runs 1:N gov_forecast_districts</div>
+  </section>
+
+  <script>
+    const NS = "http://www.w3.org/2000/svg";
+    const COLOR = "#8a847e";
+
+    function box(el) {
+      return { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight };
+    }
+    function side(b, s, t = 0.5) {
+      const y = b.y + b.h * t;
+      const x = b.x + b.w * t;
+      if (s === "l") return { x: b.x, y };
+      if (s === "r") return { x: b.x + b.w, y };
+      if (s === "t") return { x, y: b.y };
+      return { x, y: b.y + b.h };
+    }
+    function drawSlide(slide, rels) {
+      const svg = slide.querySelector("svg.lines");
+      const map = {};
+      slide.querySelectorAll(".entity").forEach((el) => { map[el.dataset.id] = el; });
+      const defs = document.createElementNS(NS, "defs");
+      defs.innerHTML = `
+        <marker id="${slide.id}-one" markerWidth="10" markerHeight="12" refX="2" refY="6" orient="auto">
+          <line x1="2" y1="1" x2="2" y2="11" stroke="${COLOR}" stroke-width="2"/>
+          <line x1="6" y1="1" x2="6" y2="11" stroke="${COLOR}" stroke-width="2"/>
+        </marker>
+        <marker id="${slide.id}-many" markerWidth="12" markerHeight="12" refX="11" refY="6" orient="auto">
+          <path d="M1 6 L11 1 M1 6 L11 6 M1 6 L11 11" fill="none" stroke="${COLOR}" stroke-width="1.7"/>
+        </marker>`;
+      svg.appendChild(defs);
+      rels.forEach(([aId, aSide, bId, bSide, aT, bT]) => {
+        const A = side(box(map[aId]), aSide, aT ?? 0.5);
+        const B = side(box(map[bId]), bSide, bT ?? 0.5);
+        const path = document.createElementNS(NS, "path");
+        let d;
+        if (aSide === "r" && bSide === "l") {
+          const mx = (A.x + B.x) / 2;
+          d = `M${A.x} ${A.y} H${mx} V${B.y} H${B.x}`;
+        } else if (aSide === "b" && bSide === "t") {
+          const my = (A.y + B.y) / 2;
+          d = `M${A.x} ${A.y} V${my} H${B.x} V${B.y}`;
+        } else if (aSide === "t" && bSide === "t") {
+          const top = Math.min(A.y, B.y) - 18;
+          d = `M${A.x} ${A.y} V${top} H${B.x} V${B.y}`;
+        } else if (aSide === "b" && bSide === "r") {
+          d = `M${A.x} ${A.y} V${B.y} H${B.x}`;
+        } else if (aSide === "r" && bSide === "t") {
+          d = `M${A.x} ${A.y} H${B.x} V${B.y}`;
+        } else {
+          d = `M${A.x} ${A.y} L${B.x} ${B.y}`;
+        }
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", COLOR);
+        path.setAttribute("stroke-width", "1.7");
+        path.setAttribute("marker-start", `url(#${slide.id}-one)`);
+        path.setAttribute("marker-end", `url(#${slide.id}-many)`);
+        svg.appendChild(path);
+      });
+    }
+
+    drawSlide(document.getElementById("slide-consult"), [
+      ["departments", "r", "users", "l", 0.55, 0.55],
+      ["users", "r", "refresh_tokens", "l", 0.35, 0.45],
+      ["users", "t", "user_login_logs", "t", 0.9, 0.2],
+      ["users", "b", "customers", "t", 0.28, 0.5],
+      ["users", "b", "consultations", "t", 0.5, 0.35],
+      ["users", "b", "profiles", "t", 0.78, 0.35],
+      ["customers", "r", "consultations", "l", 0.45, 0.28],
+      ["profiles", "l", "consultations", "r", 0.55, 0.45],
+      ["districts", "l", "profiles", "r", 0.5, 0.5],
+      ["consultations", "b", "answers", "t", 0.35, 0.4],
+      ["consultations", "b", "riders", "t", 0.7, 0.35],
+      ["checklist", "r", "answers", "l", 0.5, 0.65],
+    ]);
+
+    drawSlide(document.getElementById("slide-gov"), [
+      ["districts", "l", "benchmark", "r", 0.35, 0.5],
+      ["districts", "l", "trend", "r", 0.62, 0.4],
+      ["districts", "b", "condition", "r", 0.2, 0.35],
+      ["districts", "r", "forecasts", "l", 0.55, 0.4],
+      ["runs", "b", "forecasts", "t", 0.5, 0.35],
+    ]);
+  </script>
+</body>
+</html>

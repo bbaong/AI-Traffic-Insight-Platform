@@ -1,6 +1,7 @@
 import { predictIns } from '../api/prediction';
 import { fetchTokkReview } from '../api/tokkReview';
 import { saveConsultation } from '../api/consultation';
+import { fetchCustomers } from '../api/customers';
 import { CHECKLIST_ITEMS } from '../constants/checklistItems';
 import {
   AGE_OPTIONS,
@@ -81,25 +82,31 @@ export function InsDashboardPage() {
   const [memo, setMemo] = useState('');
   const [memoOpen, setMemoOpen] = useState(false);
   const savedMemoRef = useRef('');
-  const [consultType, setConsultType] = useState<ConsultType | ''>('');
 
+  const location = useLocation();
+
+  const [consultType, setConsultType] = useState<ConsultType | ''>('');
+  const [isExistingCustomer, setIsExistingCustomer] = useState(false);
+  
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccessOpen, setSaveSuccessOpen] = useState(false);
 
-  const location = useLocation();
-
+  // 대시보드 프리필
   useEffect(() => {
     const prefill = location.state as DashboardPrefill | null;
     if (!prefill?.fromCustomers) return;
-
+  
+    setIsExistingCustomer(true);
+    if (consultType === 'NEW') setConsultType('');
+  
     if (prefill.customer) {
       setCustomer({
         name: prefill.customer.name ?? '',
         phone: prefill.customer.phone ?? '',
       });
     }
-
+  
     if (prefill.profile) {
       setProfile((prev) => ({
         gender: prefill.profile?.gender || prev.gender,
@@ -108,11 +115,43 @@ export function InsDashboardPage() {
         region: prefill.profile?.region || prev.region,
       }));
     }
-
-    // 뒤로가기 시 같은 state로 다시 덮어쓰지 않게 정리
+  
     navigate(location.pathname, { replace: true, state: null });
-  }, [location.state, location.pathname, navigate]);
+  }, [location.state, location.pathname, navigate, consultType]);
 
+  // 고객 존재 여부 확인
+  useEffect(() => {
+    const digits = customer.phone.replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 11) {
+      setIsExistingCustomer(false);
+      return;
+    }
+  
+    let cancelled = false;
+  
+    void fetchCustomers(digits)
+      .then((rows) => {
+        if (cancelled) return;
+  
+        const exists = rows.some(
+          (row) => row.phone.replace(/\D/g, '') === digits,
+        );
+  
+        setIsExistingCustomer(exists);
+        if (exists) {
+          setConsultType((prev) => (prev === 'NEW' ? '' : prev));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setIsExistingCustomer(false);
+      });
+  
+    return () => {
+      cancelled = true;
+    };
+  }, [customer.phone]);
+
+  // AI 분석
   async function handleAnalyze() {
     setAnalyzeLoading(true);
     setAnalyzeError(null);
@@ -261,6 +300,7 @@ export function InsDashboardPage() {
           consultType={consultType}
           saveLoading={saveLoading}
           saveError={saveError}
+          isExistingCustomer={isExistingCustomer}
           onChecklistChange={setChecklistField}
           onTokkReview={() => void handleTokkReview()}
           onConsultTypeChange={setConsultType}

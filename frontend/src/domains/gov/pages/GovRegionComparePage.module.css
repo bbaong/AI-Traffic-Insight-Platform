@@ -74,8 +74,6 @@
 .cellInsights {
   grid-area: insights;
   min-height: 0;
-  max-height: 380px;
-  overflow: hidden;
 }
 
 .cellSummary,

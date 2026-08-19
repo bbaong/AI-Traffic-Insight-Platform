@@ -32,6 +32,7 @@ type Props = {
   onConsultTypeChange: (v: ConsultType) => void;
   onSave: () => void;
   onPrev: () => void;
+  isExistingCustomer: boolean;
 };
 
 export function InsStep2ChecklistTokk({
@@ -47,6 +48,7 @@ export function InsStep2ChecklistTokk({
   onConsultTypeChange,
   onSave,
   onPrev,
+  isExistingCustomer,
 }: Props) {
   return (
     <div className={shared.stepRoot}>
@@ -285,18 +287,31 @@ export function InsStep2ChecklistTokk({
                 role="group"
                 aria-label="상담 유형"
               >
-                {CONSULT_TYPE_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    className={`${styles.typeBtn} ${
-                      consultType === opt.value ? styles.typeActive : ''
-                    }`}
-                    onClick={() => onConsultTypeChange(opt.value)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+                {CONSULT_TYPE_OPTIONS.map((opt) => {
+                  const isNewDisabled = isExistingCustomer && opt.value === 'NEW';
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      className={`${styles.typeBtn} ${
+                        consultType === opt.value ? styles.typeActive : ''
+                      } ${isNewDisabled ? styles.typeBtnDisabled : ''}`}
+                      onClick={() => {
+                        if (isNewDisabled) return;
+                        onConsultTypeChange(opt.value);
+                      }}
+                      disabled={isNewDisabled}
+                      aria-disabled={isNewDisabled}
+                      title={
+                        isNewDisabled
+                          ? '이미 등록된 고객은 신규 상담을 선택할 수 없습니다.'
+                          : undefined
+                      }
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
