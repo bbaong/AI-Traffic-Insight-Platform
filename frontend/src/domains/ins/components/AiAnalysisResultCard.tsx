@@ -249,6 +249,12 @@ export function AiAnalysisResultCard({
     setMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 10);
   }, []);
 
+  const scrollToEnd = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }, []);
+
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) {
@@ -503,11 +509,15 @@ export function AiAnalysisResultCard({
         </div>
 
         {moreBelow ? (
-          <div className={styles.scrollHint} aria-hidden="true">
-            <span className={styles.scrollHintPill}>
+          <div className={styles.scrollHint}>
+            <button
+              type="button"
+              className={styles.scrollHintPill}
+              onClick={scrollToEnd}
+            >
               더 보기
               <ChevronDownIcon />
-            </span>
+            </button>
           </div>
         ) : null}
       </div>

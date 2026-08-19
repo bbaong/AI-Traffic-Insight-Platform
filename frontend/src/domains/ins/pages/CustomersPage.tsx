@@ -13,10 +13,12 @@ import {
   CONSULTATION_TYPE_META,
   RIDER_BADGE_META,
   RIDER_KEY_LABEL,
+  RISK_GRADE_META,
   consultationTypeLabel,
   formatConsultDate,
   formatConsultDateTime,
   genderLabel,
+  scoreToRiskGrade,
   toConsultationType,
   toRiderBadge,
 } from '../constants/insEnums';
@@ -93,6 +95,12 @@ export function CustomersPage() {
 
   const selectedCustomer =
     selectedCustomerFromList ?? detail?.customer ?? null;
+
+  const occScore = finiteScore(riskConsult?.occScore);
+  const sevScore = finiteScore(riskConsult?.sevScore);
+  const hasRiskScore = riskConsult?.riskScore != null && riskMeta != null;
+  const hasRiskAxes = occScore != null && sevScore != null;
+  const consultPoint = riskConsult?.consultPoint?.trim() || '';
 
   return (
     <div className={styles.page}>
@@ -447,13 +455,15 @@ export function CustomersPage() {
                 <div className={styles.detailStack}>
                 <section className={`${styles.card} ${styles.riskCard}`}>
                   <h3 className={styles.cardTitle}>위험점수</h3>
-                  {riskConsult && riskConsult.riskScore != null && riskMeta ? (
-                    <>
-                      <div className={styles.riskHead}>
-                        <p className={styles.riskScore}>
-                          {riskConsult.riskScore.toFixed(1)}
-                          <span> / 100</span>
-                        </p>
+                  <div className={styles.riskBody}>
+                    <div className={styles.riskHead}>
+                      <p className={styles.riskScore}>
+                        {hasRiskScore && riskConsult
+                          ? riskConsult.riskScore.toFixed(1)
+                          : '—'}
+                        <span> / 100</span>
+                      </p>
+                      {riskMeta ? (
                         <span
                           className={styles.riskGrade}
                           style={{
@@ -463,34 +473,74 @@ export function CustomersPage() {
                         >
                           {riskMeta.ko}
                         </span>
-                      </div>
-                      <div
-                        className={styles.riskTrack}
-                        role="img"
-                        aria-label={`위험 점수 ${riskPct.toFixed(1)}점`}
-                      >
-                        <span
-                          className={styles.riskThumb}
-                          style={{ left: `${riskPct}%` }}
-                        />
-                      </div>
-                      <p className={styles.riskMeta}>
-                        {formatConsultDateTime(riskConsult.consultedAt)} · 상담원{' '}
-                        {riskConsult.counselorName ?? '-'}
-                      </p>
-                    </>
-                  ) : (
-                    <p className={styles.hint}>
-                      상담 이력이 없어 위험점수가 없습니다.
+                      ) : (
+                        <span className={styles.axisEmptyBadge}>—</span>
+                      )}
+                    </div>
+                    <div
+                      className={styles.riskTrack}
+                      role="img"
+                      aria-label={
+                        hasRiskScore
+                          ? `위험 점수 ${riskPct.toFixed(1)}점`
+                          : '위험 점수 없음'
+                      }
+                    >
+                      <span
+                        className={styles.riskThumb}
+                        style={{ left: `${hasRiskScore ? riskPct : 0}%` }}
+                      />
+                    </div>
+                    <p className={styles.riskMeta}>
+                      {hasRiskScore && riskConsult
+                        ? `${formatConsultDateTime(riskConsult.consultedAt)} · 상담원 ${riskConsult.counselorName ?? '-'}`
+                        : '상담 이력이 없어 위험점수가 없습니다'}
                     </p>
-                  )}
+                    <p className={styles.axisNote}>
+                      {hasRiskAxes
+                        ? '두 축을 곱한 순위 · 막대 합이 점수가 아닙니다'
+                        : '\u00a0'}
+                    </p>
+                    <div className={styles.axisGrid}>
+                      <AxisTile title="발생 위험" score={occScore} />
+                      <AxisTile title="심도 위험" score={sevScore} />
+                    </div>
+                    <div className={styles.consultSlot}>
+                      {consultPoint ? (
+                        <div className={styles.consultPoint}>
+                          <span className={styles.consultPointIcon}>
+                            <PointPinIcon />
+                          </span>
+                          <p>
+                            <strong>상담 포인트 —</strong> {consultPoint}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className={styles.legacyBox}>
+                          <span className={styles.legacyBadge}>
+                            {!hasRiskScore
+                              ? '대기'
+                              : hasRiskAxes
+                                ? '참고'
+                                : '구버전 상담'}
+                          </span>
+                          <p>
+                            {!hasRiskScore
+                              ? '상담을 선택하면 발생·심도 결과를 볼 수 있습니다'
+                              : hasRiskAxes
+                                ? '이 상담에 저장된 상담 포인트가 없습니다'
+                                : '이 상담은 발생·심도 데이터가 없습니다'}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </section>
 
                 <section className={`${styles.card} ${styles.ridersCard}`}>
                   <div className={styles.cardHead}>
                     <h3 className={styles.cardTitle}>특약 검토 결과</h3>
-                  </div>
-                  <div className={styles.legend} aria-label="특약 상태 범례">
+                    <div className={styles.legend} aria-label="특약 상태 범례">
                     <span className={styles.legItem} style={{ color: '#2E8B4E' }}>
                       <i style={{ background: '#2E8B4E' }} />
                       권장
@@ -503,6 +553,7 @@ export function CustomersPage() {
                       <i style={{ background: '#8290A2' }} />
                       제외
                     </span>
+                    </div>
                   </div>
                   {!selectedConsult ? (
                     <p className={styles.hint}>
@@ -543,7 +594,6 @@ export function CustomersPage() {
                                   </span>
                                 ) : null}
                               </div>
-                              <p className={styles.riderReason}>{r.reasonText}</p>
                             </div>
                           </li>
                         );
@@ -600,6 +650,68 @@ export function CustomersPage() {
         }}
       />
     </div>
+  );
+}
+
+function finiteScore(value: number | null | undefined): number | null {
+  if (value == null || !Number.isFinite(Number(value))) return null;
+  return Math.min(100, Math.max(0, Number(value)));
+}
+
+const AXIS_BAR: Record<string, string> = {
+  Low: '#22c55e',
+  Moderate: '#eab308',
+  High: '#f97316',
+  Critical: '#ef4444',
+};
+
+function AxisTile({ title, score }: { title: string; score: number | null }) {
+  const grade = score == null ? null : scoreToRiskGrade(score);
+  const meta = grade ? RISK_GRADE_META[grade] : null;
+  return (
+    <article className={styles.axisTile}>
+      <div className={styles.axisHead}>
+        <h4 className={styles.axisName}>{title}</h4>
+        {meta ? (
+          <span
+            className={styles.riskGrade}
+            style={{ color: meta.color, background: meta.bg }}
+          >
+            {meta.ko}
+          </span>
+        ) : (
+          <span className={styles.axisEmptyBadge}>—</span>
+        )}
+      </div>
+      <div className={styles.axisBarRow}>
+        <div className={styles.axisTrack}>
+          <span
+            className={styles.axisFill}
+            style={{
+              width: `${score ?? 0}%`,
+              background: grade ? AXIS_BAR[grade] : '#e2e8f0',
+            }}
+          />
+        </div>
+        <span className={styles.axisScore}>
+          {score == null ? '—' : score.toFixed(0)}
+        </span>
+      </div>
+    </article>
+  );
+}
+
+function PointPinIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 21s-7-5.8-7-11a7 7 0 1 1 14 0c0 5.2-7 11-7 11Z"
+        stroke="currentColor"
+        strokeWidth="1.9"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="10" r="2.4" stroke="currentColor" strokeWidth="1.9" />
+    </svg>
   );
 }
 

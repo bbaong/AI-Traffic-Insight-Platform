@@ -82,17 +82,25 @@
 }
 
 .scrollHintPill {
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 10px 3px 12px;
+  padding: 4px 12px 4px 14px;
   border-radius: 999px;
   border: 1px solid #e9edf2;
   background: #fff;
   box-shadow: 0 2px 8px rgb(15 27 45 / 8%);
+  font: inherit;
   font-size: 11px;
   font-weight: 650;
   color: #64748b;
+  cursor: pointer;
+}
+
+.scrollHintPill:hover {
+  border-color: #fdba74;
+  color: #c2410c;
 }
 
 .title {
