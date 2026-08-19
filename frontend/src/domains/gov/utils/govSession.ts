@@ -22,3 +22,4 @@ export function writeSessionJson(key: string, value: unknown): void {
     /* quota 등은 무시 */
   }
 }
+

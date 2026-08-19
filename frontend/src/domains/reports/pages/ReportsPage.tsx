@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchInsReportPdf } from '../../ins/api/reportPdf';
 import { DAEGU_DISTRICTS } from '../../../shared/constants/daeguBoundaries';
 import { ROUTES } from '../../../shared/constants/routes';
 import { useDistrictStore } from '../../../shared/stores/districtStore';
@@ -10,13 +9,20 @@ import { useInsReportDraftStore } from '../stores/insReportDraftStore';
 import { InsConsultReportView } from '../components/InsConsultReportView';
 import styles from './ReportsPage.module.css';
 import {
-  fetchGovReportPdf,
-  type GovReportPdfDashboardPayload,
-} from '../../gov/api/reportPdf';
-import {
   GOV_PDF_SNAPSHOT_KEY,
   readSessionJson,
 } from '../../gov/utils/govSession';
+import {
+  fetchGovReportPdf,
+  sendGovReportPdfEmail,
+  type GovReportPdfDashboardPayload,
+  type GovReportPdfRequest,
+} from '../../gov/api/reportPdf';
+import {
+  fetchInsReportPdf,
+  sendInsReportPdfEmail,
+  type InsReportPdfRequest,
+} from '../../ins/api/reportPdf';
 
 /* 행정 참고 리포트 스냅샷 */
 type GovPdfSnapshot = {
@@ -96,6 +102,11 @@ export function ReportsPage() {
   const [includeMemo, setIncludeMemo] = useState(true);
   const [govSections, setGovSections] =
     useState<GovPdfSections>(DEFAULT_GOV_SECTIONS);
+  const [lastInsBody, setLastInsBody] = useState<InsReportPdfRequest | null>(null);
+  const [lastGovBody, setLastGovBody] = useState<GovReportPdfRequest | null>(null);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailOk, setEmailOk] = useState<string | null>(null);
 
   /* 메모 포함 여부 설정 */
   useEffect(() => {
@@ -156,34 +167,34 @@ export function ReportsPage() {
       return;
     }
 
-    await runPdfJob(
-      () =>
-        fetchGovReportPdf({
-          지역: selectedName,
-          freq: 'Q',
-          작성자: user?.name || undefined,
-          기관: user?.orgName || undefined,
-          dashboard: {
-            period_label: snapshot.period_label,
-            top3: govSections.top3 ? snapshot.top3 : [],
-            selected: snapshot.selected,
-            comparison: govSections.comparison
-              ? (snapshot.comparison ?? undefined)
-              : undefined,
-            suggestions: govSections.suggestions
-              ? (snapshot.suggestions ?? undefined)
-              : undefined,
-            severityLatest: govSections.severityLatest
-              ? (snapshot.severityLatest ?? undefined)
-              : undefined,
-            severitySeries: govSections.severityChart
-              ? (snapshot.severitySeries ?? undefined)
-              : undefined,
-            includeSummary: govSections.summary,
-          },
-        }),
-      `행정참고리포트_${selectedName}`,
-    );
+    const body: GovReportPdfRequest = {
+      지역: selectedName,
+      freq: 'Q',
+      작성자: user?.name || undefined,
+      기관: user?.orgName || undefined,
+      dashboard: {
+        period_label: snapshot.period_label,
+        top3: govSections.top3 ? snapshot.top3 : [],
+        selected: snapshot.selected,
+        comparison: govSections.comparison
+          ? (snapshot.comparison ?? undefined)
+          : undefined,
+        suggestions: govSections.suggestions
+          ? (snapshot.suggestions ?? undefined)
+          : undefined,
+        severityLatest: govSections.severityLatest
+          ? (snapshot.severityLatest ?? undefined)
+          : undefined,
+        severitySeries: govSections.severityChart
+          ? (snapshot.severitySeries ?? undefined)
+          : undefined,
+        includeSummary: govSections.summary,
+      },
+    };
+    setLastGovBody(body);
+    setEmailError(null);
+    setEmailOk(null);
+    await runPdfJob(() => fetchGovReportPdf(body), `행정참고리포트_${selectedName}`);
   }
 
   /* 상담 참고 리포트 생성 */
@@ -194,14 +205,15 @@ export function ReportsPage() {
     }
     const { source: _source, memo, ...draftFields } = insDraft;
     const name = (insDraft.고객명?.trim() || '고객').replace(/[\\/:*?"<>|]/g, '_');
-    await runPdfJob(
-      () => fetchInsReportPdf({
-          ...draftFields,
-          ...(includeMemo && memo ? { memo } : {}),
-          작성자: user?.name || undefined,
-        }),
-      `상담참고리포트_${name}`,
-    );
+    const body: InsReportPdfRequest = {
+      ...draftFields,
+      ...(includeMemo && memo ? { memo } : {}),
+      작성자: user?.name || undefined,
+    };
+    setLastInsBody(body);
+    setEmailError(null);
+    setEmailOk(null);
+    await runPdfJob(() => fetchInsReportPdf(body), `상담참고리포트_${name}`);
   }
 
   /* PDF 다운로드 */
@@ -214,6 +226,29 @@ export function ReportsPage() {
       .replace(/-/g, '');
     a.download = `${downloadBase}_${ymd}.pdf`;
     a.click();
+  }
+
+  //PDF 이메일 발송
+  async function handleSendPdfEmail(toEmail: string) {
+    setEmailSending(true);
+    setEmailError(null);
+    setEmailOk(null);
+    try {
+      if (isGov) {
+        if (!lastGovBody) throw new Error('먼저 리포트를 생성해 주세요.');
+        await sendGovReportPdfEmail({ ...lastGovBody, toEmail });
+      } else {
+        if (!lastInsBody) throw new Error('먼저 리포트를 생성해 주세요.');
+        await sendInsReportPdfEmail({ ...lastInsBody, toEmail });
+      }
+      setEmailOk(`${toEmail}로 보냈습니다.`);
+    } catch (e) {
+      setEmailError(
+        e instanceof Error ? e.message : '이메일 발송에 실패했습니다.',
+      );
+    } finally {
+      setEmailSending(false);
+    }
   }
 
   return (
@@ -315,14 +350,18 @@ export function ReportsPage() {
       )}
   
       <PdfPreviewModal
-        accent={isGov ? 'teal' : 'amber'}
-        open={pdfOpen}
-        pdfUrl={pdfUrl}
-        title={isGov ? '행정 참고 리포트' : '상담 참고 리포트'}
-        downloading={pdfLoading}
-        onClose={closePdfModal}
-        onDownload={handleDownloadPdf}
-      />
+      accent={isGov ? 'teal' : 'amber'}
+      open={pdfOpen}
+      pdfUrl={pdfUrl}
+      title={isGov ? '행정 참고 리포트' : '상담 참고 리포트'}
+      downloading={pdfLoading}
+      sending={emailSending}
+      sendError={emailError}
+      sendOk={emailOk}
+      onClose={closePdfModal}
+      onDownload={handleDownloadPdf}
+      onSendEmail={(to) => void handleSendPdfEmail(to)}
+    />
     </div>
   );
 }

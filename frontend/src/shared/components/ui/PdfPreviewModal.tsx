@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { isValidEmail } from '../../utils/email';
 import styles from './PdfPreviewModal.module.css';
 
 interface Props {
@@ -6,8 +7,12 @@ interface Props {
   pdfUrl: string | null;
   title?: string;
   downloading?: boolean;
+  sending?: boolean;
+  sendError?: string | null;
+  sendOk?: string | null;
   onClose: () => void;
   onDownload: () => void;
+  onSendEmail: (toEmail: string) => void;
   accent?: 'teal' | 'amber';
 }
 
@@ -16,10 +21,23 @@ export function PdfPreviewModal({
   pdfUrl,
   title = '상담 참고 리포트',
   downloading = false,
+  sending = false,
+  sendError = null,
+  sendOk = null,
   accent = 'teal',
   onClose,
   onDownload,
+  onSendEmail,
 }: Props) {
+  
+  const [toEmail, setToEmail] = useState('');
+
+  //모달 닫히면 이메일 초기화
+  useEffect(() => {
+    if (!open) setToEmail('');
+  }, [open]);
+
+  //이메일 유효성 검사
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
@@ -61,6 +79,30 @@ export function PdfPreviewModal({
             </button>
           </div>
         </header>
+        <div className={styles.emailBar}>
+          <input
+            type="email"
+            className={styles.emailInput}
+            placeholder="받을 사람 이메일"
+            value={toEmail}
+            onChange={(e) => setToEmail(e.target.value)}
+            disabled={!pdfUrl || sending}
+            autoComplete="email"
+          />
+          <button
+            type="button"
+            className={accent === 'amber' ? `${styles.primary} ${styles.primaryAmber}` : styles.primary}
+            disabled={!pdfUrl || sending || !isValidEmail(toEmail.trim())}
+            onClick={() => onSendEmail(toEmail.trim())}
+          >
+            {sending ? '보내는 중…' : '이메일 보내기'}
+          </button>
+          {sendError ? (
+            <p className={styles.emailMsgError}>{sendError}</p>
+          ) : sendOk ? (
+            <p className={styles.emailMsgOk}>{sendOk}</p>
+          ) : null}
+        </div>
         <div className={styles.body}>
           {pdfUrl ? (
             <iframe className={styles.frame} title={title} src={pdfUrl} />

@@ -117,6 +117,10 @@ model customer_risk_profiles {
   is_low_confidence            Boolean                                  @default(false)
   model_version                String                                   @default("customer_score_v1") @db.VarChar(30)
   analyzed_at                  DateTime                                 @default(now()) @db.DateTime(0)
+  occ_score                    Decimal?                                 @db.Decimal(5, 2)
+  sev_score                    Decimal?                                 @db.Decimal(5, 2)
+  consult_point                String?                                  @db.Text
+  occ_rate_per_10k             Decimal?                                 @db.Decimal(8, 4)
   consultations                consultations[]
   customer_risk_profiles       customer_risk_profiles?                  @relation("customer_risk_profilesTocustomer_risk_profiles", fields: [based_on_profile_id], references: [profile_id], onDelete: Restrict, onUpdate: Restrict, map: "fk_profile_based_on")
   other_customer_risk_profiles customer_risk_profiles[]                 @relation("customer_risk_profilesTocustomer_risk_profiles")

@@ -1,6 +1,6 @@
-import { fetchPdfBlob } from "../../../shared/api/http";
+import { fetchPdfBlob, apiUrl, readJson } from '../../../shared/api/http';
 
-/** history + forecast 시계열 (SeverityStackedCard와 동일 순서) */
+//행정 참고 보고서 시계열 타입 //http://localhost:5000/api/prediction/gov-report-pdf
 export type GovPdfSeveritySeriesPoint = {
   label: string; // 예: "24년 3분기" 또는 원본 "2024Q3"
   kind: 'actual' | 'forecast';
@@ -12,6 +12,7 @@ export type GovPdfSeveritySeriesPoint = {
   };
 };
 
+//행정 참고 보고서 대시보드 페이로드 타입 //http://localhost:5000/api/prediction/gov-report-pdf
 export interface GovReportPdfDashboardPayload {
   period_label: string;
   top3: Array<{
@@ -58,6 +59,7 @@ export interface GovReportPdfDashboardPayload {
   includeSummary?: boolean;
 }
 
+//행정 참고 보고서 요청 타입 //http://localhost:5000/api/prediction/gov-report-pdf
 export interface GovReportPdfRequest {
   지역: string;
   as_of?: string | null;
@@ -67,9 +69,27 @@ export interface GovReportPdfRequest {
   dashboard?: GovReportPdfDashboardPayload;
 }
 
-/** POST /api/prediction/gov-report-pdf → PDF Blob */
+//PDF 생성 //http://localhost:5000/api/prediction/gov-report-pdf
 export async function fetchGovReportPdf(
   body: GovReportPdfRequest,
 ): Promise<Blob> {
   return fetchPdfBlob('/api/prediction/gov-report-pdf', body);
+}
+
+//이메일 발송 //http://localhost:5000/api/prediction/gov-report-pdf/email
+export async function sendGovReportPdfEmail(
+  body: GovReportPdfRequest & { toEmail: string },
+): Promise<void> {
+  const res = await fetch(apiUrl('/api/prediction/gov-report-pdf/email'), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await readJson<{ success?: boolean; message?: string }>(
+    res,
+    '이메일 발송에 실패했습니다.',
+  );
+  if (!res.ok || data.success === false) {
+    throw new Error(data.message ?? '이메일 발송에 실패했습니다.');
+  }
 }
