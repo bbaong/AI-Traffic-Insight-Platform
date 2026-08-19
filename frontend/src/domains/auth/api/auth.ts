@@ -1,11 +1,13 @@
 import type { LoginPayload, LoginResult, UserRole } from '../../../shared/types/auth';
 import { apiUrl } from '../../../shared/api/http';
+import { clearAuthStorage, getRefreshToken } from '../../../shared/stores/authStore';
 
+// 사용자 권한 검증
 function isUserRole(value: unknown): value is UserRole {
   return value === 'ROLE_A' || value === 'ROLE_B';
 }
 
-/** 로그인 */
+// 로그인
 export async function login(payload: LoginPayload): Promise<LoginResult> {
   const res = await fetch(apiUrl('/api/user/login'), {
     method: 'POST',
@@ -75,8 +77,7 @@ export async function login(payload: LoginPayload): Promise<LoginResult> {
   return { ok: false, reason: 'INVALID' };
 }
 
-export { refreshSession } from '../../../shared/api/session';
-
+// 로그아웃 (refresh token 무효화)
 export async function logout(refreshToken: string | null): Promise<void> {
   if (!refreshToken) return;
   await fetch(apiUrl('/api/user/logout'), {
@@ -84,4 +85,11 @@ export async function logout(refreshToken: string | null): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ refreshToken }),
   }).catch(() => undefined);
+}
+
+// 로그아웃 후 리다이렉트
+export async function signOut(redirectTo: string): Promise<void> {
+  await logout(getRefreshToken());
+  clearAuthStorage();
+  window.location.replace(redirectTo);
 }

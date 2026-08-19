@@ -6,12 +6,8 @@ import {
 import { ROUTES } from '../../constants/routes';
 import type { UserRole } from '../../types/auth';
 import styles from './Sidebar.module.css';
-import { logout } from '../../../domains/auth/api/auth';
-import {
-  clearAuthStorage,
-  getRefreshToken,
-  useAuthStore,
-} from '../../stores/authStore';
+import { signOut } from '../../../domains/auth/api/auth';
+import { useAuthStore } from '../../stores/authStore';
 
 /* 사이드바 프로퍼티 */
 export interface SidebarProps {
@@ -54,10 +50,7 @@ export function Sidebar({ role, open = false, onNavigate }: SidebarProps) {
   const isGov = role === 'ROLE_A';
 
   async function handleLogout(): Promise<void> {
-    const refreshToken = getRefreshToken();
-    await logout(refreshToken);
-    clearAuthStorage();
-    window.location.replace(ROUTES.LANDING);
+    await signOut(ROUTES.LANDING);
   }
 
   return (

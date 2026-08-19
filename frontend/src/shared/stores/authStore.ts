@@ -3,8 +3,6 @@ import type { AuthUser } from '../types/auth';
 import { clearSettingsVerifyStorage } from './settingsVerifyStore';
 
 const STORAGE_KEY = 'ati_auth_user';
-
-const USER_KEY = 'ati_auth_user';
 const RT_KEY = 'ati_refresh_token';
 
 /* 스토리지에서 사용자 정보 읽기 */
@@ -21,8 +19,8 @@ function readStoredUser(): AuthUser | null {
 
 /* 스토리지만 비움. React 리렌더 없이 즉시 페이지 이동할 때 사용 */
 export function clearAuthStorage(): void {
-  localStorage.removeItem(USER_KEY);
-  sessionStorage.removeItem(USER_KEY);
+  localStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem(RT_KEY);
   sessionStorage.removeItem(RT_KEY);
   clearSettingsVerifyStorage();
@@ -59,12 +57,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   accessToken: null,
   /* 세션 설정 */
   setSession: (user, accessToken, refreshToken, remember) => {
-    localStorage.removeItem(USER_KEY);
-    sessionStorage.removeItem(USER_KEY);
+    localStorage.removeItem(STORAGE_KEY);
+    sessionStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(RT_KEY);
     sessionStorage.removeItem(RT_KEY);
     const store = remember ? localStorage : sessionStorage;
-    store.setItem(USER_KEY, JSON.stringify(user));
+    store.setItem(STORAGE_KEY, JSON.stringify(user));
     store.setItem(RT_KEY, refreshToken);
     set({ user, accessToken });
   },
@@ -85,10 +83,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (!state.user) return state;
       const next = { ...state.user, ...partial };
       const raw = JSON.stringify(next);
-      if (localStorage.getItem(USER_KEY) != null) {
-        localStorage.setItem(USER_KEY, raw);
-      } else if (sessionStorage.getItem(USER_KEY) != null) {
-        sessionStorage.setItem(USER_KEY, raw);
+      if (localStorage.getItem(STORAGE_KEY) != null) {
+        localStorage.setItem(STORAGE_KEY, raw);
+      } else if (sessionStorage.getItem(STORAGE_KEY) != null) {
+        sessionStorage.setItem(STORAGE_KEY, raw);
       }
       return { user: next };
     });

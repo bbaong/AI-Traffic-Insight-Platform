@@ -10,6 +10,7 @@ import consultationRoutes from './routes/consultation.route';
 import customerRoutes from './routes/customer.route';
 import govRoutes from './routes/gov.route';
 import { closePdfBrowser } from './services/pdf/browser';
+import { requireAuth } from './middleware/auth.middleware';
 
 const app = express();
 const port = 5000;
@@ -19,9 +20,6 @@ app.set('json replacer', jsonReplacer);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-//인증 미들웨어 적용
-import { requireAuth } from './middleware/auth.middleware';
 
 app.use('/api/user', userRoutes);
 //예측 라우트 적용

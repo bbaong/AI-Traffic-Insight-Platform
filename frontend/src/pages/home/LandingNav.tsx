@@ -1,12 +1,8 @@
 import type { MouseEvent } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
-import { logout } from '../../domains/auth/api/auth';
-import {
-  clearAuthStorage,
-  getRefreshToken,
-  useAuthStore,
-} from '../../shared/stores/authStore';
+import { signOut } from '../../domains/auth/api/auth';
+import { useAuthStore } from '../../shared/stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './LandingNav.module.css';
 import { jumpToPageTop } from '../../shared/utils/jumpToPageTop';
@@ -28,10 +24,7 @@ export function LandingNav() {
         : null;
 
   async function handleLogout(): Promise<void> {
-    const refreshToken = getRefreshToken();
-    await logout(refreshToken);
-    clearAuthStorage();
-    window.location.replace(ROUTES.LANDING);
+    await signOut(ROUTES.LANDING);
   }
 
   function goToHomeSection(id: string): void {

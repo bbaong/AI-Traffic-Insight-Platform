@@ -1,16 +1,17 @@
 import { Router } from 'express';
 import {
+  changeEmail,
   changePassword,
   createUsers,
   getDepartments,
   getUsers,
   idCheck,
   loginUsers,
+  logoutUsers,
+  refreshTokens,
   verifyPassword,
-  changeEmail,
 } from '../controllers/user.controller';
 import { requireAuth } from '../middleware/auth.middleware';
-import { logoutUsers, refreshTokens } from '../controllers/user.controller';
 
 const router = Router();
 

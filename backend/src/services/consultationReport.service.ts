@@ -1,9 +1,15 @@
 import { prisma } from '../lib/prisma';
 import { recommendCoverages } from './coverageRule.service';
 
-export async function getConsultationReport(consultationId: bigint) {
-  const row = await prisma.consultations.findUnique({
-    where: { consultation_id: consultationId },
+export async function getConsultationReport(
+  consultationId: bigint,
+  userId: bigint,
+) {
+  const row = await prisma.consultations.findFirst({
+    where: {
+      consultation_id: consultationId,
+      user_id: userId,
+    },
     include: { customer_risk_profiles: true },
   });
 

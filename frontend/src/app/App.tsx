@@ -2,7 +2,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AppRouter } from './router/AppRouter';
 import { ScrollToTop } from './router/ScrollToTop';
 import { getRefreshToken, useAuthStore } from '../shared/stores/authStore';
-import { refreshSession } from '../domains/auth/api/auth';
+import { refreshSession } from '../shared/api/session';
 import { useEffect } from 'react';
 
 /* 인증 부트스트랩 */

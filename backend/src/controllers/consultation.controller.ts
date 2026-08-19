@@ -23,12 +23,17 @@ export const getConsultationReportHandler = async (
   res: Response,
 ) => {
   try {
+    const userId = req.auth?.userId;
+    if (userId == null) {
+      throw new HttpError('인증이 필요합니다.', 401);
+    }
+
     const raw = req.params.id;
     if (!/^\d+$/.test(String(raw))) {
       throw new HttpError('consultation id가 올바르지 않습니다.', 400);
     }
 
-    const data = await getConsultationReport(BigInt(String(raw)));
+    const data = await getConsultationReport(BigInt(String(raw)), userId);
     if (data == null) {
       throw new HttpError('상담을 찾을 수 없습니다.', 404);
     }

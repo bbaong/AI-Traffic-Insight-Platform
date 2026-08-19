@@ -38,18 +38,19 @@ export async function checkLoginId(
 /** departments 테이블 목록 */
 export async function fetchDepartments(): Promise<Department[]> {
   const res = await fetch(apiUrl('/api/user/departments'));
+  const json = (await res.json().catch(() => ({}))) as {
+    success?: boolean;
+    data?: Array<{
+      department_id: number;
+      department_name: string;
+    }>;
+  };
 
-  if (!res.ok) {
+  if (!res.ok || json.success !== true || !Array.isArray(json.data)) {
     throw new Error('fetchDepartments failed');
   }
 
-  const data = (await res.json()) as Array<{
-    department_id: number;
-    department_name: string;
-  }>;
-
-  // snake_case → UI용 camelCase
-  return data.map((d) => ({
+  return json.data.map((d) => ({
     departmentId: d.department_id,
     departmentName: d.department_name,
   }));
