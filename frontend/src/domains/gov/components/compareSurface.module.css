@@ -7,4 +7,12 @@
   padding: 18px 20px;
   background: #fff;
   min-height: 260px;
+  overflow: visible;
+}
+
+.info {
+  display: inline-flex;
+  color: #c5d0dc;
+  cursor: help;
+  line-height: 0;
 }

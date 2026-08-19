@@ -14,22 +14,7 @@ function Icon({ name }: { name: string }) {
   if (isGovMaterialIcon(name)) {
     return <GovMaterialIcon name={name} size={16} />;
   }
-  return (
-    <svg
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v5M12 16h.01" />
-    </svg>
-  );
+  return <GovMaterialIcon name="info" size={16} />;
 }
 
 export function CompareInsightsCard({

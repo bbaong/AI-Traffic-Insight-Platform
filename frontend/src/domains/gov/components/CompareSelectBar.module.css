@@ -85,21 +85,21 @@
 }
 
 .addBtn {
+  display: grid;
+  place-items: center;
   width: 32px;
   height: 32px;
   padding: 0;
-  border: 1.5px dashed #c5ced8;
+  border: none;
   border-radius: 999px;
-  background: #fff;
-  color: var(--color-muted);
-  font-size: 18px;
-  line-height: 1;
+  background: transparent;
+  color: #e3e3e3;
   cursor: pointer;
 }
 
 .addBtn:hover:not(:disabled) {
-  border-color: #2d9cdb;
   color: #2d9cdb;
+  background: #e8f4fb;
 }
 
 .addBtn:disabled {

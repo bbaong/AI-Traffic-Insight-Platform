@@ -12,6 +12,8 @@ import {
   districtColor,
 } from '../utils/regionCompareUi';
 import surface from './compareSurface.module.css';
+import { GovHint } from './GovHint';
+import { GovMaterialIcon } from './GovMaterialIcon';
 import styles from './CompareTrendCard.module.css';
 
 const CHART = {
@@ -27,7 +29,7 @@ const CHART = {
 const FORECAST_GAP = 40;
 
 const Y_TICK_STEP = 100;
-const HOVER_DELAY_MS = 220;
+const HOVER_DELAY_MS = 0;
 
 type AxisLabel = {
   key: string;
@@ -233,12 +235,11 @@ export function CompareTrendCard({
       title="분기별 사고 추세 비교"
       className={`${surface.card} ${styles.card}`}
       leading={
-        <span
-          className={styles.info}
-          title="실선은 분기 실적, 점선은 다음 분기 예측입니다."
-        >
-          i
-        </span>
+        <GovHint text={'실선은 분기 실적,\n점선은 다음 분기 예측입니다.'}>
+          <span className={surface.info}>
+            <GovMaterialIcon name="info" size={16} />
+          </span>
+        </GovHint>
       }
       action={
         <ul className={styles.legend}>
