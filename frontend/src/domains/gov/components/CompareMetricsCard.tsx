@@ -69,10 +69,7 @@ export function CompareMetricsCard({
             </li>
           ))}
           <li>
-            <span className={styles.avgLegendMark} aria-hidden>
-              <span className={styles.diamond} />
-              <span className={styles.dash} />
-            </span>
+            <span className={styles.dash} aria-hidden />
             대구 평균
           </li>
         </ul>
@@ -128,12 +125,7 @@ export function CompareMetricsCard({
                     className={styles.avgLine}
                     style={{ left: `${cityLeft}%`, borderColor: CITY_AVG_COLOR }}
                     aria-hidden
-                  >
-                    <span
-                      className={styles.avgDiamond}
-                      style={{ background: CITY_AVG_COLOR }}
-                    />
-                  </span>
+                  />
                 </div>
               </div>
             </li>

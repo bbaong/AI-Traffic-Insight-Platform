@@ -4,6 +4,7 @@ import {
   RISK_COLORS,
 } from '../../shared/components/dashboard/MapCard';
 import mapStyles from '../../shared/components/dashboard/MapCard.module.css';
+import { TaasCredit } from '../../shared/components/ui/TaasCredit';
 import {
   DAEGU_DISTRICTS,
   type LatLngPoint,
@@ -129,6 +130,7 @@ export function HeroChoropleth({ selectedCode }: { selectedCode: string }) {
         </svg>
 
         <p className={mapStyles.selectionHint}>선택: 수성구</p>
+        <div className={mapStyles.legendStack}>
         <ul className={mapStyles.legend} aria-hidden="true">
           {LEGEND.map((item) => (
             <li key={item.label} className={mapStyles.legendItem}>
@@ -150,6 +152,10 @@ export function HeroChoropleth({ selectedCode }: { selectedCode: string }) {
             <span>사고 다발 지역</span>
           </li>
         </ul>
+        <p className={mapStyles.source}>
+          <TaasCredit variant="map" />
+        </p>
+        </div>
       </div>
     </DashboardCard>
   );

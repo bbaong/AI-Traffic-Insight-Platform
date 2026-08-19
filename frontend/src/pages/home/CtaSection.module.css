@@ -43,6 +43,10 @@
   color: var(--color-cta-hint);
 }
 
+.taasLink:hover {
+  color: #fff;
+}
+
 @media (max-width: 1023px) {
   .section {
     padding: 56px 20px;

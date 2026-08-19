@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchDepartments } from '../../domains/auth/api/signup';
-import { changeEmail } from '../../shared/api/user';
+import { changeEmail, changePosition } from '../../shared/api/user';
 import { useAuthStore } from '../../shared/stores/authStore';
 import styles from './MyPage.module.css';
 import { isValidEmail } from '../../shared/utils/email';
@@ -68,18 +68,31 @@ export function MyPage() {
     text: string;
     tone: 'error' | 'success';
   } | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [positionInput, setPositionInput] = useState(
+    () => user?.position?.trim() ?? '',
+  );
+  const [positionFeedback, setPositionFeedback] = useState<{
+    text: string;
+    tone: 'error' | 'success';
+  } | null>(null);
+  const [saving, setSaving] = useState<'email' | 'position' | null>(null);
 
   const isGov = user?.role === 'ROLE_A';
 
   useEffect(() => {
     setEmail(user?.email?.trim() ?? '');
     setEmailFeedback(null);
+    setPositionInput(user?.position?.trim() ?? '');
+    setPositionFeedback(null);
   }, [user?.userId]);
 
   useEffect(() => {
     setEmail(user?.email?.trim() ?? '');
   }, [user?.email]);
+
+  useEffect(() => {
+    setPositionInput(user?.position?.trim() ?? '');
+  }, [user?.position]);
 
   // TODO: 서버 로그인 응답에 department_name 추가 필요 (departments join)
   // 현재 auth.ts는 department_name이 오면 매핑하고, 없으면 null.
@@ -136,10 +149,11 @@ export function MyPage() {
   const lastLoginLabel = formatDateTime(user.lastLoginAt);
 
   const emailInvalid = email.trim() !== '' && !isValidEmail(email.trim());
+  const positionTooLong = positionInput.trim().length > 50;
   const userId = user.userId;
 
   async function handleChangeEmail() {
-    if (submitting) return;
+    if (saving) return;
     const trimmed = email.trim();
     if (trimmed && !isValidEmail(trimmed)) {
       setEmailFeedback({
@@ -149,7 +163,7 @@ export function MyPage() {
       return;
     }
     setEmailFeedback(null);
-    setSubmitting(true);
+    setSaving('email');
     try {
       const result = await changeEmail({
         userId,
@@ -165,7 +179,38 @@ export function MyPage() {
         tone: result.changed ? 'success' : 'error',
       });
     } finally {
-      setSubmitting(false);
+      setSaving(null);
+    }
+  }
+
+  async function handleChangePosition() {
+    if (saving) return;
+    const trimmed = positionInput.trim();
+    if (trimmed.length > 50) {
+      setPositionFeedback({
+        text: '직급·직책은 50자 이하여야 합니다',
+        tone: 'error',
+      });
+      return;
+    }
+    setPositionFeedback(null);
+    setSaving('position');
+    try {
+      const result = await changePosition({
+        userId,
+        position: trimmed,
+      });
+      if (!result.ok) {
+        setPositionFeedback({ text: result.message, tone: 'error' });
+        return;
+      }
+      patchUser({ position: result.position });
+      setPositionFeedback({
+        text: result.message,
+        tone: result.changed ? 'success' : 'error',
+      });
+    } finally {
+      setSaving(null);
     }
   }
 
@@ -181,17 +226,13 @@ export function MyPage() {
       mono: true,
     },
     { label: '이름', value: user.name },
-    {
-      label: '직급·직책',
-      value: position || '미등록',
-      muted: !position,
-    },
-    {
-      label: affiliationLabel,
-      value: affiliationValue || '미등록',
-      muted: !affiliationValue,
-    },
   ];
+
+  const affiliationRow = {
+    label: affiliationLabel,
+    value: affiliationValue || '미등록',
+    muted: !affiliationValue,
+  };
 
   return (
     <div className={styles.page}>
@@ -212,7 +253,7 @@ export function MyPage() {
           <h3 id="mypage-account-heading" className={styles.cardTitle}>
             계정 정보
           </h3>
-          <p className={styles.cardHint}>이메일 수정 가능 · 선택 항목</p>
+          <p className={styles.cardHint}>이메일·직급 수정 가능 · 선택 항목</p>
         </div>
         <dl className={styles.list}>
           {rows.map((row) => (
@@ -225,6 +266,55 @@ export function MyPage() {
               </dd>
             </div>
           ))}
+
+          <div className={styles.row}>
+            <dt className={styles.label}>직급·직책</dt>
+            <dd className={styles.value}>
+              <div className={styles.emailEdit}>
+                <input
+                  type="text"
+                  className={`${styles.emailInput}${positionTooLong ? ` ${styles.emailInputInvalid}` : ''}`}
+                  value={positionInput}
+                  onChange={(e) => {
+                    setPositionInput(e.target.value);
+                    setPositionFeedback(null);
+                  }}
+                  placeholder="직급·직책이 등록되지 않았습니다."
+                  maxLength={50}
+                  autoComplete="organization-title"
+                  aria-invalid={positionTooLong}
+                />
+                <button
+                  type="button"
+                  className={styles.emailBtn}
+                  disabled={saving !== null || positionTooLong}
+                  onClick={() => void handleChangePosition()}
+                >
+                  {saving === 'position' ? '저장 중…' : '변경'}
+                </button>
+              </div>
+              {positionFeedback || positionTooLong ? (
+                <p
+                  className={
+                    positionFeedback?.tone === 'success'
+                      ? styles.emailSuccess
+                      : styles.emailError
+                  }
+                >
+                  {positionFeedback?.text ?? '직급·직책은 50자 이하여야 합니다'}
+                </p>
+              ) : null}
+            </dd>
+          </div>
+
+          <div className={styles.row}>
+            <dt className={styles.label}>{affiliationRow.label}</dt>
+            <dd
+              className={`${styles.value}${affiliationRow.muted ? ` ${styles.mutedValue}` : ''}`}
+            >
+              {affiliationRow.value}
+            </dd>
+          </div>
 
           <div className={styles.row}>
             <dt className={styles.label}>이메일</dt>
@@ -245,10 +335,10 @@ export function MyPage() {
                 <button
                   type="button"
                   className={styles.emailBtn}
-                  disabled={submitting || emailInvalid}
+                  disabled={saving !== null || emailInvalid}
                   onClick={() => void handleChangeEmail()}
                 >
-                  {submitting ? '저장 중…' : '변경'}
+                  {saving === 'email' ? '저장 중…' : '변경'}
                 </button>
               </div>
               {emailFeedback || emailInvalid ? (

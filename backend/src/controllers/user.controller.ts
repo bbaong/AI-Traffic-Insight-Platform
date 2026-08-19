@@ -215,6 +215,54 @@ export const changeEmail = async (req: Request, res: Response) => {
   }
 };
 
+// 직급·직책 변경 (선택 항목 — 빈 문자열이면 null)
+export const changePosition = async (req: Request, res: Response) => {
+  try {
+    const { user_id, position } = req.body;
+
+    if (user_id == null) {
+      throw new HttpError('user_id는 필수입니다.', 400);
+    }
+
+    const raw = typeof position === 'string' ? position.trim() : '';
+    const nextPosition = raw === '' ? null : raw;
+
+    if (nextPosition != null && nextPosition.length > 50) {
+      throw new HttpError('직급·직책은 50자 이하여야 합니다.', 400);
+    }
+
+    const user = await prisma.users.findUnique({
+      where: { user_id: BigInt(user_id) },
+    });
+    if (!user) {
+      throw new HttpError('사용자를 찾을 수 없습니다.', 404);
+    }
+
+    const prev = user.position?.trim() || null;
+    if (prev === nextPosition) {
+      return ok(res, { position: nextPosition, changed: false }, 200, {
+        message: '변경된 내용이 없습니다.',
+      });
+    }
+
+    const updated = await prisma.users.update({
+      where: { user_id: user.user_id },
+      data: { position: nextPosition },
+    });
+
+    const message =
+      prev == null && nextPosition != null
+        ? '직급·직책이 저장되었습니다.'
+        : '직급·직책이 변경되었습니다.';
+
+    return ok(res, { position: updated.position ?? null, changed: true }, 200, {
+      message,
+    });
+  } catch (error) {
+    return handleRouteError(res, error, '직급·직책 변경 실패');
+  }
+};
+
 //비밀번호 변경
 export const changePassword = async (req: Request, res: Response) => {
   try {

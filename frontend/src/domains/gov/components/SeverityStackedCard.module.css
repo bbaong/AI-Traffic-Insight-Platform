@@ -191,6 +191,15 @@
   font-weight: 500;
 }
 
+.source {
+  margin: 6px 0 0;
+  flex-shrink: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--color-hint);
+  text-align: center;
+}
+
 .swatch {
   width: 9px;
   height: 9px;

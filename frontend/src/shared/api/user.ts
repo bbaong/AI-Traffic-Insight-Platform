@@ -109,3 +109,41 @@ export async function changeEmail(payload: {
     message: data.message ?? '이메일 변경에 실패했습니다.',
   };
 }
+
+export type ChangePositionResult =
+  | { ok: true; message: string; position: string | null; changed: boolean }
+  | { ok: false; message: string };
+
+export async function changePosition(payload: {
+  userId: number;
+  position: string;
+}): Promise<ChangePositionResult> {
+  const res = await fetch(apiUrl('/api/user/position'), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: payload.userId,
+      position: payload.position,
+    }),
+  });
+
+  const data = (await res.json().catch(() => ({}))) as {
+    success?: boolean;
+    message?: string;
+    data?: { position?: string | null; changed?: boolean };
+  };
+
+  if (res.ok && data.success === true) {
+    return {
+      ok: true,
+      message: data.message ?? '직급·직책이 저장되었습니다.',
+      position: data.data?.position ?? null,
+      changed: data.data?.changed ?? true,
+    };
+  }
+
+  return {
+    ok: false,
+    message: data.message ?? '직급·직책 변경에 실패했습니다.',
+  };
+}

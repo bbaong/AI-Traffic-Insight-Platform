@@ -71,11 +71,6 @@
 }
 
 .legend {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  left: auto;
-  z-index: 2;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -88,6 +83,17 @@
   border: 0.5px solid var(--color-border-strong);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
   pointer-events: none;
+}
+
+.legendStack {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 .legendItem {
@@ -165,6 +171,19 @@
 .expandBtn:hover {
   border-color: var(--color-teal);
   color: var(--color-teal);
+}
+
+.source {
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 0.5px solid var(--color-border-strong);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 8%);
+  font-size: 10.5px;
+  line-height: 1.3;
+  color: var(--color-hint);
+  white-space: nowrap;
 }
 
 .regionFilters {

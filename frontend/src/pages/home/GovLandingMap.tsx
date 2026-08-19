@@ -1,3 +1,4 @@
+import { TaasCredit } from '../../shared/components/ui/TaasCredit';
 import {
   DISTRICT_RISK_MOCK,
   RISK_COLORS,
@@ -126,6 +127,7 @@ export function GovLandingMap({ selectedLabel }: { selectedLabel: string }) {
         })}
       </svg>
       <p className={styles.mapHint}>선택: {selectedLabel}</p>
+      <div className={styles.mapLegendStack}>
       <ul className={styles.mapLegend}>
         {LEGEND.map((item) => (
           <li key={item.label}>
@@ -138,6 +140,10 @@ export function GovLandingMap({ selectedLabel }: { selectedLabel: string }) {
           사고 다발 지역
         </li>
       </ul>
+      <p className={styles.mapSource}>
+        <TaasCredit variant="map" />
+      </p>
+      </div>
     </div>
   );
 }

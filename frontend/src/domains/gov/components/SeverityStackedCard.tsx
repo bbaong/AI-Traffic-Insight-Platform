@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { DashboardCard } from '../../../shared/components/dashboard';
+import { TaasCredit } from '../../../shared/components/ui/TaasCredit';
 import {
   GOV_SEVERITY_KEYS,
   toSeveritySeries,
@@ -398,6 +399,9 @@ export function SeverityStackedCard({
           </li>
         ) : null}
       </ul>
+      <p className={styles.source}>
+        <TaasCredit variant="model" />
+      </p>
     </DashboardCard>
   );
 }

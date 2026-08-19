@@ -8,6 +8,7 @@ import { DAEGU_CENTER, DAEGU_ZOOM_LEVEL } from '../../constants/map';
 import { useKakaoLoader } from '../../hooks/useKakaoLoader';
 import { useDistrictStore } from '../../stores/districtStore';
 import type { RiskLevel } from '../../types/dashboard';
+import { TaasCredit } from '../ui/TaasCredit';
 import { DashboardCard } from './DashboardCard';
 import styles from './MapCard.module.css';
 
@@ -831,6 +832,7 @@ export function MapCard({
           </p>
         ) : null}
 
+        <div className={styles.legendStack}>
         <ul className={styles.legend} aria-label="위험도 범례">
           {legend.map((item) => (
             <li key={item.label} className={styles.legendItem}>
@@ -853,6 +855,12 @@ export function MapCard({
             </li>
           ) : null}
         </ul>
+        {hotspots.length > 0 ? (
+          <p className={styles.source}>
+            <TaasCredit variant="map" />
+          </p>
+        ) : null}
+        </div>
       </div>
     </DashboardCard>
   );

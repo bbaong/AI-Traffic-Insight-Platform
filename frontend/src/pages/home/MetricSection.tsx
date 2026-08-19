@@ -1,4 +1,5 @@
 import styles from './MetricSection.module.css';
+import { TaasLink } from '../../shared/components/ui/TaasCredit';
 import { useFadeInClassName } from './useFadeInClassName';
 
 const METRICS = [
@@ -39,7 +40,7 @@ export function MetricSection() {
           수치는 예측의 출발점입니다
         </h2>
         <p className={styles.subtitle}>
-          한국도로교통공단 TAAS, 2016–2025년 대구시 교통사고 통계.
+          한국도로교통공단 <TaasLink>TAAS</TaasLink>, 2016–2025년 대구시 교통사고 통계.
         </p>
 
         <ul className={styles.row}>

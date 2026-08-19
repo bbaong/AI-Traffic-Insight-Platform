@@ -26,21 +26,8 @@
   border-radius: 2px;
 }
 
-.avgLegendMark {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.diamond {
-  width: 8px;
-  height: 8px;
-  background: #4a5568;
-  transform: rotate(45deg);
-}
-
 .dash {
-  width: 14px;
+  width: 16px;
   border-top: 1.5px dashed #4a5568;
 }
 
@@ -130,15 +117,6 @@
   border-left: 1.5px dashed;
   z-index: 1;
   pointer-events: none;
-}
-
-.avgDiamond {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  width: 9px;
-  height: 9px;
-  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .axis {

@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
+import { TaasLink } from '../../shared/components/ui/TaasCredit';
 import { useAuthStore } from '../../shared/stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './CtaSection.module.css';
@@ -75,7 +76,8 @@ export function CtaSection() {
           </>
         )}
         <p className={styles.note}>
-          데이터 기준: 2016~2025년 대구시 교통사고 통계 (한국도로교통공단 TAAS)
+          데이터 기준: 2016~2025년 대구시 교통사고 통계 (한국도로교통공단{' '}
+          <TaasLink className={styles.taasLink}>TAAS</TaasLink>)
           <br />
           본 서비스는 참고 지표이며 보험료 산출·인수 심사의 직접 근거가
           아닙니다.
