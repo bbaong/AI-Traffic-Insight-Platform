@@ -321,6 +321,11 @@ export async function saveConsultation(raw: unknown) {
         risk_grade: mapRiskGrade(String(ai.예측등급 ?? 'LOW')),
         severe_injury_probability: 0,
         model_version: String(ai.버전 ?? 'ins_v1'),
+        occ_score:ai.발생위험?.점수 != null ? Number(ai.발생위험.점수) : null,
+        sev_score:ai.심도위험?.점수 != null ? Number(ai.심도위험.점수) : null,
+        consult_point: typeof ai.상담포인트 === 'string' ? ai.상담포인트 : null,
+        occ_rate_per_10k:ai.발생률_1만명당 != null ? Number(ai.발생률_1만명당) : null,
+
       },
     });
 

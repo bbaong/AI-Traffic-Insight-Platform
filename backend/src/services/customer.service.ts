@@ -73,6 +73,10 @@ export async function listCustomers(q?: string, userId?: number | string) {
       lastConsultationType: last?.consultation_type ?? null,
       lastRiskScore: toNum(profile?.risk_score),
       lastRiskGrade: profile?.risk_grade ?? null,
+      lastOccScore: toNum(profile?.occ_score),
+      lastSevScore: toNum(profile?.sev_score),
+      lastConsultPoint: profile?.consult_point ?? null,
+      lastOccRatePer10k: toNum(profile?.occ_rate_per_10k),
       lastRegion: profile?.districts?.district_name ?? null,
       lastAgeGroup: profile?.age_group ?? null,
       lastGender: profile?.gender ?? null,
@@ -158,6 +162,10 @@ export async function listCustomerConsultations(
         counselorName: row.users?.name ?? null,
         riskScore: toNum(profile?.risk_score),
         riskGrade: profile?.risk_grade ?? null,
+        occScore: toNum(profile?.occ_score),
+        sevScore: toNum(profile?.sev_score),
+        consultPoint: profile?.consult_point ?? null,
+        occRatePer10k: toNum(profile?.occ_rate_per_10k),
         profile: profile
           ? {
               ageGroup: profile.age_group,
