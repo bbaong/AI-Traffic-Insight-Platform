@@ -6,21 +6,17 @@ import {
 } from '../services/customer.service';
 import { ok, fail, handleRouteError, HttpError} from '../lib/http';
 
-function parseUserId(req: Request): string | undefined {
-  const q = req.query.userId;
-  if (typeof q === 'string' && q.trim()) return q.trim();
-  const bodyId = (req.body as { userId?: unknown } | undefined)?.userId;
-  if (bodyId != null && String(bodyId).trim()) return String(bodyId).trim();
-  return undefined;
+function authUserId(req: Request): bigint {
+  if (!req.auth?.userId) {
+    throw new HttpError('인증이 필요합니다.', 401);
+  }
+  return req.auth.userId;
 }
 
 // GET /api/customers
 export const getCustomers = async (req: Request, res: Response) => {
   try {
-    const userId = parseUserId(req);
-    if (!userId) {
-      throw new HttpError('userId(상담원)가 필요합니다.', 400);
-    }
+    const userId = authUserId(req);
     const q =
       typeof req.query.q === 'string' && req.query.q.trim()
         ? req.query.q.trim()
@@ -44,11 +40,7 @@ export const getCustomerConsultations = async (req: Request, res: Response) => {
       return fail(res, 400, '잘못된 고객 id입니다.');
     }
 
-    const userId = parseUserId(req);
-    if (!userId) {
-      throw new HttpError('userId(상담원)가 필요합니다.', 400);
-    }
-
+    const userId = authUserId(req);
     const result = await listCustomerConsultations(id as string, userId);
     if (!result) {
       throw new HttpError('고객을 찾을 수 없습니다.', 404);
@@ -74,11 +66,7 @@ export const hideCustomerHandler = async (req: Request, res: Response) => {
       return fail(res, 400, '잘못된 고객 id입니다.');
     }
 
-    const userId = parseUserId(req);
-    if (!userId) {
-      throw new HttpError('userId(상담원)가 필요합니다.', 400);
-    }
-
+    const userId = authUserId(req);
     const data = await hideCustomer(id as string, userId);
     
     if (!data) {

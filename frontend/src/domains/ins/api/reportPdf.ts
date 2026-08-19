@@ -3,9 +3,9 @@ import type {
   TokkResult,
 } from '../types/consulting';
 import type { CoverageRecommendItem } from '../types/prediction';
-import { fetchPdfBlob } from "../../../shared/api/http";
+import { fetchPdfBlob, apiFetch, readJson } from '../../../shared/api/http';
 
-/** POST /api/insurance/report-pdf 요청 타입 */
+//PDF 생성 요청 타입 //http://localhost:5000/api/insurance/report-pdf
 export interface InsReportPdfRequest {
   구군: string;
   연령대: string;
@@ -24,9 +24,26 @@ export interface InsReportPdfRequest {
   orgName?: string;
 }
 
-/** POST /api/insurance/report-pdf → PDF Blob */
+//PDF 생성 //http://localhost:5000/api/insurance/report-pdf
 export async function fetchInsReportPdf(
   body: InsReportPdfRequest,
 ): Promise<Blob> {
   return fetchPdfBlob('/api/insurance/report-pdf', body)
+}
+
+//이메일 발송 //http://localhost:5000/api/insurance/report-pdf/email
+export async function sendInsReportPdfEmail(
+  body: InsReportPdfRequest & { toEmail: string },
+): Promise<void> {
+  const res = await apiFetch('/api/insurance/report-pdf/email', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const data = await readJson<{ success?: boolean; message?: string }>(
+    res,
+    '이메일 발송에 실패했습니다.',
+  );
+  if (!res.ok || data.success === false) {
+    throw new Error(data.message ?? '이메일 발송에 실패했습니다.');
+  }
 }

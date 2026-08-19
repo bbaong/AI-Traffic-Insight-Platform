@@ -3,15 +3,14 @@ import type {
   InsPredictData,
   InsPredictRequest,
 } from '../types/prediction';
-import { apiUrl,readJson } from "../../../shared/api/http";
+import { apiFetch, readJson } from '../../../shared/api/http';
 
 /** POST /api/prediction/predict-ins — json.data만 반환 */
 export async function predictIns(
   req: InsPredictRequest,
 ): Promise<InsPredictData> {
-  const res = await fetch(apiUrl('/api/prediction/predict-ins'), {
+  const res = await apiFetch('/api/prediction/predict-ins', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(req),
   });
 

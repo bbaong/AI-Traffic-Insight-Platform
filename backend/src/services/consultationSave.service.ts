@@ -171,7 +171,6 @@ export type SaveConsultationInput = {
   };
   checklist?: Record<string, unknown>;
   memo?: string | null;
-  userId: string | number;
   consultationType: ConsultationType;
 };
 
@@ -217,10 +216,6 @@ function parseSaveConsultationInput(raw: unknown): SaveConsultationInput {
     throw new HttpError('프로필(지역·연령·성별·차종)은 필수입니다.', 400);
   }
 
-  if (body.userId == null || body.userId === '') {
-    throw new HttpError('userId(상담원)가 필요합니다.', 400);
-  }
-
   if (!isConsultationType(body.consultationType)) {
     throw new HttpError(
       '상담 유형은 NEW|RENEWAL|CLAIM|COVERAGE_ANALYSIS|OTHER 중 하나여야 합니다.',
@@ -245,13 +240,12 @@ function parseSaveConsultationInput(raw: unknown): SaveConsultationInput {
     profile: { region, age, gender, vehicle },
     checklist,
     memo,
-    userId: body.userId as string | number,
     consultationType: body.consultationType,
   };
 }
 
-export async function saveConsultation(raw: unknown) {
-  const { customer, profile, checklist, memo, userId, consultationType } =
+export async function saveConsultation(raw: unknown, userId: bigint) {
+  const { customer, profile, checklist, memo, consultationType } =
     parseSaveConsultationInput(raw);
 
   // 1) AI 재추론 — 프론트 prediction 무시

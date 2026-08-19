@@ -4,20 +4,15 @@ import type {
   CustomerListItem,
   ReportItem,
 } from '../types/customers';
-import { apiUrl, readJson } from "../../../shared/api/http";
+import { apiFetch, readJson } from '../../../shared/api/http';
 
 /** GET /api/customers — json.data만 사용 */
 export async function fetchCustomers(
   q?: string,
-  userId?: number,
 ): Promise<CustomerListItem[]> {
-  if (userId == null) throw new Error('로그인이 필요합니다.');
-  const res = await fetch(
-    apiUrl('/api/customers', {
-      userId,
-      q: q?.trim() || undefined,
-    }),
-  );
+  const res = await apiFetch('/api/customers', {}, {
+    q: q?.trim() || undefined,
+  });
   const json = await readJson<ApiResponse<CustomerListItem[]>>(res);
 
   if (!res.ok || !json.success || !Array.isArray(json.data)) {
@@ -38,12 +33,9 @@ export interface HideCustomerResult {
 /** PATCH /api/customers/:id/hide — Soft Delete(목록 숨김) */
 export async function hideCustomer(
   customerId: string,
-  userId: number,
 ): Promise<HideCustomerResult> {
-  const res = await fetch(
-    apiUrl(`/api/customers/${encodeURIComponent(customerId)}/hide`, {
-      userId,
-    }),
+  const res = await apiFetch(
+    `/api/customers/${encodeURIComponent(customerId)}/hide`,
     { method: 'PATCH' },
   );
   const json = await readJson<ApiResponse<HideCustomerResult>>(res);
@@ -63,7 +55,6 @@ export async function hideCustomer(
 /** 여러 고객을 순차 숨김. 일부 실패해도 나머지는 진행 */
 export async function hideCustomers(
   customerIds: string[],
-  userId: number,
 ): Promise<{
   hiddenIds: string[];
   failed: Array<{ id: string; message: string }>;
@@ -73,7 +64,7 @@ export async function hideCustomers(
 
   const results = await Promise.allSettled(
     customerIds.map(async (id) => {
-      await hideCustomer(id, userId);
+      await hideCustomer(id);
       return id;
     }),
   );
@@ -100,12 +91,9 @@ export async function hideCustomers(
 /** GET /api/customers/:id/consultations */
 export async function fetchCustomerConsultations(
   customerId: string,
-  userId: number,
 ): Promise<ConsultationsResponse> {
-  const res = await fetch(
-    apiUrl(`/api/customers/${encodeURIComponent(customerId)}/consultations`, {
-      userId,
-    }),
+  const res = await apiFetch(
+    `/api/customers/${encodeURIComponent(customerId)}/consultations`,
   );
   const json = await readJson<
     {
@@ -141,8 +129,8 @@ export async function fetchConsultationReport(
   consultationId: string,
   _riskGrade?: string | null,
 ): Promise<ReportItem[]> {
-  const res = await fetch(
-    apiUrl(`/api/consultations/${encodeURIComponent(consultationId)}/report`),
+  const res = await apiFetch(
+    `/api/consultations/${encodeURIComponent(consultationId)}/report`,
   );
   const json = await readJson<{
     success?: boolean;

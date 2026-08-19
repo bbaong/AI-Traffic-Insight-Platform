@@ -11,6 +11,7 @@ import {
   assertGovReportPdfInput,
   buildGovReportPdf,
 } from '../services/pdf/govReportPdf.service';
+import { sendPdfByEmail } from '../services/email.service';
 
 /** POST /api/prediction/predict-ins — 사고예측 요청 */
 export const predictIns = async (req: Request, res: Response) => {
@@ -113,5 +114,32 @@ export const predictGovReportPdf = async (req: Request, res: Response) => {
     return res.send(buf);
   } catch (error) {
     return handleRouteError(res, error, 'GOV PDF 생성 실패');
+  }
+};
+
+// POST /api/prediction/gov-report-pdf/email
+export const sendGovReportPdf = async (req: Request, res: Response) => {
+  try {
+    const toEmail = String(req.body.toEmail ?? '').trim();
+    assertGovReportPdfInput(req.body);
+
+    if (!toEmail) {
+      throw new HttpError('수신 이메일이 필요합니다.', 400);
+    }
+
+    const region = req.body.지역;
+    const buf = await buildGovReportPdf(req.body);
+
+    await sendPdfByEmail({
+      toEmail,
+      subject: `[AI Traffic Insight] ${region} 행정 참고 보고서`,
+      text: `${region} 행정 참고 보고서를 첨부합니다.`,
+      filename: `행정보고서_${region}.pdf`,
+      pdfBuffer: buf,
+    });
+
+    return ok(res, { sent: true, to: toEmail });
+  } catch (error) {
+    return handleRouteError(res, error, '이메일 발송 실패');
   }
 };

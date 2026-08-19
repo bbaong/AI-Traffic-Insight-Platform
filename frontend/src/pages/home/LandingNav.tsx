@@ -1,7 +1,8 @@
 import type { MouseEvent } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../shared/constants/routes';
-import { clearAuthStorage, useAuthStore } from '../../shared/stores/authStore';
+import { signOut } from '../../domains/auth/api/auth';
+import { useAuthStore } from '../../shared/stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './LandingNav.module.css';
 import { jumpToPageTop } from '../../shared/utils/jumpToPageTop';
@@ -22,9 +23,8 @@ export function LandingNav() {
         ? ROUTES.DASHBOARD_INS
         : null;
 
-  function handleLogout(): void {
-    clearAuthStorage();
-    window.location.replace(ROUTES.LANDING);
+  async function handleLogout(): Promise<void> {
+    await signOut(ROUTES.LANDING);
   }
 
   function goToHomeSection(id: string): void {

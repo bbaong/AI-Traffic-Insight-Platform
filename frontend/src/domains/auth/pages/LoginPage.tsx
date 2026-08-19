@@ -16,7 +16,7 @@ const LOCK_MS = 10 * 60 * 1000;
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const setUser = useAuthStore((s) => s.setUser);
+  const setSession = useAuthStore((s) => s.setSession);
 
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
@@ -87,7 +87,7 @@ export function LoginPage() {
       // TODO: user_login_logs 기록 + last_login_at 갱신 (서버 담당)
       setFailCount(0);
       setLockedUntil(null);
-      setUser(result.user, remember);
+      setSession(result.user, result.accessToken, result.refreshToken, remember);
 
       // 관리자 계정 처리
       if (result.user.role === 'ROLE_A') {

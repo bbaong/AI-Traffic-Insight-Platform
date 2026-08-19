@@ -1,4 +1,4 @@
-import { apiUrl } from "../../../shared/api/http";
+import { apiFetch } from '../../../shared/api/http';
 export type GovFreq = 'Q' | 'H';
 
 /** 상해정도 키 — AI SEVERITY_ORDER와 동일 */
@@ -209,9 +209,7 @@ export async function fetchGovForecasts(options?: {
   if (options?.as_of) q.set('as_of', options.as_of);
   if (options?.scope) q.set('scope', options.scope);
 
-  const res = await fetch(
-    apiUrl(`/api/prediction/gov-forecasts?${q.toString()}`),
-  );
+  const res = await apiFetch(`/api/prediction/gov-forecasts?${q.toString()}`);
   const json = await res.json();
   if (!res.ok || !json.success || !json.data) {
     throw new Error(json.message ?? 'Gov 스냅샷 조회 실패');
@@ -230,9 +228,8 @@ export async function fetchGovForecasts(options?: {
 export async function predictGov(
   body: GovPredictRequest = {},
 ): Promise<GovPredictResult | GovPredictResult[]> {
-  const res = await fetch(apiUrl('/api/prediction/predict-gov'), {
+  const res = await apiFetch('/api/prediction/predict-gov', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       지역: body.지역 ?? null,
       as_of: body.as_of ?? null,
@@ -250,9 +247,8 @@ export async function predictGov(
 export async function predictGovHistory(
   body: GovHistoryRequest,
 ): Promise<GovHistoryResponse> {
-  const res = await fetch(apiUrl('/api/prediction/predict-gov-history'), {
+  const res = await apiFetch('/api/prediction/predict-gov-history', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       지역: body.지역,
       as_of: body.as_of ?? null,
@@ -275,8 +271,8 @@ export async function predictGovHotspots(options?: {
   if (options?.year != null) qs.set('year', String(options.year));
   if (options?.refresh) qs.set('refresh', 'true');
   const suffix = qs.toString() ? `?${qs}` : '';
-  const res = await fetch(
-    apiUrl(`/api/prediction/predict-gov-hotspots${suffix}`),
+  const res = await apiFetch(
+    `/api/prediction/predict-gov-hotspots${suffix}`,
   );
   const json = await res.json();
   if (!res.ok || !json.success) {

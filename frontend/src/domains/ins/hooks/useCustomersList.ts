@@ -49,7 +49,7 @@ export function useCustomersList(userId: number | undefined) {
     let cancelled = false;
     setListLoading(true);
     setListError(null);
-    void fetchCustomers(debouncedQ || undefined, userId)
+    void fetchCustomers(debouncedQ || undefined)
       .then((rows) => {
         if (cancelled) return;
         setList(rows);
@@ -153,7 +153,6 @@ export function useCustomersList(userId: number | undefined) {
     try {
       const { hiddenIds, failed } = await hideCustomers(
         checkedCustomers.map((row) => row.customerId),
-        userId,
       );
       if (failed.length === 0) {
         setCheckedIds(new Set());

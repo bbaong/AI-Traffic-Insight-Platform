@@ -4,16 +4,19 @@ import {
   type SidebarIcon,
 } from '../../constants/sidebarMenus';
 import { ROUTES } from '../../constants/routes';
-import { clearAuthStorage, useAuthStore } from '../../stores/authStore';
 import type { UserRole } from '../../types/auth';
 import styles from './Sidebar.module.css';
+import { signOut } from '../../../domains/auth/api/auth';
+import { useAuthStore } from '../../stores/authStore';
 
+/* 사이드바 프로퍼티 */
 export interface SidebarProps {
   role: UserRole;
   open?: boolean;
   onNavigate?: () => void;
 }
 
+/* 메뉴 아이콘 경로 */
 const MENU_ICON_PATH: Record<SidebarIcon, string> = {
   home: 'M520-600v-240h320v240H520ZM120-440v-400h320v400H120Zm400 320v-400h320v400H520Zm-400 0v-240h320v240H120Zm80-400h160v-240H200v240Zm400 320h160v-240H600v240Zm0-480h160v-80H600v80ZM200-200h160v-80H200v80Zm160-320Zm240-160Zm0 240ZM360-280Z',
   compare:
@@ -40,14 +43,14 @@ function MenuIcon({ name }: { name: SidebarIcon }) {
   );
 }
 
+/* 사이드바 컴포넌트 */
 export function Sidebar({ role, open = false, onNavigate }: SidebarProps) {
   const user = useAuthStore((s) => s.user);
   const sections = SIDEBAR_MENUS[role];
   const isGov = role === 'ROLE_A';
 
-  function handleLogout(): void {
-    clearAuthStorage();
-    window.location.replace(ROUTES.LANDING);
+  async function handleLogout(): Promise<void> {
+    await signOut(ROUTES.LANDING);
   }
 
   return (

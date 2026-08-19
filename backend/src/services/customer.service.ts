@@ -13,7 +13,7 @@ function toNum(v: unknown): number | null {
 }
 
 /** GET /api/customers — 왼쪽 고객목록 */
-export async function listCustomers(q?: string, userId?: number | string) {
+export async function listCustomers(q?: string, userId?: number | string | bigint) {
   const term = q?.trim() ?? '';
   const digits = term ? digitsOnly(term) : '';
   if (userId == null || userId === '') {
@@ -90,7 +90,7 @@ export async function listCustomers(q?: string, userId?: number | string) {
 /** GET /api/customers/:id/consultations — 오른쪽 이력 */
 export async function listCustomerConsultations(
   customerId: string,
-  userId?: number | string,
+  userId?: number | string | bigint,
 ) {
   if (userId == null || userId === '') {
     throw new Error('userId(상담원)가 필요합니다.');
@@ -194,7 +194,7 @@ export async function listCustomerConsultations(
 /** PATCH /api/customers/:id/hide — Soft Delete */
 export async function hideCustomer(
   customerId: string,
-  userId?: number | string,
+  userId?: number | string | bigint,
 ) {
   if (userId == null || userId === '') {
     throw new Error('userId(상담원)가 필요합니다.');

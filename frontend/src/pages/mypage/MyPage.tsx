@@ -150,7 +150,6 @@ export function MyPage() {
 
   const emailInvalid = email.trim() !== '' && !isValidEmail(email.trim());
   const positionTooLong = positionInput.trim().length > 50;
-  const userId = user.userId;
 
   async function handleChangeEmail() {
     if (saving) return;
@@ -166,7 +165,6 @@ export function MyPage() {
     setSaving('email');
     try {
       const result = await changeEmail({
-        userId,
         email: trimmed,
       });
       if (!result.ok) {
@@ -197,7 +195,6 @@ export function MyPage() {
     setSaving('position');
     try {
       const result = await changePosition({
-        userId,
         position: trimmed,
       });
       if (!result.ok) {

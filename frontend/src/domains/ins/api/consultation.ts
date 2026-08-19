@@ -3,7 +3,7 @@ import type {
   ConsultationPayload,
   SaveConsultationResult,
 } from '../types/consulting';
-import { apiUrl, readJson } from "../../../shared/api/http";
+import { apiFetch, readJson } from "../../../shared/api/http";
 
 interface SaveConsultationApiData {
   consultationId: string;
@@ -18,9 +18,6 @@ interface SaveConsultationApiData {
 export async function saveConsultation(
   payload: ConsultationPayload,
 ): Promise<SaveConsultationResult> {
-  if (!payload.userId) {
-    throw new Error('로그인이 필요합니다.');
-  }
   if (!payload.customer.name.trim() || !payload.customer.phone.trim()) {
     throw new Error('고객명·휴대폰 번호는 필수입니다.');
   }
@@ -33,16 +30,14 @@ export async function saveConsultation(
     throw new Error('프로필(지역·연령·성별·차종)은 필수입니다.');
   }
 
-  const res = await fetch(apiUrl('/api/consultations/save'), {
+  const res = await apiFetch('/api/consultations/save', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       customer: payload.customer,
       profile: payload.profile,
       checklist: payload.checklist,
       memo: payload.memo,
       consultationType: payload.consultationType,
-      userId: payload.userId,
     }),
   });
 

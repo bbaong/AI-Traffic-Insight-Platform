@@ -67,7 +67,7 @@ export function useCustomerDetail({
     setDetailError(null);
 
     /* 상담 이력 데이터 로드 */
-    void fetchCustomerConsultations(selectedId, userId)
+    void fetchCustomerConsultations(selectedId)
       .then((res) => {
         if (cancelled) return;
         setDetail(res);

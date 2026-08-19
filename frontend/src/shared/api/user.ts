@@ -1,4 +1,4 @@
-import { apiUrl } from "./http";
+import { apiFetch } from './http';
 
 export type ChangePasswordResult =
   | { ok: true; message: string }
@@ -10,14 +10,11 @@ export type VerifyPasswordResult =
 
 /** 비밀번호 재확인 (변경 없음) */
 export async function verifyPassword(payload: {
-  userId: number;
   password: string;
 }): Promise<VerifyPasswordResult> {
-  const res = await fetch(apiUrl('/api/user/verify-password'), {
+  const res = await apiFetch('/api/user/verify-password', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      user_id: payload.userId,
       password: payload.password,
     }),
   });
@@ -42,14 +39,11 @@ export async function verifyPassword(payload: {
 
 /** 비밀번호 변경 */
 export async function changePassword(payload: {
-  userId: number;
   newPassword: string;
 }): Promise<ChangePasswordResult> {
-  const res = await fetch(apiUrl('/api/user/password'), {
+  const res = await apiFetch('/api/user/password', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      user_id: payload.userId,
       new_password: payload.newPassword,
     }),
   });
@@ -77,14 +71,11 @@ export type ChangeEmailResult =
   | { ok: false; message: string };
 
 export async function changeEmail(payload: {
-  userId: number;
   email: string;
 }): Promise<ChangeEmailResult> {
-  const res = await fetch(apiUrl('/api/user/email'), {
+  const res = await apiFetch('/api/user/email', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      user_id: payload.userId,
       email: payload.email,
     }),
   });
@@ -115,14 +106,11 @@ export type ChangePositionResult =
   | { ok: false; message: string };
 
 export async function changePosition(payload: {
-  userId: number;
   position: string;
 }): Promise<ChangePositionResult> {
-  const res = await fetch(apiUrl('/api/user/position'), {
+  const res = await apiFetch('/api/user/position', {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      user_id: payload.userId,
       position: payload.position,
     }),
   });

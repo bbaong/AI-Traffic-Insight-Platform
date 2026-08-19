@@ -1,4 +1,4 @@
-import { apiUrl } from "../../../shared/api/http";
+import { apiFetch } from '../../../shared/api/http';
 
 interface ApiEnvelope<T> {
   success: boolean;
@@ -96,7 +96,7 @@ function throwByStatus(res: Response, json: ApiEnvelope<unknown>, fallback: stri
 export async function fetchGovComparison(
   districtId: number,
 ): Promise<GovComparisonData> {
-  const res = await fetch(apiUrl(`/api/gov/comparison/${districtId}`));
+  const res = await apiFetch(`/api/gov/comparison/${districtId}`);
   const json = await readJson<GovComparisonData>(res);
   if (!res.ok || !json.success || !json.data) {
     throwByStatus(res, json, '해당 구 데이터가 없습니다');
@@ -108,7 +108,7 @@ export async function fetchGovComparison(
 export async function fetchGovSuggestions(
   districtId: number,
 ): Promise<GovSuggestionItem[]> {
-  const res = await fetch(apiUrl(`/api/gov/suggestions/${districtId}`));
+  const res = await apiFetch(`/api/gov/suggestions/${districtId}`);
   const json = await readJson<GovSuggestionItem[]>(res);
   if (!res.ok || !json.success || !Array.isArray(json.data)) {
     throwByStatus(res, json, '우선점검 제안을 불러오지 못했습니다.');
@@ -123,7 +123,7 @@ export async function fetchGovSuggestions(
 export async function fetchGovPriorityTop(
   limit = 3,
 ): Promise<GovPriorityTopData> {
-  const res = await fetch(apiUrl('/api/gov/priority-top', { limit }));
+  const res = await apiFetch(`/api/gov/priority-top?limit=${limit}`);
   const json = await readJson<GovPriorityTopData>(res);
   if (!res.ok || !json.success || !json.data) {
     if (res.status === 404) {
@@ -143,7 +143,7 @@ export async function fetchGovPriorityTop(
  * 단순 분기 합계가 필요할 때 이 API를 쓴다.
  */
 export async function fetchGovTrend(districtId: number): Promise<GovTrendPoint[]> {
-  const res = await fetch(apiUrl(`/api/gov/trend/${districtId}`));
+  const res = await apiFetch(`/api/gov/trend/${districtId}`);
   const json = await readJson<GovTrendPoint[]>(res);
   if (!res.ok || !json.success || !Array.isArray(json.data)) {
     throwByStatus(res, json, '추세 데이터를 불러오지 못했습니다.');
