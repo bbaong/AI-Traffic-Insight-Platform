@@ -2,6 +2,8 @@
 
 .rightCard {
   gap: 12px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .rightHead {
@@ -11,6 +13,9 @@
 .resultPane {
   display: flex;
   flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .lockedPane {
@@ -199,6 +204,16 @@
 }
 
 @media (max-width: 1100px) {
+  .rightCard {
+    overflow: visible;
+    height: auto;
+  }
+
+  .resultPane {
+    flex: none;
+    overflow: visible;
+  }
+
   .typeGrid {
     grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
   }
