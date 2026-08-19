@@ -17,24 +17,38 @@ npx playwright install chromium
 
 의존성 목록은 `package.json`을 보세요. 요약은 [requirements.txt](./requirements.txt)에도 적어 두었습니다.
 
+인증은 `jsonwebtoken`, PDF 메일 발송은 `nodemailer`를 씁니다. 타입은 `@types/jsonwebtoken`, `@types/nodemailer`입니다.
+
 ## 2) 환경 변수
 
 `backend/.env` 파일을 만들고 아래 값을 채웁니다.
 
 ```env
 DATABASE_URL="mysql://USER:PASSWORD@HOST:3306/DATABASE_NAME"
+
+# JWT (jsonwebtoken) — ACCESS/REFRESH 단위: 밀리초
 JWT_SECRET=your_jwt_secret
 JWT_ACCESS_EXPIRATION=1800000
 JWT_REFRESH_EXPIRATION=604800000
 
 # AI FastAPI 주소 (미설정 시 아래 기본값)
 AI_SERVICE_URL=http://localhost:8000
+
+# PDF 이메일 발송 (nodemailer / SMTP) — 미사용이면 생략 가능
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM="AI Traffic Insight <noreply@example.com>"
 ```
 
 ## 3) Prisma Client 생성 (필수)
 
+DB 스키마가 바뀌었으면 먼저 introspect 한 뒤 클라이언트를 생성합니다.
+
 ```bash
-npx prisma generate
+npx prisma db pull    # DB → prisma/schema.prisma (선택)
+npx prisma generate   # Prisma Client 생성 (필수)
 ```
 
 ## 4) 개발 서버 실행

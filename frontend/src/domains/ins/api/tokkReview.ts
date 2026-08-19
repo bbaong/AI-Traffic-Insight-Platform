@@ -5,7 +5,7 @@ import type {
   TokkResult,
   TokkStatus,
 } from '../types/consulting';
-import { apiUrl, readJson } from "../../../shared/api/http";
+import { apiFetch, readJson } from '../../../shared/api/http';
 
 /** 백엔드 POST /api/discount-riders/evaluate 응답 한 건 */
 interface DiscountRiderApiItem {
@@ -71,9 +71,8 @@ function mapRiderItem(item: DiscountRiderApiItem): TokkResult {
 export async function fetchTokkReview(
   input: ChecklistAnswers,
 ): Promise<TokkResult[]> {
-  const res = await fetch(apiUrl('/api/discount-riders/evaluate'), {
+  const res = await apiFetch('/api/discount-riders/evaluate', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
 

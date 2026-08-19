@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { isValidEmail } from '../../utils/email';
 import styles from './PdfPreviewModal.module.css';
 
+//PDF 미리보기 모달 타입
 interface Props {
   open: boolean;
   pdfUrl: string | null;
@@ -16,6 +17,7 @@ interface Props {
   accent?: 'teal' | 'amber';
 }
 
+//PDF 미리보기 모달
 export function PdfPreviewModal({
   open,
   pdfUrl,

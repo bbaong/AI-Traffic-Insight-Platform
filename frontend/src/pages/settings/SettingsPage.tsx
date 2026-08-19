@@ -2,7 +2,12 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { changePassword } from '../../shared/api/user';
 import { Toast } from '../../shared/components/ui/Toast';
 import { ROUTES } from '../../shared/constants/routes';
-import { clearAuthStorage, useAuthStore } from '../../shared/stores/authStore';
+import { logout } from '../../domains/auth/api/auth';
+import {
+  clearAuthStorage,
+  getRefreshToken,
+  useAuthStore,
+} from '../../shared/stores/authStore';
 import styles from './SettingsPage.module.css';
 
 export function SettingsPage() {
@@ -18,8 +23,12 @@ export function SettingsPage() {
   useEffect(() => {
     if (!showSuccessToast) return;
     const id = window.setTimeout(() => {
-      clearAuthStorage();
-      window.location.replace(ROUTES.LOGIN);
+      void (async () => {
+        const refreshToken = getRefreshToken();
+        await logout(refreshToken);
+        clearAuthStorage();
+        window.location.replace(ROUTES.LOGIN);
+      })();
     }, 1200);
     return () => window.clearTimeout(id);
   }, [showSuccessToast]);
@@ -55,7 +64,6 @@ export function SettingsPage() {
     setSubmitting(true);
     try {
       const result = await changePassword({
-        userId: user.userId,
         newPassword,
       });
 

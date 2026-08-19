@@ -153,7 +153,7 @@ export function InsDashboardPage() {
   }
 
   async function handleSave() {
-    if (!user?.userId) {
+    if (!user) {
       setSaveError('로그인이 필요합니다.');
       return;
     }
@@ -170,7 +170,6 @@ export function InsDashboardPage() {
         checklist,
         memo,
         consultationType: consultType,
-        userId: user.userId,
         prediction,
         tokkResults,
       });

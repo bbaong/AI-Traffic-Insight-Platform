@@ -1,5 +1,5 @@
 import { GovApiError } from './govDashboard';
-import { apiUrl } from "../../../shared/api/http";
+import { apiFetch } from '../../../shared/api/http';
 
 export interface RegionCompareMeta {
   asOf: string;
@@ -93,9 +93,10 @@ export { GovApiError };
 export async function fetchRegionCompare(
   districtIds: number[],
 ): Promise<RegionCompareData> {
-  const q = districtIds.join(',');
-  const res = await fetch(
-    apiUrl(`/api/gov/region-compare?districtIds=${encodeURIComponent(q)}`),
+  const res = await apiFetch(
+    '/api/gov/region-compare',
+    {},
+    { districtIds: districtIds.join(',') },
   );
 
   let json: { success?: boolean; message?: string; data?: RegionCompareData } =

@@ -20,14 +20,22 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/api/user', userRoutes);
-app.use('/api/prediction', predictionRoutes);
-app.use('/api/insurance', insuranceRoutes);
-app.use('/api/discount-riders', discountRiderRoutes);
-app.use('/api/consultations', consultationRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/gov', govRoutes);
+//인증 미들웨어 적용
+import { requireAuth } from './middleware/auth.middleware';
 
+app.use('/api/user', userRoutes);
+//예측 라우트 적용
+app.use('/api/prediction', requireAuth, predictionRoutes);
+//보험 라우트 적용
+app.use('/api/insurance', requireAuth, insuranceRoutes);
+//할인 라우트 적용
+app.use('/api/discount-riders', requireAuth, discountRiderRoutes);
+//상담 라우트 적용
+app.use('/api/consultations', requireAuth, consultationRoutes);
+//고객 라우트 적용
+app.use('/api/customers', requireAuth, customerRoutes);
+//행정 라우트 적용
+app.use('/api/gov', requireAuth, govRoutes);
 
 app.get('/health', (_req: Request, res: Response) => {
   return ok(res, { status: 'ok' }, 200);

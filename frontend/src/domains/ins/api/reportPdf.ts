@@ -3,7 +3,7 @@ import type {
   TokkResult,
 } from '../types/consulting';
 import type { CoverageRecommendItem } from '../types/prediction';
-import { fetchPdfBlob, apiUrl, readJson } from '../../../shared/api/http';
+import { fetchPdfBlob, apiFetch, readJson } from '../../../shared/api/http';
 
 //PDF 생성 요청 타입 //http://localhost:5000/api/insurance/report-pdf
 export interface InsReportPdfRequest {
@@ -35,9 +35,8 @@ export async function fetchInsReportPdf(
 export async function sendInsReportPdfEmail(
   body: InsReportPdfRequest & { toEmail: string },
 ): Promise<void> {
-  const res = await fetch(apiUrl('/api/insurance/report-pdf/email'), {
+  const res = await apiFetch('/api/insurance/report-pdf/email', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
   const data = await readJson<{ success?: boolean; message?: string }>(

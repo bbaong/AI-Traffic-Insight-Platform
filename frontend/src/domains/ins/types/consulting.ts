@@ -41,8 +41,6 @@ export interface ConsultationPayload {
   memo: string;
   /** 상담 유형 enum: NEW|RENEWAL|CLAIM|COVERAGE_ANALYSIS|OTHER */
   consultationType?: string;
-  /** 상담원 user_id — 백엔드 필수 */
-  userId: number;
   /** 화면 스냅샷용. 서버는 AI·특약을 재계산하므로 저장 API에는 보내지 않음 */
   prediction?: InsPredictData | null;
   tokkResults?: TokkResult[];

@@ -20,5 +20,5 @@ export type AuthUser = {
 };
 
 export type LoginResult =
-  | { ok: true; user: AuthUser }
+  | { ok: true; user: AuthUser; accessToken: string; refreshToken: string }
   | { ok: false; reason: 'INVALID' | 'INACTIVE' };

@@ -25,7 +25,6 @@ export function SettingsVerifyPage() {
 
     try {
       const result = await verifyPassword({
-        userId: user.userId,
         password,
       });
 

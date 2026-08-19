@@ -136,7 +136,6 @@ export function MyPage() {
   const lastLoginLabel = formatDateTime(user.lastLoginAt);
 
   const emailInvalid = email.trim() !== '' && !isValidEmail(email.trim());
-  const userId = user.userId;
 
   async function handleChangeEmail() {
     if (submitting) return;
@@ -152,7 +151,6 @@ export function MyPage() {
     setSubmitting(true);
     try {
       const result = await changeEmail({
-        userId,
         email: trimmed,
       });
       if (!result.ok) {

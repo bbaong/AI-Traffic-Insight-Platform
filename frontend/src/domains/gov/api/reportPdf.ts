@@ -1,4 +1,4 @@
-import { fetchPdfBlob, apiUrl, readJson } from '../../../shared/api/http';
+import { fetchPdfBlob, apiFetch, readJson } from '../../../shared/api/http';
 
 //행정 참고 보고서 시계열 타입 //http://localhost:5000/api/prediction/gov-report-pdf
 export type GovPdfSeveritySeriesPoint = {
@@ -80,9 +80,8 @@ export async function fetchGovReportPdf(
 export async function sendGovReportPdfEmail(
   body: GovReportPdfRequest & { toEmail: string },
 ): Promise<void> {
-  const res = await fetch(apiUrl('/api/prediction/gov-report-pdf/email'), {
+  const res = await apiFetch('/api/prediction/gov-report-pdf/email', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
   const data = await readJson<{ success?: boolean; message?: string }>(
