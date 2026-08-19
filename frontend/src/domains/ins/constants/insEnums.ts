@@ -90,6 +90,14 @@ export function toRiskGrade(
   return null;
 }
 
+/** 발생·심도 점수만 있을 때 표시용 등급 */
+export function scoreToRiskGrade(score: number): CustomerRiskGrade {
+  if (score >= 80) return 'Critical';
+  if (score >= 60) return 'High';
+  if (score >= 40) return 'Moderate';
+  return 'Low';
+}
+
 export function statusLabel(value: ConsultationStatus | string | null): string {
   if (value === 'COMPLETED') return '상담완료';
   if (value === 'IN_PROGRESS') return '진행중';

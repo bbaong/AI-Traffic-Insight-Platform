@@ -186,21 +186,45 @@
 }
 
 .detailStack {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
   min-height: 0;
+  height: 100%;
   overflow: hidden;
 }
 
-.historyCard,
-.ridersCard {
+.historyCard {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.riskCard {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 14px 16px 12px;
+}
+
+.riskBody {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ridersCard {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  padding: 14px 16px 12px;
 }
 
 .historyCard .cardTitle {
@@ -267,9 +291,66 @@
   cursor: not-allowed;
 }
 
-.riskCard {
-  flex-shrink: 0;
-  padding-bottom: 12px;
+.riskCard .cardTitle {
+  margin-bottom: 8px;
+}
+
+.riskHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+}
+
+.riskScore {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.riskScore span {
+  font-size: 12px;
+  font-weight: 500;
+  color: #94a3b8;
+}
+
+.riskGrade {
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.riskTrack {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #22c55e 0%, #eab308 48%, #f97316 100%);
+}
+
+.riskThumb {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2.5px solid #f97316;
+  box-shadow: 0 1px 4px rgb(15 27 45 / 16%);
+  transform: translate(-50%, -50%);
+}
+
+.riskMeta {
+  margin: 6px 0 0;
+  min-height: 15px;
+  font-size: 11px;
+  color: var(--color-hint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cardHead {
@@ -503,58 +584,173 @@
   word-break: keep-all;
 }
 
-.riskHead {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 10px;
+.axisNote {
+  margin: 6px 0 0;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: #94a3b8;
+  word-break: keep-all;
 }
 
-.riskScore {
+.axisGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.axisTile {
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #eef1f5;
+  background: #f8fafc;
+}
+
+.axisHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.axisName {
   margin: 0;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 650;
   color: var(--color-ink);
+}
+
+.axisHead .riskGrade {
+  font-size: 10px;
+  padding: 1px 6px;
+}
+
+.axisBarRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.axisTrack {
+  flex: 1;
+  min-width: 0;
+  height: 6px;
+  border-radius: 999px;
+  background: #eef1f5;
+  overflow: hidden;
+}
+
+.axisFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.axisScore {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
+}
+
+.axisEmptyBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #eef1f5;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 700;
   line-height: 1;
 }
 
-.riskScore span {
-  font-size: 13px;
-  font-weight: 500;
-  color: #94a3b8;
+.consultSlot {
+  margin-top: 6px;
+  min-height: 52px;
+  display: flex;
 }
 
-.riskGrade {
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
+.riskHead .axisEmptyBadge {
+  height: auto;
+  min-width: 36px;
+  padding: 3px 8px;
+  font-size: 11px;
+}
+
+.consultSlot > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.consultPoint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #fed7aa;
+  background: #fff4ed;
+}
+
+.consultPointIcon {
+  display: inline-flex;
+  color: #f97316;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.consultPoint p {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--color-body);
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.consultPoint strong {
+  color: #c2410c;
   font-weight: 700;
 }
 
-.riskTrack {
-  position: relative;
-  height: 10px;
+.legacyBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px dashed #d5dbe3;
+  background: #f8fafc;
+}
+
+.legacyBadge {
+  flex-shrink: 0;
+  padding: 2px 7px;
   border-radius: 999px;
-  background: linear-gradient(90deg, #22c55e 0%, #eab308 48%, #f97316 100%);
+  background: #eef1f5;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 700;
 }
 
-.riskThumb {
-  position: absolute;
-  top: 50%;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #fff;
-  border: 3px solid #f97316;
-  box-shadow: 0 1px 4px rgb(15 27 45 / 16%);
-  transform: translate(-50%, -50%);
-}
-
-.riskMeta {
-  margin: 8px 0 0;
+.legacyBox p {
+  margin: 0;
   font-size: 11.5px;
-  color: var(--color-hint);
+  line-height: 1.35;
+  color: #94a3b8;
+  word-break: keep-all;
 }
 
 .tabs {
@@ -758,47 +954,30 @@
 .legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 12px;
-  margin: 0 0 10px;
+  gap: 6px 10px;
+  margin: 0;
 }
 
-.legItem {
-  display: inline-flex;
+.ridersCard .cardHead {
   align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  font-weight: 500;
-}
-
-.legItem i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-.ridersCard .cardHead,
-.ridersCard .legend,
-.ridersCard .reportBtn {
-  flex-shrink: 0;
+  margin-bottom: 0;
 }
 
 .riderList {
   list-style: none;
-  margin: 0 0 12px;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
+  gap: 6px;
 }
 
 .riderRow {
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 10px 12px;
+  gap: 8px;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 8px;
   border: 0.5px solid var(--color-border-light);
   border-radius: 8px;
   background: var(--color-surface);
@@ -806,12 +985,58 @@
 
 .riderIcon {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
+}
+
+.riderName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-ink);
+  line-height: 1.3;
+}
+
+.riderBadge {
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.reportBtn {
+  width: 100%;
+  height: 34px;
+  margin-top: 2px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-amber);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgb(247 124 52 / 28%);
+  flex-shrink: 0;
+}
+
+.legItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.legItem i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
 }
 
 .riderMain {
@@ -824,43 +1049,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-}
-
-.riderName {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-ink);
-}
-
-.riderBadge {
-  flex-shrink: 0;
-  padding: 3px 8px;
-  border-radius: 999px;
-  border: 1px solid;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.riderReason {
-  margin: 4px 0 0;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--color-hint);
-}
-
-.reportBtn {
-  width: 100%;
-  height: 40px;
-  margin-top: auto;
-  border: none;
-  border-radius: 8px;
-  background: var(--color-amber);
-  color: #fff;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgb(247 124 52 / 28%);
 }
 
 .reportBtn:hover:not(:disabled) {
@@ -957,6 +1145,11 @@
   }
 
   .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .axisGrid,
+  .riderList {
     grid-template-columns: 1fr;
   }
 }

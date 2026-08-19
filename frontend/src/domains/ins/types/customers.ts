@@ -26,6 +26,10 @@ export interface CustomerListItem {
   lastStatus: ConsultationStatus | null;
   lastRiskScore: number | null;
   lastRiskGrade: CustomerRiskGrade | null;
+  lastOccScore?: number | null;
+  lastSevScore?: number | null;
+  lastConsultPoint?: string | null;
+  lastOccRatePer10k?: number | null;
   lastConsultationType: ConsultationTypeCode | null;
   lastRegion: string | null;
   lastAgeGroup: string | null;
@@ -61,6 +65,10 @@ export interface Consultation {
   counselorName: string | null;
   riskScore: number | null;
   riskGrade: CustomerRiskGrade | string | null;
+  occScore?: number | null;
+  sevScore?: number | null;
+  consultPoint?: string | null;
+  occRatePer10k?: number | null;
   consultationType: ConsultationTypeCode | string;
   profile: ConsultationProfile | null;
   riders: Rider[];
