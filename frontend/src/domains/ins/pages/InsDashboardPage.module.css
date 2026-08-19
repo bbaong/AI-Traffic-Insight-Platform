@@ -9,10 +9,11 @@
   box-sizing: border-box;
 }
 
-/* 내용 높이만큼만 차지 → 부족하면 AppLayout .content 에서 스크롤 */
+/* 데스크톱: 뷰포트 안에 맞추고 결과 카드만 내부 스크롤 */
 .pageFill {
-  flex: none;
-  height: auto;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .toolbar {
@@ -57,6 +58,12 @@
 }
 
 @media (max-width: 1100px) {
+  .pageFill {
+    flex: none;
+    overflow: visible;
+    height: auto;
+  }
+
   .toolbar {
     flex-wrap: wrap;
     align-items: stretch;

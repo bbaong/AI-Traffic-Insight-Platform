@@ -5,16 +5,19 @@
   flex-direction: column;
   gap: 12px;
   width: 100%;
-  height: auto;
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .grid2 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   gap: 20px;
-  align-items: start;
+  align-items: stretch;
   width: 100%;
-  height: auto;
+  flex: 1 1 0;
+  min-height: 0;
 }
 
 .column {
@@ -22,11 +25,15 @@
   flex-direction: column;
   gap: 12px;
   min-width: 0;
-  height: auto;
+  min-height: 0;
 }
 
 .columnGrow {
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .card {
@@ -43,7 +50,16 @@
 }
 
 .cardFill {
-  height: auto;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.cardFill .cardBody {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .cardBody {
@@ -302,9 +318,33 @@
 }
 
 @media (max-width: 1100px) {
+  .stepRoot {
+    flex: none;
+    overflow: visible;
+    height: auto;
+  }
+
   .grid2 {
     grid-template-columns: 1fr;
     gap: 16px;
+    flex: none;
+    height: auto;
+    align-items: start;
+  }
+
+  .columnGrow {
+    overflow: visible;
+  }
+
+  .cardFill {
+    flex: none;
+    height: auto;
+    overflow: visible;
+  }
+
+  .cardFill .cardBody {
+    overflow: visible;
+    flex: none;
   }
 
   .cardActions {

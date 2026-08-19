@@ -63,32 +63,21 @@
   font-weight: var(--font-weight-medium);
 }
 
-.hintWrap {
-  position: relative;
-  flex-shrink: 0;
-}
-
 .hintTrigger {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   margin: 0;
   padding: 2px 4px;
-  border: none;
   border-radius: 6px;
-  background: transparent;
   color: var(--color-hint);
   font-size: 11.5px;
   line-height: 1.35;
-  cursor: pointer;
   white-space: nowrap;
 }
 
-.hintTrigger:hover,
-.hintTrigger:focus-visible {
+.hintTrigger:hover {
   color: var(--color-teal-text, #168090);
-  background: var(--color-teal-bg, #e6f6f9);
-  outline: none;
 }
 
 .hintIcon {
@@ -96,35 +85,6 @@
   align-items: center;
   justify-content: center;
   color: inherit;
-}
-
-.hintPop {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 8px);
-  z-index: 20;
-  width: max-content;
-  max-width: min(240px, 70vw);
-  padding: 8px 10px;
-  border-radius: 8px;
-  background: var(--color-card, #fff);
-  border: 0.5px solid var(--color-border-light, #e6e8eb);
-  box-shadow: 0 6px 16px rgb(15 27 45 / 10%);
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: var(--color-body, #4a5a6e);
-  text-align: left;
-  pointer-events: none;
-}
-
-.hintPop::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  right: 14px;
-  border: 6px solid transparent;
-  border-top-color: var(--color-card, #fff);
-  filter: drop-shadow(0 1px 0 var(--color-border-light, #e6e8eb));
 }
 
 .reportBtn {

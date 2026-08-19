@@ -1,7 +1,9 @@
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import type { ProfileInput } from '../types/consulting';
 import type {
   CoverageRecommendItem,
   InsPredictData,
+  InsRiskAxis,
   RiskGrade,
 } from '../types/prediction';
 import { formatPct1, toRiskGrade } from '../utils/riskMeta';
@@ -29,6 +31,13 @@ const GRADE_TONE: Record<RiskGrade, string> = {
   CRITICAL: styles.gradeCritical,
 };
 
+const BAR_TONE: Record<RiskGrade, string> = {
+  LOW: styles.barLow,
+  MODERATE: styles.barModerate,
+  HIGH: styles.barHigh,
+  CRITICAL: styles.barCritical,
+};
+
 function topFactors(grades: Record<string, number>, limit = 3) {
   return Object.entries(grades)
     .sort((a, b) => b[1] - a[1])
@@ -47,7 +56,18 @@ function gaugeGeometry(val: number) {
   };
 }
 
-function buildConsultPoint(
+function parseAxis(raw: InsRiskAxis | undefined) {
+  if (!raw || !Number.isFinite(Number(raw.점수))) return null;
+  const grade = toRiskGrade(String(raw.등급 ?? ''));
+  return {
+    score: Math.min(100, Math.max(0, Number(raw.점수))),
+    grade,
+    label: raw.라벨?.trim() || GRADE_KO[grade],
+    desc: raw.설명?.trim() ?? '',
+  };
+}
+
+function fallbackConsultPoint(
   topName: string | undefined,
   recommended: CoverageRecommendItem[],
 ): string {
@@ -140,6 +160,34 @@ function XCircleIcon() {
   );
 }
 
+function InfoIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden>
+      <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.4" />
+      <path
+        d="M8 7.2v4M8 5.1h.01"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ChevronDownIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+      <path
+        d="M2.25 4.5 6 8.25 9.75 4.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 function PointPinIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -154,12 +202,69 @@ function PointPinIcon() {
   );
 }
 
+function AxisTile({
+  title,
+  axis,
+}: {
+  title: string;
+  axis: NonNullable<ReturnType<typeof parseAxis>>;
+}) {
+  return (
+    <article className={styles.axisTile}>
+      <div className={styles.axisHead}>
+        <h4 className={styles.axisName}>{title}</h4>
+        <span className={`${styles.gradePill} ${GRADE_TONE[axis.grade]}`}>
+          {axis.label}
+        </span>
+      </div>
+      <div className={styles.axisTrack}>
+        <span
+          className={`${styles.axisFill} ${BAR_TONE[axis.grade]}`}
+          style={{ width: `${axis.score}%` }}
+        />
+      </div>
+      <div className={styles.axisMeta}>
+        <p className={styles.axisDesc}>{axis.desc}</p>
+        <span className={styles.axisScore}>{axis.score.toFixed(0)}</span>
+      </div>
+    </article>
+  );
+}
+
 export function AiAnalysisResultCard({
   profile,
   prediction,
   analyzeLoading,
   fill = false,
 }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [moreBelow, setMoreBelow] = useState(false);
+
+  const syncMoreBelow = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      setMoreBelow(false);
+      return;
+    }
+    setMoreBelow(el.scrollHeight - el.scrollTop - el.clientHeight > 10);
+  }, []);
+
+  useLayoutEffect(() => {
+    const el = scrollRef.current;
+    if (!el) {
+      setMoreBelow(false);
+      return;
+    }
+    syncMoreBelow();
+    const ro = new ResizeObserver(syncMoreBelow);
+    ro.observe(el);
+    el.addEventListener('scroll', syncMoreBelow, { passive: true });
+    return () => {
+      ro.disconnect();
+      el.removeEventListener('scroll', syncMoreBelow);
+    };
+  }, [syncMoreBelow, prediction, analyzeLoading]);
+
   const cardClass = fill ? `${styles.card} ${styles.cardFill}` : styles.card;
 
   if (!prediction && !analyzeLoading) {
@@ -195,7 +300,12 @@ export function AiAnalysisResultCard({
   const recommended = coverages.filter((c) => c.recommended);
   const excluded = coverages.filter((c) => !c.recommended);
   const topName = factors[0]?.[0];
-  const pointText = buildConsultPoint(topName, recommended);
+  const occ = parseAxis(prediction.발생위험);
+  const sev = parseAxis(prediction.심도위험);
+  const showAxes = Boolean(occ && sev);
+  const pointText =
+    prediction.상담포인트?.trim() ||
+    fallbackConsultPoint(topName, recommended);
 
   const chips = [
     { key: 'region', label: profile.region, icon: <MapPinIcon /> },
@@ -217,161 +327,189 @@ export function AiAnalysisResultCard({
         ))}
       </ul>
 
-      <div className={styles.midRow}>
-        <div className={styles.gaugeBlock}>
-          <div
-            className={styles.gaugeSvgWrap}
-            role="img"
-            aria-label={`위험 점수 ${score.toFixed(1)}점, ${GRADE_KO[grade]}`}
-          >
-            <svg
-              className={styles.gaugeSvg}
-              viewBox="0 0 200 120"
-              width="200"
-              height="120"
-            >
-              <defs>
-                <linearGradient
-                  id="insRiskArcGrad"
-                  x1="14"
-                  y1="100"
-                  x2="186"
-                  y2="100"
-                  gradientUnits="userSpaceOnUse"
+      <div className={styles.scrollWrap}>
+        <div ref={scrollRef} className={styles.scroll}>
+          <div className={styles.scoreCluster}>
+            <div className={styles.gaugeBlock}>
+              <div
+                className={styles.gaugeSvgWrap}
+                role="img"
+                aria-label={`위험 점수 ${score.toFixed(1)}점, ${GRADE_KO[grade]}`}
+              >
+                <svg
+                  className={styles.gaugeSvg}
+                  viewBox="0 0 200 120"
+                  width="200"
+                  height="120"
                 >
-                  <stop offset="0%" stopColor="#22C55E" />
-                  <stop offset="45%" stopColor="#EAB308" />
-                  <stop offset="100%" stopColor="#F97316" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M14 100 A86 86 0 0 1 186 100"
-                fill="none"
-                stroke="#EEF1F5"
-                strokeWidth="14"
-                strokeLinecap="round"
-              />
-              <path
-                d={pathD}
-                fill="none"
-                stroke="url(#insRiskArcGrad)"
-                strokeWidth="14"
-                strokeLinecap="round"
-              />
-              <circle cx={ex} cy={ey} r="9" fill="#fff" />
-              <circle cx={ex} cy={ey} r="6" fill="#F97316" />
-            </svg>
-            <div className={styles.gaugeCenter}>
-              <span className={`${styles.gradePill} ${GRADE_TONE[grade]}`}>
-                {GRADE_KO[grade]}
+                  <defs>
+                    <linearGradient
+                      id="insRiskArcGrad"
+                      x1="14"
+                      y1="100"
+                      x2="186"
+                      y2="100"
+                      gradientUnits="userSpaceOnUse"
+                    >
+                      <stop offset="0%" stopColor="#22C55E" />
+                      <stop offset="45%" stopColor="#EAB308" />
+                      <stop offset="100%" stopColor="#F97316" />
+                    </linearGradient>
+                  </defs>
+                  <path
+                    d="M14 100 A86 86 0 0 1 186 100"
+                    fill="none"
+                    stroke="#EEF1F5"
+                    strokeWidth="14"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d={pathD}
+                    fill="none"
+                    stroke="url(#insRiskArcGrad)"
+                    strokeWidth="14"
+                    strokeLinecap="round"
+                  />
+                  <circle cx={ex} cy={ey} r="9" fill="#fff" />
+                  <circle cx={ex} cy={ey} r="6" fill="#F97316" />
+                </svg>
+                <div className={styles.gaugeCenter}>
+                  <span className={`${styles.gradePill} ${GRADE_TONE[grade]}`}>
+                    {GRADE_KO[grade]}
+                  </span>
+                  <p className={styles.scoreLine}>
+                    <span className={styles.scoreVal}>{score.toFixed(1)}</span>
+                    <span className={styles.scoreUnit}> / 100</span>
+                  </p>
+                </div>
+              </div>
+              <div className={styles.gaugeEnds}>
+                <span>0</span>
+                <span>100</span>
+              </div>
+              <p className={styles.gaugeCaption}>
+                유사 프로필 기대손실 순위입니다
+                {showAxes ? (
+                  <span
+                    className={styles.captionInfo}
+                    title="게이지는 발생·심도 두 축을 곱한 순위입니다. 막대 합이 점수가 아닙니다."
+                  >
+                    <InfoIcon />
+                  </span>
+                ) : null}
+              </p>
+            </div>
+
+            {showAxes && occ && sev ? (
+              <div className={styles.axisGrid}>
+                <AxisTile title="발생 위험" axis={occ} />
+                <AxisTile title="심도 위험" axis={sev} />
+              </div>
+            ) : null}
+
+            <div className={styles.point}>
+              <span className={styles.pointIcon}>
+                <PointPinIcon />
               </span>
-              <p className={styles.scoreLine}>
-                <span className={styles.scoreVal}>{score.toFixed(1)}</span>
-                <span className={styles.scoreUnit}> / 100</span>
+              <p className={styles.pointText}>
+                <strong>상담 포인트 —</strong> {pointText}
               </p>
             </div>
           </div>
-          <div className={styles.gaugeEnds}>
-            <span>0</span>
-            <span>100</span>
-          </div>
-          <p className={styles.gaugeCaption}>
-            유사 프로필 기준 상대 위험도입니다
-          </p>
-        </div>
 
-        {factors.length > 0 ? (
-          <div className={styles.top3}>
-            <h3 className={styles.sectionTitle}>법규위반 경향 TOP3</h3>
-            <ul className={styles.top3List}>
-              {factors.map(([name, ratio], idx) => {
-                const pct = Math.min(100, ratio * 100);
-                return (
-                  <li key={name} className={styles.top3Row}>
-                    <span
-                      className={`${styles.rank} ${
-                        idx === 0 ? styles.rankPrimary : styles.rankSecondary
-                      }`}
-                    >
-                      {idx + 1}
-                    </span>
-                    <div className={styles.top3Body}>
-                      <div className={styles.top3Head}>
-                        <span className={styles.top3Name}>{name}</span>
-                        <span className={styles.top3Pct}>
-                          {formatPct1(ratio)}%
-                        </span>
+          {factors.length > 0 ? (
+            <div className={styles.top3}>
+              <h3 className={styles.sectionTitle}>법규위반 경향 TOP3</h3>
+              <ul className={styles.top3List}>
+                {factors.map(([name, ratio], idx) => {
+                  const pct = Math.min(100, ratio * 100);
+                  return (
+                    <li key={name} className={styles.top3Row}>
+                      <span
+                        className={`${styles.rank} ${
+                          idx === 0 ? styles.rankPrimary : styles.rankSecondary
+                        }`}
+                      >
+                        {idx + 1}
+                      </span>
+                      <div className={styles.top3Body}>
+                        <div className={styles.top3Head}>
+                          <span className={styles.top3Name}>{name}</span>
+                          <span className={styles.top3Pct}>
+                            {formatPct1(ratio)}%
+                          </span>
+                        </div>
+                        <div className={styles.top3Track}>
+                          <span
+                            className={
+                              idx === 0 ? styles.top3Fill1 : styles.top3FillRest
+                            }
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className={styles.top3Track}>
-                        <span
-                          className={
-                            idx === 0 ? styles.top3Fill1 : styles.top3FillRest
-                          }
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
-      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ) : null}
 
-      <div className={styles.covBlock}>
-        <h3 className={styles.sectionTitle}>표준 6대 담보 추천</h3>
-        {coverages.length === 0 ? (
-          <p className={styles.emptyCov}>분석 후 6대 담보 추천이 표시됩니다.</p>
-        ) : (
-          <div className={styles.covGrid}>
-            <div className={styles.covCol}>
-              <p className={styles.covColTitle}>
-                <span className={styles.covCheck}>
-                  <CheckCircleIcon />
-                </span>
-                추천 담보 · {recommended.length}건
-              </p>
-              <ul className={styles.covList}>
-                {recommended.map((item) => (
-                  <li key={item.id} className={styles.covRowOn}>
-                    <span className={styles.covRowIcon}>
+          <div className={styles.covBlock}>
+            <h3 className={styles.sectionTitle}>표준 6대 담보 추천</h3>
+            {coverages.length === 0 ? (
+              <p className={styles.emptyCov}>분석 후 6대 담보 추천이 표시됩니다.</p>
+            ) : (
+              <div className={styles.covGrid}>
+                <div className={styles.covCol}>
+                  <p className={styles.covColTitle}>
+                    <span className={styles.covCheck}>
                       <CheckCircleIcon />
                     </span>
-                    <span>{item.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className={styles.covCol}>
-              <p className={`${styles.covColTitle} ${styles.covColTitleMuted}`}>
-                <span className={styles.covX}>
-                  <XCircleIcon />
-                </span>
-                제외 담보 · {excluded.length}건
-              </p>
-              <ul className={styles.covList}>
-                {excluded.map((item) => (
-                  <li key={item.id} className={styles.covRowOff}>
-                    <span className={styles.covRowIconMuted}>
+                    추천 담보 · {recommended.length}건
+                  </p>
+                  <ul className={styles.covList}>
+                    {recommended.map((item) => (
+                      <li key={item.id} className={styles.covRowOn}>
+                        <span className={styles.covRowIcon}>
+                          <CheckCircleIcon />
+                        </span>
+                        <span>{item.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className={styles.covCol}>
+                  <p className={`${styles.covColTitle} ${styles.covColTitleMuted}`}>
+                    <span className={styles.covX}>
                       <XCircleIcon />
                     </span>
-                    <span>{item.name}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                    제외 담보 · {excluded.length}건
+                  </p>
+                  <ul className={styles.covList}>
+                    {excluded.map((item) => (
+                      <li key={item.id} className={styles.covRowOff}>
+                        <span className={styles.covRowIconMuted}>
+                          <XCircleIcon />
+                        </span>
+                        <span>{item.name}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
 
-      <div className={styles.point}>
-        <span className={styles.pointIcon}>
-          <PointPinIcon />
-        </span>
-        <p className={styles.pointText}>
-          <strong>상담 포인트 —</strong> {pointText}
-        </p>
+        {moreBelow ? (
+          <div className={styles.scrollHint} aria-hidden="true">
+            <span className={styles.scrollHintPill}>
+              더 보기
+              <ChevronDownIcon />
+            </span>
+          </div>
+        ) : null}
       </div>
     </section>
   );

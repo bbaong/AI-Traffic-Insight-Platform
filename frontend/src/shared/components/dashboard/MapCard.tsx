@@ -68,6 +68,11 @@ export interface MapCardProps {
   showSelectionHint?: boolean;
   /** 있으면 위험도 대신 이 색으로 구를 칠함 (지역비교 고정 색) */
   fillByCode?: Record<string, string>;
+  /**
+   * 페이지 진입 시 대구 전역 fit 후 카카오 줌 보정.
+   * 작을수록 확대(+휠 줌인). 기본 -1 은 지도 칸을 가득 채우는 지역비교 배율.
+   */
+  cityZoomDelta?: number;
 }
 
 const ACCENT = '#21ADC4';
@@ -85,6 +90,9 @@ const DISTRICT_MIN_IN_LEVEL = 8;
 const DISTRICT_MAX_OUT_LEVEL = 9;
 const DISTRICT_CLAMP_OUT_LEVEL = 8;
 const DISTRICT_BOUNDS_PADDING = 56;
+/** 대구 전역(군위 포함) — 위쪽은 범례·군위가 안 잘리게 */
+const CITY_BOUNDS_PAD_TOP = 56;
+const CITY_BOUNDS_PAD = 40;
 
 const BASE_STROKE = {
   strokeWeight: 1,
@@ -247,6 +255,7 @@ export function MapCard({
   independentSelection = false,
   showSelectionHint,
   fillByCode,
+  cityZoomDelta = -1,
 }: MapCardProps) {
   const { status, retry } = useKakaoLoader();
   const selectedCode = useDistrictStore((s) => s.selectedCode);
@@ -280,6 +289,9 @@ export function MapCard({
   const selectedRef = useRef<string | null>(null);
   const selectedCodesRef = useRef<string[]>(selectedCodes);
   const independentRef = useRef(independentSelection);
+  const cityZoomDeltaRef = useRef(cityZoomDelta);
+  const userFocusedRef = useRef(false);
+  const cityBoundsRef = useRef<{ isEmpty?: () => boolean } | null>(null);
   const riskRef = useRef(riskByCode);
   const hotspotsRef = useRef(hotspots);
   const selectCbRef = useRef(onDistrictSelect);
@@ -288,6 +300,7 @@ export function MapCard({
   hotspotsRef.current = hotspots;
   selectCbRef.current = onDistrictSelect;
   independentRef.current = independentSelection;
+  cityZoomDeltaRef.current = cityZoomDelta;
   selectedCodesRef.current = selectedCodes;
   selectedRef.current = selectedCodes[selectedCodes.length - 1] ?? null;
   fillByCodeRef.current = fillByCode;
@@ -482,6 +495,33 @@ export function MapCard({
     if (c && map.setCenter) map.setCenter(c);
   };
 
+  /** 페이지 진입·새로고침·레이아웃 복구 시 대구 전역(군위 포함)에 맞춤 */
+  const fitCity = (map: {
+    setBounds: (...args: unknown[]) => void;
+    setLevel: (level: number) => void;
+    getLevel: () => number;
+  }) => {
+    const bounds = cityBoundsRef.current;
+    if (!bounds || bounds.isEmpty?.()) return;
+    map.setBounds(
+      bounds,
+      CITY_BOUNDS_PAD_TOP,
+      CITY_BOUNDS_PAD,
+      CITY_BOUNDS_PAD,
+      CITY_BOUNDS_PAD,
+    );
+    const delta = cityZoomDeltaRef.current;
+    if (!delta) {
+      syncHotspotsVisibility(map);
+      return;
+    }
+    window.setTimeout(() => {
+      if (mapRef.current !== map) return;
+      map.setLevel(map.getLevel() + delta);
+      syncHotspotsVisibility(map);
+    }, 40);
+  };
+
   useEffect(() => {
     if (status !== 'loaded') return;
     const container = containerRef.current;
@@ -525,6 +565,8 @@ export function MapCard({
         outlineRef.current = [];
         container.innerHTML = '';
         mapRef.current = null;
+        cityBoundsRef.current = null;
+        userFocusedRef.current = false;
 
         const center = new window.kakao.maps.LatLng(
           DAEGU_CENTER.lat,
@@ -624,20 +666,8 @@ export function MapCard({
         window.setTimeout(() => {
           if (cancelled || mapRef.current !== map) return;
           refreshMapTiles(map);
-          const selected = selectedRef.current;
-          const selectedDistrict =
-            !independentRef.current && selected
-              ? DAEGU_DISTRICTS.find((d) => d.code === selected)
-              : null;
-          if (selectedDistrict) {
-            focusDistrict(map, selectedDistrict);
-          } else if (!bounds.isEmpty?.()) {
-            map.setBounds(bounds, 40, 40, 40, 40);
-            syncHotspotsVisibility(map);
-          } else {
-            map.setCenter(center);
-            syncHotspotsVisibility(map);
-          }
+          cityBoundsRef.current = bounds;
+          fitCity(map);
         }, 100);
       });
     });
@@ -706,7 +736,10 @@ export function MapCard({
 
     const refresh = () => {
       refreshMapTiles(map);
-      if (independentRef.current) return;
+      if (independentRef.current || !userFocusedRef.current) {
+        fitCity(map);
+        return;
+      }
       if (!selectedRef.current || !window.kakao?.maps) return;
       const district = DAEGU_DISTRICTS.find(
         (d) => d.code === selectedRef.current,
@@ -740,6 +773,7 @@ export function MapCard({
     const district = DAEGU_DISTRICTS.find((d) => d.code === selectedCode);
     if (!district) return;
 
+    userFocusedRef.current = true;
     focusDistrict(map, district);
   }, [selectedCode, selectedCodesProp, independentSelection]);
 
