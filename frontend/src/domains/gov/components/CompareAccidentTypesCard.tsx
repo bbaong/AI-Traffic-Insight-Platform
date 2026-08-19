@@ -4,6 +4,8 @@ import type {
   RegionCompareDistrict,
   RegionCompareEntity,
 } from '../api/govRegionCompare';
+import { GovHint } from './GovHint';
+import { GovMaterialIcon } from './GovMaterialIcon';
 import surface from './compareSurface.module.css';
 import styles from './CompareAccidentTypesCard.module.css';
 
@@ -69,12 +71,11 @@ export function CompareAccidentTypesCard({
       title="사고유형 구성 비교"
       className={`${surface.card} ${styles.card}`}
       leading={
-        <span
-          className={styles.info}
-          title="최근 사고유형 구성 비율입니다. 각 행의 합은 100%입니다."
-        >
-          i
-        </span>
+        <GovHint text={'최근 사고유형 구성 비율입니다.\n각 행의 합은 100%입니다.'}>
+          <span className={surface.info}>
+            <GovMaterialIcon name="info" size={16} />
+          </span>
+        </GovHint>
       }
       action={
         <ul className={styles.legend}>

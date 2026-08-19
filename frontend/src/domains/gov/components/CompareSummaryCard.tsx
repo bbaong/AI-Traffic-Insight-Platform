@@ -13,6 +13,7 @@ import {
   insightIcon,
   onDistrictColor,
 } from '../utils/regionCompareUi';
+import { GovHint } from './GovHint';
 import { GovMaterialIcon, isGovMaterialIcon } from './GovMaterialIcon';
 import surface from './compareSurface.module.css';
 import styles from './CompareSummaryCard.module.css';
@@ -21,22 +22,7 @@ function TagIcon({ name }: { name: string }) {
   if (isGovMaterialIcon(name)) {
     return <GovMaterialIcon name={name} size={16} />;
   }
-  return (
-    <svg
-      width={16}
-      height={16}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.8}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 8v5M12 16h.01" />
-    </svg>
-  );
+  return <GovMaterialIcon name="info" size={16} />;
 }
 
 /** 지도 범례와 동일: ≥35 매우높음 / ≥28 높음 / ≥22 보통 */
@@ -84,12 +70,14 @@ export function CompareSummaryCard({
       title="비교 요약"
       className={`${surface.card} ${styles.card}`}
       leading={
-        <span
-          className={styles.info}
-          title="종합 위험도 점수, 다음 분기 예측 사고 건수, 대구 전체 순위와 주요 특이사항입니다. 1위는 중대율이 가장 높은 구입니다."
+        <GovHint
+          nowrap
+          text={'종합 위험도 · 예측 사고 · 구 순위와 특이사항입니다.\n1위는 중대율이 가장 높은 구입니다.'}
         >
-          i
-        </span>
+          <span className={surface.info}>
+            <GovMaterialIcon name="info" size={16} />
+          </span>
+        </GovHint>
       }
     >
       <p className={styles.caption}>{caption}</p>

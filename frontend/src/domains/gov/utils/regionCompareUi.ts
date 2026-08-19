@@ -113,6 +113,5 @@ export function insightIcon(key: string): string {
   if (t.includes('signal') || t.includes('신호')) return 'traffic';
   if (t.includes('parking') || t.includes('주차')) return 'parking';
   if (t.startsWith('rel_')) return 'chart';
-  if (t.includes('특이') || t.includes('없음')) return 'star';
-  return 'pin';
+  return 'info';
 }

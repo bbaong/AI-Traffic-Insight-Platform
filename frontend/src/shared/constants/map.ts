@@ -3,6 +3,6 @@ export const DAEGU_CENTER = { lat: 35.8714, lng: 128.6014 } as const;
 
 /**
  * 초기 줌 fallback (작을수록 넓게).
- * MapCard는 구·군 경계 LatLngBounds로 setBounds 하므로 군위 포함 시 자동 조정된다.
+ * MapCard는 페이지 진입 시 구·군 경계 LatLngBounds로 대구 전역(군위 포함)에 맞춘다.
  */
 export const DAEGU_ZOOM_LEVEL = 9;

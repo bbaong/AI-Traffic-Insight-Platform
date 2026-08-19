@@ -1,8 +1,8 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
+  gap: 12px;
+  padding: 18px 18px 14px;
   background: #fff;
   border: 1px solid #e9edf2;
   border-radius: 12px;
@@ -13,11 +13,91 @@
 }
 
 .cardFill {
-  height: auto;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 2px 6px 28px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #d0d7e0 transparent;
+}
+
+.scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll::-webkit-scrollbar-thumb {
+  background: #d0d7e0;
+  border-radius: 999px;
+}
+
+.scoreCluster {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 14px 14px;
+  border: 1px solid #e9edf2;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.scrollWrap {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.scrollHint {
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 88px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10px;
+  background: linear-gradient(
+    to bottom,
+    rgb(255 255 255 / 0) 0%,
+    rgb(255 255 255 / 0.55) 42%,
+    rgb(255 255 255 / 0.92) 78%,
+    #fff 100%
+  );
+}
+
+.scrollHintPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px 3px 12px;
+  border-radius: 999px;
+  border: 1px solid #e9edf2;
+  background: #fff;
+  box-shadow: 0 2px 8px rgb(15 27 45 / 8%);
+  font-size: 11px;
+  font-weight: 650;
+  color: #64748b;
 }
 
 .title {
   margin: 0;
+  flex-shrink: 0;
   font-size: 14px;
   font-weight: 700;
   color: var(--color-ink);
@@ -31,6 +111,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  flex-shrink: 0;
 }
 
 .chip {
@@ -49,13 +130,6 @@
 .chipIcon {
   display: inline-flex;
   color: #94a3b8;
-}
-
-.midRow {
-  display: grid;
-  grid-template-columns: minmax(160px, 0.9fr) minmax(0, 1.1fr);
-  gap: 16px;
-  align-items: start;
 }
 
 .gaugeBlock {
@@ -153,11 +227,103 @@
 }
 
 .gaugeCaption {
-  margin: 6px 0 0;
+  margin: 8px 0 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   font-size: 11px;
   line-height: 1.4;
   color: #94a3b8;
   text-align: center;
+}
+
+.captionInfo {
+  display: inline-flex;
+  color: #94a3b8;
+  cursor: help;
+}
+
+.axisGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.axisTile {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #eef1f5;
+}
+
+.axisHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.axisName {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 650;
+  color: var(--color-ink);
+}
+
+.axisTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: #eef1f5;
+  overflow: hidden;
+}
+
+.axisFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+
+.barLow {
+  background: #22c55e;
+}
+
+.barModerate {
+  background: #eab308;
+}
+
+.barHigh {
+  background: #f97316;
+}
+
+.barCritical {
+  background: #ef4444;
+}
+
+.axisMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.axisDesc {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #64748b;
+  word-break: keep-all;
+}
+
+.axisScore {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
 }
 
 .sectionTitle {
@@ -355,6 +521,7 @@
   display: flex;
   align-items: flex-start;
   gap: 8px;
+  flex-shrink: 0;
   padding: 12px;
   border-radius: 10px;
   border: 1px solid #fed7aa;
@@ -419,9 +586,11 @@
   .cardFill {
     height: auto;
     flex: none;
+    max-height: min(70vh, 720px);
+    overflow: hidden;
   }
 
-  .midRow {
+  .axisGrid {
     grid-template-columns: 1fr;
   }
 

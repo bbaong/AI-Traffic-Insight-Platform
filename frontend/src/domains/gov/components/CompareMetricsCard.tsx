@@ -6,6 +6,8 @@ import type {
 } from '../api/govRegionCompare';
 import { CITY_AVG_COLOR, districtColor } from '../utils/regionCompareUi';
 import { formatPct1 } from '../utils/comparisonFormat';
+import { GovHint } from './GovHint';
+import { GovMaterialIcon } from './GovMaterialIcon';
 import surface from './compareSurface.module.css';
 import styles from './CompareMetricsCard.module.css';
 
@@ -52,12 +54,11 @@ export function CompareMetricsCard({
       title="핵심 지표 비교"
       className={`${surface.card} ${styles.card}`}
       leading={
-        <span
-          className={styles.info}
-          title="선택 지역과 대구 평균의 보행·야간·중상·신호위반 비율입니다."
-        >
-          i
-        </span>
+        <GovHint text={'선택 지역과 대구 평균의\n보행·야간·중상·신호위반 비율입니다.'}>
+          <span className={surface.info}>
+            <GovMaterialIcon name="info" size={16} />
+          </span>
+        </GovHint>
       }
       action={
         <ul className={styles.legend}>
