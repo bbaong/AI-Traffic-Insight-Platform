@@ -1,0 +1,8 @@
+# Insurance chatbot CLI (scripts/ins_chatbot.py)
+# Separate from Express npm. Install with:
+#   pip install -r scripts/requirements-chatbot.txt
+# ASCII comments only (Windows pip/cp949).
+# Package: google-genai  (not google-generativeai)
+
+google-genai>=1.0.0
+python-dotenv>=1.0.0

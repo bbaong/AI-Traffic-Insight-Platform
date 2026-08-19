@@ -119,6 +119,7 @@ npx playwright install chromium
 ## 참고
 
 - Node.js / `npm` 기준입니다 (`pip` 아님). AI는 [ai/requirements.txt](../ai/requirements.txt).  
+- 보험 챗봇 CLI만 Python: `pip install -r scripts/requirements-chatbot.txt` → [docs/ins-chatbot.md](./docs/ins-chatbot.md)  
 - 패키지 설치 후 반드시 `npx prisma generate` 실행.  
 - Prisma Client 경로: `src/generated/prisma`  
 - 전체 플랫폼 연결도: [루트 README](../README.md)
