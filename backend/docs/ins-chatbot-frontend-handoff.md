@@ -1,8 +1,8 @@
 # 보험 상담 챗봇 — 프론트 인수인계
 
-> **백엔드 상태:** CLI 챗봇 1차 완료 (`scripts/ins_chatbot.py`)  
-> **프론트:** **아직 UI 없음.** 이 문서는 나중에 화면 붙일 때 기준  
-> **사용법:** [ins-chatbot.md](./ins-chatbot.md)  
+> **백엔드 상태:** CLI + **`POST /api/insurance/chat` 완료** (`requireAuth`)  
+> **프론트:** **아직 UI 없음.** 이 문서 **2절 API**로 붙이면 됨  
+> **사용법 (CLI):** [ins-chatbot.md](./ins-chatbot.md)  
 > **기준일:** 2026-08-19
 
 프론트 코드를 이 작업에서 수정하지 않았습니다. 기존 고객관리 화면은 그대로 둡니다.
@@ -11,18 +11,19 @@
 
 ## 0. 지금 동작 방식
 
+**화면용 (프론트가 붙일 API)**
+
 ```
-상담원 질문 (터미널)
-    → Gemini function calling
-    → Python이 Express REST 호출
-    → 결과를 Gemini가 한국어로 정리
+프론트 (Access 토큰)
+    → POST /api/insurance/chat  { message, history? }
+    → Express: JWT userId + Gemini 도구 + DB/기존 서비스
+    → { reply, toolCalls }
 ```
 
-- Express에 **챗봇 전용 HTTP 라우트는 없습니다.**
-- Gemini 키·모델은 **백엔드 `.env`** (`GEMINI_API_KEY`, `GEMINI_MODEL`).
-- CLI는 `INS_CHAT_LOGIN_ID` / `INS_CHAT_PASSWORD` 로 `POST /api/user/login` 한 뒤 `Authorization: Bearer` 를 붙입니다. 화면은 로그인 스토어의 Access 토큰을 쓰면 됩니다.
+**CLI (데모)** `scripts/ins_chatbot.py` — `.env` 로그인 후 같은 도구를 Python에서 호출.
 
-프론트에 넣을 때는 **브라우저에 Gemini 키를 두지 마세요.**
+- Gemini 키는 서버 `.env` (`GEMINI_API_KEY`, `GEMINI_MODEL`). 브라우저에 두지 마세요.
+- `userId`는 JWT `sub`만 사용. 클라이언트가 다른 상담원 id를 넣을 수 없습니다.
 
 ---
 
@@ -49,47 +50,84 @@
 
 - `frontend/src/domains/ins/api/customers.ts` → `GET /api/customers?userId=`
 
-챗봇도 **같은 API**를 칩니다. 목록 스키마를 바꾸지 마세요.
+챗봇 HTTP는 목록 REST를 다시 치지 않고 **같은 서비스 함수**를 서버에서 직접 호출합니다. 목록 화면용 REST 스키마는 바꾸지 마세요.
 
 ---
 
-## 2. 권장 연동 구조
+## 2. API 계약 (프론트 연동)
 
-브라우저가 Gemini를 직접 부르지 말고, **백엔드가 한 번 감싸는 것**을 권장합니다.
+인증: 다른 보험 API와 동일. `Authorization: Bearer <accessToken>`  
+라우트에 `requireAuth`가 이미 걸려 있습니다.
 
-```
-Frontend 채팅 UI
-    → POST /api/insurance/chat   (아직 없음 · 추가 시)
-    → 서버에서 Gemini + 보험 API
-    → { reply, toolCalls? }
-```
+### 요청
 
-이유:
-
-- API 키가 프론트 번들에 안 나감
-- `userId`는 로그인 세션에서만 주입 (클라이언트가 임의 userId 조작 완화)
-- CLI 스크립트와 도구 목록을 맞출 수 있음
-
-1차 CLI만으로 데모할 때는 프론트 작업 **불필요**입니다.
-
-### 2.1 나중에 둘 파일 (제안)
-
-```
-frontend/src/domains/ins/
-├─ api/insChat.ts                 # POST /api/insurance/chat
-├─ components/InsChatPanel.tsx    # 채팅 UI
-└─ pages/CustomersPage.tsx        # 패널 슬롯만 (기존 목록 유지)
+```http
+POST /api/insurance/chat
+Content-Type: application/json
+Authorization: Bearer <accessToken>
 ```
 
-백엔드 (아직 없음):
-
+```json
+{
+  "message": "위험 점수 높은 고객 찾아줘",
+  "history": [
+    { "role": "user", "text": "안녕" },
+    { "role": "model", "text": "무엇을 도와드릴까요?" }
+  ]
+}
 ```
-backend/src/
-├─ routes/insurance.ts            # POST /chat 추가
-└─ services/insChat.service.ts    # 스크립트 도구와 동일 계약
+
+| 필드 | 필수 | 설명 |
+|------|------|------|
+| `message` | 예 | 이번 질문. 빈 문자열이면 400 |
+| `history` | 아니오 | 직전 대화. `role`: `user` \| `model` \| `assistant`. 텍스트는 `text` 또는 `content`. 서버가 최근 16턴만 사용 |
+
+### 성공 응답 `200`
+
+```json
+{
+  "success": true,
+  "data": {
+    "reply": "점수 높은 순으로 …",
+    "toolCalls": [
+      { "name": "find_high_risk_customers", "args": { "limit": 8 } }
+    ]
+  }
+}
 ```
 
-Python CLI (`scripts/ins_chatbot.py`)는 데모·검증용으로 남겨도 됩니다.
+| 필드 | 설명 |
+|------|------|
+| `reply` | 상담원에게 보여줄 한국어 |
+| `toolCalls` | 이번 턴에서 Gemini가 호출한 도구 이름·인자 (디버그/칩 표시용). 결과 원문은 없음 |
+
+### 오류
+
+| 상태 | 언제 |
+|------|------|
+| 400 | `message` 없음 |
+| 401 | 토큰 없음/만료 |
+| 502 | Gemini 실패 |
+| 503 | 서버에 `GEMINI_API_KEY` 없음 |
+
+### 프론트 호출 예 (`insChat.ts` 제안)
+
+```ts
+const res = await fetch(`${API_BASE}/api/insurance/chat`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${accessToken}`,
+  },
+  body: JSON.stringify({ message, history }),
+});
+```
+
+`userId`를 body에 넣지 마세요. 서버가 토큰에서 꺼냅니다.
+
+도구 목록은 CLI와 동일: `list_customers`, `find_high_risk_customers`, `get_customer_brief`, `get_coverage_report`, `analyze_risk`, `evaluate_discount_riders`.
+
+구현: `src/services/insChat.service.ts`, `POST /chat` in `src/routes/insurance.ts`.
 
 ---
 
@@ -97,7 +135,7 @@ Python CLI (`scripts/ins_chatbot.py`)는 데모·검증용으로 남겨도 됩�
 
 챗봇 도구가 호출하는 REST입니다. **신규 고객 API는 없습니다.**
 
-인증 헤더 없음. `userId` 쿼리 필수 (고객·이력).
+인증: 고객·상담 REST도 `requireAuth`입니다. 챗봇 `POST /api/insurance/chat`는 토큰만 있으면 되고 `userId` 쿼리는 쓰지 않습니다.
 
 `VITE_API_BASE_URL` 기본 `http://localhost:5000`.
 
