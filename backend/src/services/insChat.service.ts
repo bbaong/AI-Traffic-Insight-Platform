@@ -1,4 +1,3 @@
-import { prisma } from '../lib/prisma';
 import { HttpError } from '../lib/http';
 import { listCustomers, listCustomerConsultations } from './customer.service';
 import { getConsultationReport } from './consultationReport.service';
@@ -10,6 +9,16 @@ const GEMINI_MODEL =
   process.env.GEMINI_MODEL?.trim() || 'gemini-3.6-flash';
 const MAX_TOOL_ROUNDS = 6;
 const MAX_HISTORY = 16;
+
+/** 프론트 InsChatPanel 과 동일 — API 직접 호출 시 2차 차단 */
+export const OFF_TOPIC_REPLY =
+  '죄송합니다. 상담 외 목적은 도움을 드릴 수 없습니다.';
+
+const TOPIC_RE =
+  /고객|상담|위험|특약|스크립트|브리핑|점수|고위험|갱신|대인|대물|리포트|보험|사고|차량|지역|목록|진행/;
+
+const OFF_TOPIC_RE =
+  /점심|저녁|아침|뭐\s*먹|밥\s*먹|날씨|농담|게임|노래\s*추천|연애|주식\s*찍어|오늘\s*뭐해|심심/;
 
 export type InsChatHistoryItem = {
   role: 'user' | 'model' | 'assistant';
@@ -32,6 +41,29 @@ type GeminiContent = { role: string; parts: GeminiPart[] };
 
 function kstToday(): string {
   return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+}
+
+function isOffTopicMessage(message: string, customerNames: string[]): boolean {
+  const t = message.trim();
+  if (!t) return false;
+  if (customerNames.some((n) => n && t.includes(n))) return false;
+  if (TOPIC_RE.test(t)) return false;
+  return OFF_TOPIC_RE.test(t);
+}
+
+/** 잡담 정규식에 걸릴 때만 고객명을 조회해 프론트와 같은 판정을 한다. */
+async function resolveOffTopic(
+  message: string,
+  userId: bigint,
+): Promise<boolean> {
+  const t = message.trim();
+  if (!t || TOPIC_RE.test(t) || !OFF_TOPIC_RE.test(t)) return false;
+
+  const customers = await listCustomers(undefined, userId);
+  const names = customers
+    .map((c) => String(c.name ?? '').trim())
+    .filter(Boolean);
+  return isOffTopicMessage(message, names);
 }
 
 function maskPhone(phone: string | null | undefined): string | null {
@@ -71,7 +103,7 @@ function systemPrompt(): string {
 - 답은 한국어, 짧게. 목록은 이름 / 최근상담일 / 점수 / 등급 / 지역 형식으로.
 - 일반 보험 상식 질문은 도구 없이 답해도 됩니다.
 - 오늘 날짜(KST)는 ${kstToday()} 입니다.
-- 고객·상담·위험도·특약·스크립트와 무관한 일상/잡담(식사, 날씨, 농담 등)은 도구를 호출하지 말고 다음 한 문장만 답하세요: "죄송합니다. 상담 외 목적은 도움을 드릴 수 없습니다."`;
+- 고객·상담·위험도·특약·스크립트와 무관한 일상/잡담(식사, 날씨, 농담 등)은 도구를 호출하지 말고 다음 한 문장만 답하세요: "${OFF_TOPIC_REPLY}"`;
 }
 
 const TOOL_DECLARATIONS = [
@@ -315,17 +347,14 @@ async function toolReport(userId: bigint, args: Record<string, unknown>) {
   if (!/^\d+$/.test(cid)) {
     return { ok: false, error: 'consultation_id 가 숫자가 아닙니다.' };
   }
-  const owned = await prisma.consultations.findFirst({
-    where: {
-      consultation_id: BigInt(cid),
-      customers: { registered_by: userId },
-    },
-    select: { consultation_id: true },
-  });
-  if (!owned) {
-    return { ok: false, error: '해당 상담을 찾을 수 없습니다.' };
+
+  const report = await getConsultationReport(BigInt(cid), userId);
+  if (!report) {
+    return {
+      ok: false,
+      error: '해당 상담을 찾을 수 없거나 담보 리포트를 생성할 수 없습니다.',
+    };
   }
-  const report = await getConsultationReport(BigInt(cid));
   return { ok: true, report };
 }
 
@@ -431,6 +460,10 @@ export async function runInsChat(input: {
   message: string;
   history?: InsChatHistoryItem[];
 }): Promise<InsChatResult> {
+  if (await resolveOffTopic(input.message, input.userId)) {
+    return { reply: OFF_TOPIC_REPLY, toolCalls: [] };
+  }
+
   const contents: GeminiContent[] = [
     ...historyToContents(input.history ?? []),
     { role: 'user', parts: [{ text: input.message }] },
