@@ -25,7 +25,7 @@ let refreshInFlight: Promise<{
   refreshToken: string;
 } | null> | null = null;
 
-async function refreshOnce(): Promise<{
+export async function refreshOnce(): Promise<{
   accessToken: string;
   refreshToken: string;
 } | null> {
@@ -42,6 +42,7 @@ export async function apiFetch(
   path: string,
   init: RequestInit = {},
   params?: QueryParams,
+  options?: { logoutOn401?: boolean },
 ): Promise<Response> {
   const run = (accessToken: string | null) => {
     const headers = new Headers(init.headers);
@@ -57,7 +58,9 @@ export async function apiFetch(
   if (res.status === 401) {
     const next = await refreshOnce();
     if (!next) {
-      useAuthStore.getState().clearUser();
+      if (options?.logoutOn401 !== false) {
+        useAuthStore.getState().clearUser();
+      }
       return res;
     }
     useAuthStore.getState().setAccessToken(next.accessToken, next.refreshToken);

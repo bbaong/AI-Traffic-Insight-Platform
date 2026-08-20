@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { ReportDrawer } from '../components/customers/ReportDrawer';
+import { InsChatPanel } from '../components/InsChatPanel';
 import { ConfirmDialog } from '../../../shared/components/ui/ConfirmDialog';
 import {
   CONSULTATION_TYPE_META,
@@ -648,6 +649,11 @@ export function CustomersPage() {
         onCancel={() => {
           if (!hiding) setHideOpen(false);
         }}
+      />
+      <InsChatPanel
+        customers={list}
+        selectedName={selectedCustomerFromList?.name ?? null}
+        onSelectCustomer={selectCustomer}
       />
     </div>
   );

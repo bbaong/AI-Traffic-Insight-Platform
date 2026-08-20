@@ -19,6 +19,7 @@
 | [signup-api-integration.md](signup-api-integration.md) | 회원가입 API 연동 |
 | [mypage.md](mypage.md) | 마이페이지 |
 | [ins-customers-page.md](ins-customers-page.md) | 보험사 고객관리 (목록·이력 실API + 리포트 목업) |
+| [0820chatbot.md](0820chatbot.md) | 2026-08-20 보험 상담 챗봇 UI 연동 보고 |
 
 ---
 
