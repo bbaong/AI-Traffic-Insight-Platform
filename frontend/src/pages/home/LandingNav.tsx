@@ -5,11 +5,7 @@ import { signOut } from '../../domains/auth/api/auth';
 import { useAuthStore } from '../../shared/stores/authStore';
 import buttonStyles from './landingButtons.module.css';
 import styles from './LandingNav.module.css';
-import { jumpToPageTop } from '../../shared/utils/jumpToPageTop';
-import {
-  scrollToLandingSection,
-  scrollToLandingTop,
-} from './scrollToLandingSection';
+import { scrollToLandingTop } from './scrollToLandingSection';
 
 export function LandingNav() {
   const user = useAuthStore((s) => s.user);
@@ -27,12 +23,15 @@ export function LandingNav() {
     await signOut(ROUTES.LANDING);
   }
 
-  function goToHomeSection(id: string): void {
+  function goToHomeTop(): void {
     if (location.pathname === ROUTES.LANDING) {
-      scrollToLandingSection(id);
+      if (location.hash) {
+        navigate({ pathname: ROUTES.LANDING }, { replace: true });
+      }
+      scrollToLandingTop();
       return;
     }
-    navigate({ pathname: ROUTES.LANDING, hash: `#${id}` });
+    navigate(ROUTES.LANDING);
   }
 
   function handleLogoClick(e: MouseEvent<HTMLAnchorElement>): void {
@@ -69,7 +68,7 @@ export function LandingNav() {
           <button
             type="button"
             className={styles.anchorLink}
-            onClick={() => goToHomeSection('intro')}
+            onClick={goToHomeTop}
           >
             서비스 소개
           </button>
@@ -78,7 +77,6 @@ export function LandingNav() {
             className={({ isActive }) =>
               `${styles.anchorLink} ${isActive ? styles.anchorLinkActive : ''}`
             }
-            onClick={jumpToPageTop}
           >
             지자체 솔루션
           </NavLink>
@@ -87,7 +85,6 @@ export function LandingNav() {
             className={({ isActive }) =>
               `${styles.anchorLink} ${isActive ? styles.anchorLinkActive : ''}`
             }
-            onClick={jumpToPageTop}
           >
             보험사 솔루션
           </NavLink>

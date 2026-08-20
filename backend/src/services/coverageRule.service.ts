@@ -42,7 +42,7 @@ const LOW_REPORT = build(
   ],
   [
     '자동차손해배상 보장법 의무담보',
-    'Low 등급 · 대인 II 표준 약관',
+    '낮음 등급 · 대인 II 표준 약관',
     '유사 프로필 대물 사고 비중',
     '경미 사고 발생 빈도',
     '자차 손해 발생률',
@@ -62,7 +62,7 @@ const MODERATE_REPORT = build(
   ],
   [
     '자동차손해배상 보장법 의무담보',
-    'Moderate 등급 · 대인 사고 비중',
+    '보통 등급 · 대인 사고 비중',
     '유사 프로필 대물 사고 비중',
     '치료비·위자료 노출',
     '자차 손해 발생률',
@@ -82,7 +82,7 @@ const HIGH_REPORT = build(
   ],
   [
     '자동차손해배상 보장법 의무담보',
-    'High 등급 · 대인 사고 경향',
+    '높음 등급 · 대인 사고 경향',
     '대물 사고 비중·한도 부족 리스크',
     '중상 가능성',
     '자차 손해 발생률',
@@ -102,7 +102,7 @@ const CRITICAL_REPORT = build(
   ],
   [
     '자동차손해배상 보장법 의무담보',
-    'Critical 등급 · 대인 고위험',
+    '매우높음 등급 · 대인 고위험',
     '고액 대물 사고 노출',
     '중상 사고 비중',
     '자차 전손·고액 수리 리스크',
@@ -114,9 +114,10 @@ export function recommendCoverages(input: {
   riskGrade: string | null | undefined;
 }): CoverageReportItem[] {
   const g = String(input.riskGrade ?? '').trim();
-  if (g === 'Low') return LOW_REPORT;
-  if (g === 'Moderate') return MODERATE_REPORT;
-  if (g === 'High') return HIGH_REPORT;
-  if (g === 'Critical') return CRITICAL_REPORT;
+  const key = g.toUpperCase().replace(/\s/g, '');
+  if (key === 'LOW' || g === '낮음') return LOW_REPORT;
+  if (key === 'MODERATE' || key === 'MEDIUM' || g === '보통') return MODERATE_REPORT;
+  if (key === 'HIGH' || g === '높음') return HIGH_REPORT;
+  if (key === 'CRITICAL' || g === '매우높음' || g === '매우 높음') return CRITICAL_REPORT;
   return [];
 }

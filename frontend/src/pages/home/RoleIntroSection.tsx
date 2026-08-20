@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom';
 import govPhoto from '../../assets/images/role-gov.png';
 import insPhoto from '../../assets/images/role-ins.png';
 import { ROUTES } from '../../shared/constants/routes';
-import { jumpToPageTop } from '../../shared/utils/jumpToPageTop';
 import styles from './RoleIntroSection.module.css';
 import { useFadeInClassName } from './useFadeInClassName';
 
@@ -47,7 +46,6 @@ export function RoleIntroSection() {
               to={card.to}
               className={`${styles.card} ${card.tone === 'gov' ? styles.cardGov : styles.cardIns}`}
               aria-label={`${card.label} 솔루션 보기`}
-              onClick={jumpToPageTop}
             >
               <img src={card.image} alt="" className={styles.cardImage} />
               <div className={styles.cardOverlay} aria-hidden="true" />

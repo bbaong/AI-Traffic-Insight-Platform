@@ -22,8 +22,8 @@ export function SolutionHero({
   const { ref, className, visible } = useFadeInClassName({
     threshold: 0.2,
     subLanding: true,
+    checkOnMount: true,
   });
-
   return (
     <section
       ref={ref}
@@ -32,7 +32,7 @@ export function SolutionHero({
     >
       <div className={styles.inner}>
         <div className={styles.copy}>
-          <Link to={{ pathname: ROUTES.LANDING, hash: '#intro' }} className={styles.back}>
+          <Link to={ROUTES.LANDING} className={styles.back}>
             ← 전체 서비스 보기
           </Link>
           <p className={styles.eyebrow}>{eyebrow}</p>

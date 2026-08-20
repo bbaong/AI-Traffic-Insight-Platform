@@ -1,8 +1,8 @@
 export const GRADE_LABEL: Record<string, string> = {
-    CRITICAL: 'Critical',
-    HIGH: 'High',
-    MODERATE: 'Moderate',
-    LOW: 'Low',
+    CRITICAL: '매우높음',
+    HIGH: '높음',
+    MODERATE: '보통',
+    LOW: '낮음',
   };
   
   export const TOKK_LABEL: Record<string, string> = {
