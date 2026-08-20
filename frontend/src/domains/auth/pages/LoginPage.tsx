@@ -84,7 +84,6 @@ export function LoginPage() {
         return;
       }
 
-      // TODO: user_login_logs 기록 + last_login_at 갱신 (서버 담당)
       setFailCount(0);
       setLockedUntil(null);
       setSession(result.user, result.accessToken, result.refreshToken, remember);

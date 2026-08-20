@@ -89,7 +89,7 @@ export function ReportDrawer({
                 {customerName} · {formatConsultDate(consultation.consultedAt)}{' '}
                 {consultationTypeLabel(consultation.consultationType)} · 위험{' '}
                 {score}
-                {gradeMeta ? ` ${gradeMeta.label}` : ''}
+                {gradeMeta ? ` ${gradeMeta.ko}` : ''}
               </p>
             ) : null}
           </div>

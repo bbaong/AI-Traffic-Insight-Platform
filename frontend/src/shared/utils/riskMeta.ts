@@ -1,4 +1,5 @@
 import type { RiskLevel } from '../types/dashboard';
+import { RISK_LABEL_KO } from '../constants/riskLabels';
 
 export interface RiskLevelMeta {
   label: string;
@@ -7,25 +8,25 @@ export interface RiskLevelMeta {
 }
 
 const RISK_META: Record<RiskLevel, RiskLevelMeta> = {
-  CRITICAL: {
-    label: '매우높음',
-    icon: '⚠',
-    colorVar: 'var(--risk-critical)',
+  CRITICAL: { 
+    label: RISK_LABEL_KO.CRITICAL, 
+    icon: '⚠', 
+    colorVar: 'var(--risk-critical)' 
   },
-  HIGH: {
-    label: '높음',
-    icon: '▲',
-    colorVar: 'var(--risk-high)',
+  HIGH: { 
+    label: RISK_LABEL_KO.HIGH, 
+    icon: '▲', 
+    colorVar: 'var(--risk-high)' 
   },
-  MODERATE: {
-    label: '보통',
+  MODERATE: { 
+    label: RISK_LABEL_KO.MODERATE, 
     icon: '△',
-    colorVar: 'var(--risk-moderate)',
+    colorVar: 'var(--risk-moderate)' 
   },
-  LOW: {
-    label: '낮음',
-    icon: '●',
-    colorVar: 'var(--risk-low)',
+  LOW: { 
+    label: RISK_LABEL_KO.LOW, 
+    icon: '●', 
+    colorVar: 'var(--risk-low)' 
   },
 };
 

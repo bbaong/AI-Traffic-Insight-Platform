@@ -9,6 +9,7 @@ import type {
 import { formatPct1, toRiskGrade } from '../utils/riskMeta';
 import { TaasCredit } from '../../../shared/components/ui/TaasCredit';
 import styles from './AiAnalysisResultCard.module.css';
+import { RISK_LABEL_KO } from '../../../shared/constants/riskLabels';
 
 type Props = {
   profile: ProfileInput;
@@ -16,13 +17,6 @@ type Props = {
   analyzeLoading: boolean;
   /** Step1 좌측 카드와 동일 높이로 stretch */
   fill?: boolean;
-};
-
-const GRADE_KO: Record<RiskGrade, string> = {
-  LOW: '낮음',
-  MODERATE: '보통',
-  HIGH: '높음',
-  CRITICAL: '위험',
 };
 
 const GRADE_TONE: Record<RiskGrade, string> = {
@@ -63,7 +57,7 @@ function parseAxis(raw: InsRiskAxis | undefined) {
   return {
     score: Math.min(100, Math.max(0, Number(raw.점수))),
     grade,
-    label: raw.라벨?.trim() || GRADE_KO[grade],
+    label: raw.라벨?.trim() || RISK_LABEL_KO[grade],
     desc: raw.설명?.trim() ?? '',
   };
 }
@@ -347,7 +341,7 @@ export function AiAnalysisResultCard({
               <div
                 className={styles.gaugeSvgWrap}
                 role="img"
-                aria-label={`위험 점수 ${score.toFixed(1)}점, ${GRADE_KO[grade]}`}
+                aria-label={`위험 점수 ${score.toFixed(1)}점, ${RISK_LABEL_KO[grade]}`}
               >
                 <svg
                   className={styles.gaugeSvg}
@@ -388,7 +382,7 @@ export function AiAnalysisResultCard({
                 </svg>
                 <div className={styles.gaugeCenter}>
                   <span className={`${styles.gradePill} ${GRADE_TONE[grade]}`}>
-                    {GRADE_KO[grade]}
+                    {RISK_LABEL_KO[grade]}
                   </span>
                   <p className={styles.scoreLine}>
                     <span className={styles.scoreVal}>{score.toFixed(1)}</span>

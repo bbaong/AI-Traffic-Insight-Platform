@@ -5,6 +5,7 @@ import { useAuthStore } from '../../shared/stores/authStore';
 import styles from './MyPage.module.css';
 import { isValidEmail } from '../../shared/utils/email';
 
+// 가입 날짜 포맷
 function formatDateOnly(value: string | null): string | null {
   if (!value) return null;
   const d = new Date(value);
@@ -16,6 +17,7 @@ function formatDateOnly(value: string | null): string | null {
   });
 }
 
+// 최그 로그인 시간 포맷
 function formatDateTime(value: string | null): string | null {
   if (!value) return null;
   const d = new Date(value);
@@ -29,6 +31,7 @@ function formatDateTime(value: string | null): string | null {
   });
 }
 
+// 가입 날짜 아이콘
 function CalendarIcon() {
   return (
     <svg
@@ -44,6 +47,7 @@ function CalendarIcon() {
   );
 }
 
+// 최근 로그인 시간 아이콘
 function ClockIcon() {
   return (
     <svg
@@ -59,6 +63,7 @@ function ClockIcon() {
   );
 }
 
+// 마이페이지
 export function MyPage() {
   const user = useAuthStore((s) => s.user);
   const patchUser = useAuthStore((s) => s.patchUser);
@@ -79,6 +84,7 @@ export function MyPage() {
 
   const isGov = user?.role === 'ROLE_A';
 
+  // 이메일 및 직급 초기화
   useEffect(() => {
     setEmail(user?.email?.trim() ?? '');
     setEmailFeedback(null);
@@ -86,6 +92,7 @@ export function MyPage() {
     setPositionFeedback(null);
   }, [user?.userId]);
 
+  // 이메일 조회
   useEffect(() => {
     setEmail(user?.email?.trim() ?? '');
   }, [user?.email]);
@@ -94,9 +101,7 @@ export function MyPage() {
     setPositionInput(user?.position?.trim() ?? '');
   }, [user?.position]);
 
-  // TODO: 서버 로그인 응답에 department_name 추가 필요 (departments join)
-  // 현재 auth.ts는 department_name이 오면 매핑하고, 없으면 null.
-  // null + departmentId만 있을 때 fetchDepartments로 임시 매칭.
+  // 소속 부서 조회
   useEffect(() => {
     if (!user || user.role !== 'ROLE_A') {
       setResolvedDeptName(null);
