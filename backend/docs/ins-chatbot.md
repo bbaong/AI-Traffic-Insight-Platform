@@ -1,8 +1,7 @@
 # 보험 상담 챗봇 — 사용 가이드
 
-> **스크립트:** `backend/scripts/ins_chatbot.py`  
-> **역할:** Gemini가 Express 보험 API를 호출해 상담원 질문에 답함  
-> **프론트:** 1차에서는 **사용하지 않음** (CLI만)  
+> **HTTP:** `POST /api/insurance/chat` (JWT, 프론트용)  
+> **CLI:** `backend/scripts/ins_chatbot.py`  
 > **관련:** [프론트 인수인계](./ins-chatbot-frontend-handoff.md)
 
 ---

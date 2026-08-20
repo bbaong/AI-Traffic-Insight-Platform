@@ -6,6 +6,31 @@ import {
 } from '../services/pdf/insReportPdf.service';
 import { ok, handleRouteError, HttpError } from '../lib/http';
 import { sendPdfByEmail } from '../services/email.service';
+import {
+  runInsChat,
+  type InsChatHistoryItem,
+} from '../services/insChat.service';
+
+export const chatInsurance = async (req: Request, res: Response) => {
+  try {
+    const userId = req.auth?.userId;
+    if (userId == null) {
+      throw new HttpError('인증이 필요합니다.', 401);
+    }
+    const message = String(req.body?.message ?? '').trim();
+    if (!message) {
+      throw new HttpError('message 가 필요합니다.', 400);
+    }
+    const rawHistory = req.body?.history;
+    const history = Array.isArray(rawHistory)
+      ? (rawHistory as InsChatHistoryItem[])
+      : [];
+    const data = await runInsChat({ userId, message, history });
+    return ok(res, data);
+  } catch (error) {
+    return handleRouteError(res, error, '챗봇 요청 실패');
+  }
+};
 
 //분석
 export const analyzeInsurance = async (req: Request, res: Response) => {

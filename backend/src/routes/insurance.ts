@@ -3,9 +3,12 @@ import {
   analyzeInsurance,
   reportPdfInsurance,
   sendReportPdfInsurance,
+  chatInsurance,
 } from '../controllers/insurance.controller';
 
 const router = Router();
+
+router.post('/chat', chatInsurance);
 
 //분석 //http://localhost:5000/api/insurance/analyze
 router.post('/analyze', analyzeInsurance);
