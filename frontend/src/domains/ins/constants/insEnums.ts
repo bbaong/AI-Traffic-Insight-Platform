@@ -32,7 +32,7 @@ export const RIDER_BADGE_META: Record<RiderBadge, { label: string; color: string
   > = {
     Low:      { label: RISK_LABEL_KO.LOW,      ko: RISK_LABEL_KO.LOW,      color: '#2E8B4E', bg: '#E7F4EA' },
     Moderate: { label: RISK_LABEL_KO.MODERATE, ko: RISK_LABEL_KO.MODERATE, color: '#CA8A04', bg: '#FEF6D8' },
-    High:     { label: RISK_LABEL_KO.HIGH,     ko: RISK_LABEL_KO.HIGH,     color: '#F77C34', bg: '#FEF6D8' },
+    High:     { label: RISK_LABEL_KO.HIGH,     ko: RISK_LABEL_KO.HIGH,     color: '#F77C34', bg: '#FEF1E8' },
     Critical: { label: RISK_LABEL_KO.CRITICAL, ko: RISK_LABEL_KO.CRITICAL, color: '#B3261E', bg: '#FBE5E3' },
   };
 
