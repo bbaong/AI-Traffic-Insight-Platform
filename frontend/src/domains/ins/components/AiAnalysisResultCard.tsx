@@ -7,7 +7,7 @@ import type {
   RiskGrade,
 } from '../types/prediction';
 import { formatPct1, toRiskGrade } from '../utils/riskMeta';
-import { TaasCredit } from '../../../shared/components/ui/TaasCredit';
+import { InsModelCredit } from '../../../shared/components/ui/TaasCredit';
 import styles from './AiAnalysisResultCard.module.css';
 import { RISK_LABEL_KO } from '../../../shared/constants/riskLabels';
 
@@ -279,7 +279,7 @@ export function AiAnalysisResultCard({
           <p className={styles.lockText}>AI 분석 후 결과를 확인할 수 있습니다</p>
         </div>
         <p className={styles.source}>
-          <TaasCredit variant="model" />
+          <InsModelCredit />
         </p>
       </section>
     );
@@ -291,7 +291,7 @@ export function AiAnalysisResultCard({
         <h2 className={styles.title}>AI 분석 결과</h2>
         <p className={styles.loading}>분석 중입니다…</p>
         <p className={styles.source}>
-          <TaasCredit variant="model" />
+          <InsModelCredit />
         </p>
       </section>
     );
@@ -523,7 +523,7 @@ export function AiAnalysisResultCard({
         ) : null}
       </div>
       <p className={styles.source}>
-        <TaasCredit variant="model" />
+        <InsModelCredit />
       </p>
     </section>
   );

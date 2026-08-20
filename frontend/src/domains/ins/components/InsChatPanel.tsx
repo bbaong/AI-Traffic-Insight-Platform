@@ -20,6 +20,8 @@ const CHIPS = [
   '진행 중 고위험',
 ] as const;
 
+const SCRIPT_TEMPLATE = '고객의 핵심 스크립트 작성해줘';
+
 const LIST_TOOLS = new Set(['list_customers', 'find_high_risk_customers']);
 const SIM_TOOLS = new Set(['analyze_risk', 'evaluate_discount_riders']);
 
@@ -122,11 +124,9 @@ function scoreTone(
 
 export function InsChatPanel({
   customers,
-  selectedName,
   onSelectCustomer,
 }: {
   customers: CustomerListItem[];
-  selectedName: string | null;
   onSelectCustomer: (customerId: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -137,18 +137,23 @@ export function InsChatPanel({
     customerId: string;
     name: string;
   } | null>(null);
+  const [scriptHint, setScriptHint] = useState(false);
+  const [scriptName, setScriptName] = useState('');
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const scriptNameRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
     const el = scrollerRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [open, bubbles, sending]);
+  }, [open, bubbles, sending, scriptHint]);
 
   useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
+    if (!open) return;
+    if (scriptHint) scriptNameRef.current?.focus();
+    else inputRef.current?.focus();
+  }, [open, scriptHint]);
 
   async function send(text: string) {
     const message = text.trim();
@@ -159,6 +164,8 @@ export function InsChatPanel({
     setBubbles((prev) => [...prev, userBubble]);
     setDraft('');
     setBriefChip(null);
+    setScriptHint(false);
+    setScriptName('');
 
     const names = customers.map((c) => c.name.trim()).filter(Boolean);
     if (isOffTopic(message, names)) {
@@ -206,8 +213,8 @@ export function InsChatPanel({
     }
   }
 
-  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
       e.preventDefault();
       void send(draft);
     }
@@ -274,22 +281,57 @@ export function InsChatPanel({
                   <button
                     type="button"
                     className={styles.chip}
-                    disabled={!selectedName}
-                    title={
-                      selectedName
-                        ? undefined
-                        : '왼쪽에서 고객을 먼저 선택하세요'
-                    }
                     onClick={() => {
-                      if (!selectedName) return;
-                      void send(`${selectedName} 고객의 핵심 스크립트 작성해줘`);
+                      setDraft('');
+                      setScriptName('');
+                      setScriptHint(true);
                     }}
                   >
-                    {selectedName
-                      ? `「${selectedName}」 핵심 스크립트`
-                      : '핵심 스크립트'}
+                    고객님 상담 스크립트
                   </button>
                 </div>
+                {scriptHint ? (
+                  <div className={styles.propose}>
+                    <span className={styles.proposeBadge}>작업 제안</span>
+                    <p className={styles.proposeTitle}>상담 스크립트 작성</p>
+                    <p className={styles.proposeCopy}>
+                      고객님의 성함을 작성해 주세요
+                    </p>
+                    <div className={styles.proposeRow}>
+                      <input
+                        ref={scriptNameRef}
+                        className={styles.proposeInput}
+                        type="text"
+                        value={scriptName}
+                        disabled={sending}
+                        placeholder="성함"
+                        autoComplete="off"
+                        data-gramm="false"
+                        onChange={(e) => setScriptName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const name = scriptName.trim();
+                            if (!name) return;
+                            void send(`${name} ${SCRIPT_TEMPLATE}`);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className={styles.proposeGo}
+                        disabled={sending || !scriptName.trim()}
+                        onClick={() => {
+                          const name = scriptName.trim();
+                          if (!name) return;
+                          void send(`${name} ${SCRIPT_TEMPLATE}`);
+                        }}
+                      >
+                        작성
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -409,15 +451,17 @@ export function InsChatPanel({
 
           <footer className={styles.composer}>
             <div className={styles.composerBar}>
-              <textarea
+              <input
                 ref={inputRef}
                 className={styles.input}
-                rows={1}
+                type="text"
                 value={draft}
                 disabled={sending}
                 placeholder={
                   sending ? '응답을 기다리는 중…' : '질문을 입력하세요...'
                 }
+                autoComplete="off"
+                data-gramm="false"
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={handleKeyDown}
               />

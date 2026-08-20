@@ -652,7 +652,6 @@ export function CustomersPage() {
       />
       <InsChatPanel
         customers={list}
-        selectedName={selectedCustomerFromList?.name ?? null}
         onSelectCustomer={selectCustomer}
       />
     </div>

@@ -675,6 +675,7 @@
   margin-top: 6px;
   min-height: 52px;
   display: flex;
+  flex-shrink: 0;
 }
 
 .riskHead .axisEmptyBadge {
@@ -709,14 +710,13 @@
 
 .consultPoint p {
   margin: 0;
+  min-width: 0;
   font-size: 11.5px;
-  line-height: 1.4;
+  line-height: 1.45;
   color: var(--color-body);
+  overflow-wrap: anywhere;
   word-break: keep-all;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  white-space: normal;
 }
 
 .consultPoint strong {
@@ -1134,6 +1134,7 @@
   .detailGrid,
   .detailStack,
   .historyCard,
+  .riskCard,
   .ridersCard {
     overflow: visible;
     min-height: 0;

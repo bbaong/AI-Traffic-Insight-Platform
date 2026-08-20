@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react';
-import { TAAS_NAME, TAAS_URL } from '../../constants/sources';
+import {
+  MOIS_POP_DATASET,
+  MOIS_POP_NAME,
+  MOIS_POP_URL,
+  TAAS_NAME,
+  TAAS_URL,
+} from '../../constants/sources';
 import styles from './TaasCredit.module.css';
 
 type TaasLinkProps = {
@@ -47,6 +53,26 @@ export function TaasCredit({ variant, className }: TaasCreditProps) {
   return (
     <span className={className}>
       학습 데이터 · 도로교통공단 <TaasLink>TAAS</TaasLink> (2016–2025)
+    </span>
+  );
+}
+
+export function InsModelCredit({ className }: { className?: string }) {
+  return (
+    <span className={className}>
+      학습 데이터 · 도로교통공단 <TaasLink>TAAS</TaasLink> (2016–2025)
+      <br />
+      발생 위험 · 행정안전부{' '}
+      <a
+        href={MOIS_POP_URL}
+        className={styles.link}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`${MOIS_POP_NAME} 새 창에서 열기`}
+      >
+        {MOIS_POP_NAME}
+      </a>
+      , 「{MOIS_POP_DATASET}」
     </span>
   );
 }

@@ -184,6 +184,92 @@
   cursor: not-allowed;
 }
 
+.propose {
+  width: 100%;
+  max-width: 280px;
+  margin: 6px auto 0;
+  padding: 14px 14px 12px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgb(247 124 52 / 10%);
+  box-sizing: border-box;
+}
+
+.proposeBadge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: var(--color-amber);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.proposeTitle {
+  margin: 8px 0 4px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.proposeCopy {
+  margin: 0 0 12px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #5a6b80;
+}
+
+.proposeRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.proposeInput {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  margin: 0;
+  padding: 0 10px;
+  border: 0.5px solid var(--color-border);
+  border-radius: 8px;
+  background: #fafbfc;
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-ink);
+}
+
+.proposeInput:focus {
+  outline: none;
+  border-color: var(--color-amber);
+  background: #fff;
+}
+
+.proposeGo {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-amber);
+  color: #fff;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.proposeGo:disabled {
+  background: #e8edf2;
+  color: #94a3b8;
+  cursor: not-allowed;
+}
+
 .userBubble {
   align-self: flex-end;
   max-width: 86%;
@@ -460,7 +546,7 @@
 
 .composerBar {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 4px;
   min-height: 44px;
   padding: 4px 4px 4px 14px;
@@ -476,14 +562,14 @@
 .input {
   flex: 1;
   min-width: 0;
-  resize: none;
-  min-height: 36px;
-  max-height: 72px;
-  padding: 8px 4px 8px 0;
+  height: 36px;
+  margin: 0;
+  padding: 0 8px 0 0;
   border: none;
   background: transparent;
   font: inherit;
   font-size: 13px;
+  line-height: 36px;
   color: var(--color-ink);
 }
 
