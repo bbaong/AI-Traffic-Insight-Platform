@@ -5,6 +5,7 @@ import type {
   CustomerRiskGrade,
   RiderBadge,
 } from '../types/customers';
+import { RISK_LABEL_KO } from '../../../shared/constants/riskLabels';
 
 export const CONSULTATION_TYPE_META: Record<
   ConsultationTypeCode,
@@ -25,15 +26,15 @@ export const RIDER_BADGE_META: Record<RiderBadge, { label: string; color: string
     EXISTING_MEMBER_VERIFIED: { label: '기존 가입', color: '#4574A8' },
   };
 
-export const RISK_GRADE_META: Record<
-  CustomerRiskGrade,
-  { label: string; ko: string; color: string; bg: string }
-> = {
-  Low: { label: 'Low', ko: '낮음', color: '#2E8B4E', bg: '#E7F4EA' },
-  Moderate: { label: 'Moderate', ko: '보통', color: '#CA8A04', bg: '#FEF6D8' },
-  High: { label: 'High', ko: '높음', color: '#F77C34', bg: '#FEF1E8' },
-  Critical: { label: 'Critical', ko: '위험', color: '#B3261E', bg: '#FBE5E3' },
-};
+  export const RISK_GRADE_META: Record<
+    CustomerRiskGrade,
+    { label: string; ko: string; color: string; bg: string }
+  > = {
+    Low:      { label: RISK_LABEL_KO.LOW,      ko: RISK_LABEL_KO.LOW,      color: '#2E8B4E', bg: '#E7F4EA' },
+    Moderate: { label: RISK_LABEL_KO.MODERATE, ko: RISK_LABEL_KO.MODERATE, color: '#CA8A04', bg: '#FEF6D8' },
+    High:     { label: RISK_LABEL_KO.HIGH,     ko: RISK_LABEL_KO.HIGH,     color: '#F77C34', bg: '#FEF6D8' },
+    Critical: { label: RISK_LABEL_KO.CRITICAL, ko: RISK_LABEL_KO.CRITICAL, color: '#B3261E', bg: '#FBE5E3' },
+  };
 
 export const RIDER_KEY_LABEL: Record<string, string> = {
   mileage_discount: '마일리지 할인특약',

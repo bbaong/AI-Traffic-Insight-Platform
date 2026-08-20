@@ -1,4 +1,5 @@
 import type { RiskGrade } from '../types/prediction';
+import { RISK_LABEL_KO } from '../../../shared/constants/riskLabels';
 
 export interface InsRiskMeta {
   label: string;
@@ -8,26 +9,10 @@ export interface InsRiskMeta {
 }
 
 export const RISK_META: Record<RiskGrade, InsRiskMeta> = {
-  CRITICAL: {
-    label: 'Critical',
-    color: 'var(--risk-critical)',
-    icon: '⚠',
-  },
-  HIGH: {
-    label: 'High',
-    color: 'var(--risk-high)',
-    icon: '▲',
-  },
-  MODERATE: {
-    label: 'Moderate',
-    color: 'var(--risk-moderate)',
-    icon: '△',
-  },
-  LOW: {
-    label: 'Low',
-    color: 'var(--risk-low)',
-    icon: '●',
-  },
+  CRITICAL: { label: RISK_LABEL_KO.CRITICAL, color: 'var(--risk-critical)', icon: '⚠' },
+  HIGH:     { label: RISK_LABEL_KO.HIGH,     color: 'var(--risk-high)',     icon: '▲' },
+  MODERATE: { label: RISK_LABEL_KO.MODERATE, color: 'var(--risk-moderate)', icon: '△' },
+  LOW:      { label: RISK_LABEL_KO.LOW,      color: 'var(--risk-low)',      icon: '●' },
 };
 
 export function toRiskGrade(value: string): RiskGrade {

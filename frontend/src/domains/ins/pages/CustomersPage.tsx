@@ -458,9 +458,9 @@ export function CustomersPage() {
                   <div className={styles.riskBody}>
                     <div className={styles.riskHead}>
                       <p className={styles.riskScore}>
-                        {hasRiskScore && riskConsult
-                          ? riskConsult.riskScore.toFixed(1)
-                          : '—'}
+                      {riskConsult?.riskScore != null
+                        ? riskConsult.riskScore.toFixed(1)
+                        : '—'}
                         <span> / 100</span>
                       </p>
                       {riskMeta ? (
