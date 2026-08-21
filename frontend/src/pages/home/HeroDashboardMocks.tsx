@@ -72,7 +72,7 @@ function DashShell({
     >
       <aside className={styles.sidebar}>
         <div className={styles.brand}>
-          <img src="/icon_logo.png" alt="" className={styles.logo} />
+          <img src={`${import.meta.env.BASE_URL}icon_logo.png`} alt="" className={styles.logo} />
           <span className={styles.brandName}>AI Traffic Insight</span>
         </div>
         <nav className={styles.nav}>

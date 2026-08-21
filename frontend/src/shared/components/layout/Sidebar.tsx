@@ -64,7 +64,7 @@ export function Sidebar({ role, open = false, onNavigate }: SidebarProps) {
         onClick={onNavigate}
       >
         <img
-          src="/icon_logo.png"
+          src={`${import.meta.env.BASE_URL}icon_logo.png`}
           alt=""
           className={styles.logoMark}
           aria-hidden="true"
