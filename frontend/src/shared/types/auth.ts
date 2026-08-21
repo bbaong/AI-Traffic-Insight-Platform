@@ -1,0 +1,24 @@
+export type UserRole = 'ROLE_A' | 'ROLE_B';
+
+export interface LoginPayload {
+  loginId: string;
+  password: string;
+}
+
+export type AuthUser = {
+  userId: number;
+  loginId: string;
+  name: string;
+  role: UserRole;
+  position: string | null;
+  email: string | null;
+  departmentId: number | null;
+  departmentName: string | null; // 없으면 null (추후 API)
+  orgName: string | null;
+  createdAt: string | null;
+  lastLoginAt: string | null;
+};
+
+export type LoginResult =
+  | { ok: true; user: AuthUser; accessToken: string; refreshToken: string }
+  | { ok: false; reason: 'INVALID' | 'INACTIVE' };

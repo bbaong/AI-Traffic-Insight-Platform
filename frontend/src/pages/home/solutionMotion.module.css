@@ -1,0 +1,99 @@
+/* Shared motion for gov/ins sub-landing pages */
+
+.flowStep {
+  opacity: 0;
+  transform: translateY(14px);
+}
+
+.flowReady .flowStep {
+  animation: solutionFlowStepIn 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.flowReady .flowStep:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.flowReady .flowStep:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.flowReady .flowStep:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+.flowReady .flowStep:nth-child(4) {
+  animation-delay: 0.54s;
+}
+
+.flowLine {
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.flowReady .flowStep:nth-child(2) .flowLine {
+  animation: solutionFlowLineIn 0.45s ease 0.13s forwards;
+}
+
+.flowReady .flowStep:nth-child(3) .flowLine {
+  animation: solutionFlowLineIn 0.45s ease 0.31s forwards;
+}
+
+.flowReady .flowStep:nth-child(4) .flowLine {
+  animation: solutionFlowLineIn 0.45s ease 0.49s forwards;
+}
+
+.baCard {
+  opacity: 0;
+  transform: translateY(16px);
+}
+
+.baReady .baCard:nth-child(1) {
+  animation: solutionFlowStepIn 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.baReady .baCard:nth-child(2) {
+  animation: solutionFlowStepIn 0.72s cubic-bezier(0.16, 1, 0.3, 1) 0.16s forwards;
+}
+
+.report {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+:global([data-revealed]) .report {
+  animation: solutionReportIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+}
+
+@keyframes solutionFlowStepIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes solutionFlowLineIn {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes solutionReportIn {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flowStep,
+  .baCard,
+  .report {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .flowLine {
+    transform: scaleX(1);
+  }
+}

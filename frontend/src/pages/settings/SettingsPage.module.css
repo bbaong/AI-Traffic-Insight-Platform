@@ -1,0 +1,136 @@
+.page {
+  max-width: 640px;
+}
+
+.card {
+  background: var(--color-card);
+  border: 0.5px solid var(--color-border);
+  border-radius: var(--dashboard-radius);
+  padding: 20px 22px;
+  box-sizing: border-box;
+}
+
+.cardTitle {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-ink);
+}
+
+.hint {
+  margin: 0 0 18px;
+  font-size: 12.5px;
+  color: var(--color-hint);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-hint);
+}
+
+.control {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  font-family: inherit;
+  font-size: 14.5px;
+  color: var(--color-ink);
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.control::placeholder {
+  color: var(--color-hint);
+}
+
+.control:hover {
+  border-color: var(--color-hint);
+}
+
+.control:focus {
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-teal) 18%, transparent);
+}
+
+:global([data-accent='amber']) .control:focus {
+  border-color: var(--color-amber);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-amber) 18%, transparent);
+}
+
+.controlInvalid {
+  border-color: var(--color-danger-border);
+}
+
+.controlInvalid:focus {
+  border-color: var(--color-danger);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 16%, transparent);
+}
+
+.fieldError {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--color-danger);
+}
+
+.errorBanner {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 0.5px solid var(--color-danger-border);
+  background: color-mix(in srgb, var(--color-danger) 8%, transparent);
+  font-size: 13px;
+  color: var(--color-danger);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+.submitBtn {
+  height: 40px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-teal);
+  color: #fff;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+:global([data-accent='amber']) .submitBtn {
+  background: var(--color-amber);
+}
+
+.submitBtn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

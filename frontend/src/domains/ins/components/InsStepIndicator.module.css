@@ -1,0 +1,118 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 4px;
+  min-height: 40px;
+  height: 44px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+
+.step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  padding: 0 12px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-hint);
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.step:hover:not(:disabled):not(.current) {
+  color: var(--color-ink);
+  background: var(--color-surface-alt);
+}
+
+.step:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.current {
+  color: var(--color-amber-tint-text);
+  background: var(--color-amber-bg);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-amber) 35%, transparent);
+}
+
+.done {
+  color: var(--color-ink);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: color-mix(in srgb, #0a8f3c 18%, transparent);
+  color: #0a8f3c;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.labelFull,
+.labelShort {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.labelFull {
+  display: inline;
+}
+
+.labelShort {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .bar {
+    height: 40px;
+    min-height: 36px;
+  }
+
+  .step {
+    gap: 5px;
+    padding: 0 8px;
+    font-size: 12px;
+  }
+
+  .labelFull {
+    display: none;
+  }
+
+  .labelShort {
+    display: inline;
+  }
+}

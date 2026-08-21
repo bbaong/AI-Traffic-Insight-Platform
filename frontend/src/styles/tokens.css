@@ -1,0 +1,82 @@
+:root {
+  /* Brand / semantic */
+  --color-navy: #0f1b2d; /* CTA 배경, 헤드라인 */
+  --color-teal: #21adc4; /* 지자체 대시보드 */
+  --color-teal-bg: #e6f6f9; /* 지자체 틴트 */
+  --color-teal-text: #168090; /* 틴트 위 텍스트 */
+  --color-brand: #005ff1; /* ATI 로고 블루 · 랜딩 포인트 */
+  --color-brand-hover: #004de0;
+  --color-brand-text: #0046c7;
+  --color-brand-bg: #eaf1ff;
+  --color-amber: #f77c34; /* 보험사 */
+  --color-amber-bg: #fef1e8; /* 보험사 틴트 */
+  --color-amber-text: #c45a18; /* 앰버 라벨 (랜딩) */
+  --color-amber-tint-text: #b3541a; /* 틴트 위 텍스트 */
+  --color-amber-tag-bg: #fef1e8;
+  --color-amber-tag-text: #b3541a;
+  --color-teal-tag-bg: #e6f6f9;
+  --color-teal-tag-text: #168090;
+  --color-red: #b3261e; /* Critical */
+  --color-ink: #0f1b2d; /* 본문 강조 */
+  --color-body: #4a5a6e; /* 본문 */
+  --color-muted: #5a6b80; /* 보조 */
+  --color-hint: #7a8899; /* 라벨·캡션 */
+  --color-faint: #a9b4c2; /* 힌트·플레이스홀더 */
+  --color-divider: #f5f7f9; /* 리스트 행 구분선 */
+  --color-footer: #8894a3;
+  --color-footer-copy: #a6b1bf;
+  --color-cta-sub: #94a8bd;
+  --color-cta-hint: #6e8199;
+  --color-cta-outline: #3a4c66;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f7f9fb; /* 교차 배경 */
+  --color-page-bg: #f7f9fb; /* 로그인·대시보드 본문 배경 */
+  --color-sidebar-gov: #eef6f6; /* 지자체 사이드바 · 아이스 틸 */
+  --color-sidebar-gov-active: #12a3a3; /* 지자체 사이드바 활성 */
+  --color-sidebar-ins: #f5f0eb; /* 보험사 사이드바 · 샌드 베이지 */
+  --color-sidebar-ins-active: #e8890c; /* 보험사 사이드바 활성 */
+  --color-card: #ffffff;
+  --color-card-fill: #f4f7fa; /* 회원가입 게이트 카드 채움 */
+  --color-border: #dde3ea;
+  --color-border-card: #e1e7ee; /* 게이트 카드 테두리 */
+  --color-border-light: #e6ebf0;
+  --color-border-strong: #c6d0db;
+  --color-step-inactive-bg: #edf1f5;
+  --color-step-inactive-text: #a9b4c2;
+  --color-danger: #b3261e;
+  --color-danger-bg: #fcecec;
+  --color-danger-border: #e24b4a;
+  --color-success: #21adc4;
+  --color-disabled: #c5ced8;
+  --color-disabled-text: #8894a3;
+  --color-map-placeholder: #eef2f5;
+
+  /* 위험도 (색+텍스트+아이콘 3중 표기) */
+  --risk-critical: #b3261e;
+  --risk-high: #f77c34;
+  --risk-moderate: #ca8a04;
+  --risk-low: #2e7d32;
+
+  /* Dashboard layout */
+  --sidebar-width: 232px;
+  --header-height: 56px;
+  --dashboard-gap: 14px;
+  --dashboard-radius: 8px;
+
+  /* Typography */
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+    sans-serif;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+
+  /* Radii / spacing — laptop-first */
+  --layout-max: 1160px;
+  --layout-gutter: 40px;
+  --radius-card: 10px;
+  --radius-login-card: 12px;
+  --radius-role-card: 10px;
+  --radius-button: 8px;
+  --radius-logo: 6px;
+  --radius-icon-badge: 13px;
+  --button-padding: 12px 26px;
+}

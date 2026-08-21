@@ -1,0 +1,83 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* 데스크톱: 뷰포트 안에 맞추고 결과 카드만 내부 스크롤 */
+.pageFill {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+.toolbar > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.memoBtn {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-body);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.memoBtn:hover {
+  background: var(--color-surface-alt);
+  color: var(--color-ink);
+}
+
+.memoBtnActive {
+  border-color: var(--color-amber);
+  background: var(--color-amber-bg);
+  color: var(--color-amber-tint-text);
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .pageFill {
+    flex: none;
+    overflow: visible;
+    height: auto;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+
+  .toolbar > :first-child {
+    flex: 1 1 180px;
+  }
+}
+
+@media (max-width: 640px) {
+  .memoBtn {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 12.5px;
+  }
+}

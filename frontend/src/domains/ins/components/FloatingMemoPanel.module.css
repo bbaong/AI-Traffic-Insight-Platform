@@ -1,0 +1,238 @@
+/* 스티커 메모 — 상단 드래그 이동 + 사방 가장자리 리사이즈 */
+
+.panel {
+  position: fixed;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  min-width: 240px;
+  min-height: 180px;
+  padding: 0;
+  background: #fff9e6;
+  border: 1px solid #f0e0a8;
+  border-radius: 10px;
+  box-shadow:
+    0 2px 4px rgb(15 27 45 / 6%),
+    0 10px 28px rgb(15 27 45 / 14%);
+  box-sizing: border-box;
+  overflow: hidden;
+  touch-action: none;
+}
+
+.fab {
+  position: fixed;
+  z-index: 80;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-amber);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  outline: none;
+}
+
+.fab:hover {
+  filter: brightness(1.05);
+}
+
+.fab:active,
+.fabDragging {
+  cursor: grabbing;
+  filter: brightness(0.98);
+}
+
+.panel.active {
+  box-shadow:
+    0 4px 10px rgb(15 27 45 / 10%),
+    0 16px 36px rgb(15 27 45 / 16%);
+  user-select: none;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 6px 0 12px;
+  background: #f7d774;
+  cursor: grab;
+}
+
+.head:active,
+.active .head {
+  cursor: grabbing;
+}
+
+.title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5c4a1a;
+  pointer-events: none;
+}
+
+.headActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #7a6528;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.iconBtn:hover {
+  background: rgb(0 0 0 / 8%);
+  color: #3d320f;
+}
+
+.iconMinimize {
+  display: block;
+  width: 12px;
+  height: 2px;
+  background: currentColor;
+  border-radius: 1px;
+}
+
+.textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 12px 14px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #2a2416;
+  resize: none;
+  box-sizing: border-box;
+}
+
+.textarea::placeholder {
+  color: #a89868;
+}
+
+.textarea:focus {
+  outline: none;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-shrink: 0;
+  padding: 4px 12px 10px;
+}
+
+.count {
+  font-size: 11px;
+  color: #9a8850;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 가장자리 hit area — 호버 시 윈도우처럼 리사이즈 커서 */
+.edge {
+  position: absolute;
+  z-index: 3;
+}
+
+.edge_n {
+  top: 0;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.edge_s {
+  bottom: 0;
+  left: 10px;
+  right: 10px;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.edge_e {
+  top: 10px;
+  right: 0;
+  bottom: 10px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.edge_w {
+  top: 10px;
+  left: 0;
+  bottom: 10px;
+  width: 6px;
+  cursor: ew-resize;
+}
+
+.edge_ne {
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nesw-resize;
+}
+
+.edge_nw {
+  top: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nwse-resize;
+}
+
+.edge_se {
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nwse-resize;
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    #d4b84a 50%,
+    #d4b84a 60%,
+    transparent 60%,
+    transparent 70%,
+    #d4b84a 70%,
+    #d4b84a 80%,
+    transparent 80%
+  );
+  border-bottom-right-radius: 10px;
+}
+
+.edge_sw {
+  bottom: 0;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  cursor: nesw-resize;
+}

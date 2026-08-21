@@ -1,0 +1,10 @@
+.link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 0.7px;
+}
+
+.link:hover {
+  color: var(--color-teal-text, #0f766e);
+}

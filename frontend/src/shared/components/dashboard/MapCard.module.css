@@ -1,0 +1,211 @@
+.card {
+  /* 정비율 아닐 때 height:100% 체인 붕괴 → 지도 0높이 방지 */
+  height: 100%;
+  min-height: 320px;
+}
+
+.mapWrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 280px;
+  height: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-map-placeholder);
+  cursor: pointer;
+}
+
+.mapContainer {
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+}
+
+.stateBox {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--color-map-placeholder);
+  color: var(--color-hint);
+  font-size: 13px;
+  text-align: center;
+}
+
+.stateText {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-body);
+}
+
+.stateHint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-hint);
+  max-width: 260px;
+  line-height: 1.5;
+}
+
+.retryBtn {
+  margin-top: 4px;
+  height: 32px;
+  padding: 0 14px;
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.retryBtn:hover {
+  border-color: var(--color-teal);
+  color: var(--color-teal);
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 6px 8px;
+  max-width: 130px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 0.5px solid var(--color-border-strong);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  pointer-events: none;
+}
+
+.legendStack {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  color: var(--color-body);
+  white-space: nowrap;
+}
+
+.swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.swatchCircle {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.selectionHint {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 2;
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 0.5px solid var(--color-border-strong);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 8%);
+  font-size: 12px;
+  color: var(--color-ink);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.expandBtn {
+  position: absolute;
+  left: auto;
+  right: 10px;
+  bottom: 10px;
+  z-index: 3;
+  width: auto;
+  height: 30px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--color-ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 8%);
+}
+
+.expandBtn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.expandBtn:hover {
+  border-color: var(--color-teal);
+  color: var(--color-teal);
+}
+
+.source {
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 0.5px solid var(--color-border-strong);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 8%);
+  font-size: 10.5px;
+  line-height: 1.3;
+  color: var(--color-hint);
+  white-space: nowrap;
+}
+
+.regionFilters {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.regionSelect {
+  height: 28px;
+  padding: 0 8px;
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--color-body);
+  cursor: pointer;
+  max-width: 130px;
+}
+
+.regionSelect:disabled {
+  cursor: default;
+  opacity: 0.85;
+}

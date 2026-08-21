@@ -1,0 +1,189 @@
+{
+  "scope": "sklearn_only",
+  "target_version": "ins_v1.0.4",
+  "serving": {
+    "regressor": "HistGradientBoostingRegressor",
+    "violation_clf": "RandomForestClassifier",
+    "severity_clf": "RandomForestClassifier"
+  },
+  "splits": [
+    {
+      "split": "random_80_20",
+      "n_train": 91903,
+      "n_test": 22976,
+      "regressor": [
+        {
+          "name": "HistGradientBoostingRegressor",
+          "r2": 0.9850973783241609,
+          "rmse": 2.4289847623255043,
+          "mae": 1.508036125816135,
+          "grade_accuracy": 0.9106894150417827,
+          "train_seconds": 2.973,
+          "infer_seconds": 0.2372
+        },
+        {
+          "name": "RandomForestRegressor",
+          "r2": 0.9936500545418127,
+          "rmse": 1.585544551814502,
+          "mae": 0.3472169064008392,
+          "grade_accuracy": 0.984766713091922,
+          "train_seconds": 3.363,
+          "infer_seconds": 0.108
+        },
+        {
+          "name": "Ridge",
+          "r2": 0.14769432143390537,
+          "rmse": 18.36923808660814,
+          "mae": 15.597034754920445,
+          "grade_accuracy": 0.39053795264623953,
+          "train_seconds": 0.037,
+          "infer_seconds": 0.0019
+        }
+      ],
+      "violation_clf": [
+        {
+          "name": "RandomForestClassifier",
+          "accuracy": 0.5455692896935933,
+          "macro_f1": 0.09016615653952408,
+          "train_seconds": 2.523,
+          "infer_seconds": 0.1979
+        },
+        {
+          "name": "HistGradientBoostingClassifier",
+          "accuracy": 0.5470055710306406,
+          "macro_f1": 0.08839747918073373,
+          "train_seconds": 1.77,
+          "infer_seconds": 0.1925
+        },
+        {
+          "name": "LogisticRegression",
+          "accuracy": 0.5470055710306406,
+          "macro_f1": 0.08839747918073373,
+          "train_seconds": 2.135,
+          "infer_seconds": 0.004
+        }
+      ],
+      "severity_clf": [
+        {
+          "name": "RandomForestClassifier",
+          "accuracy": 0.6803621169916435,
+          "macro_f1": 0.2166576537683164,
+          "train_seconds": 2.514,
+          "infer_seconds": 0.2073
+        },
+        {
+          "name": "HistGradientBoostingClassifier",
+          "accuracy": 0.6814937325905293,
+          "macro_f1": 0.20688541342472128,
+          "train_seconds": 1.127,
+          "infer_seconds": 0.1337
+        },
+        {
+          "name": "LogisticRegression",
+          "accuracy": 0.682233635097493,
+          "macro_f1": 0.20277612480918994,
+          "train_seconds": 1.588,
+          "infer_seconds": 0.004
+        }
+      ],
+      "winners": {
+        "regressor": "RandomForestRegressor",
+        "violation_clf": "HistGradientBoostingClassifier",
+        "severity_clf": "LogisticRegression",
+        "rule": {
+          "regressor": "min MAE, then max grade_accuracy",
+          "classifier": "max accuracy, then max macro_f1"
+        }
+      }
+    },
+    {
+      "split": "time_2024_2025",
+      "n_train": 95459,
+      "n_test": 19420,
+      "regressor": [
+        {
+          "name": "HistGradientBoostingRegressor",
+          "r2": 0.9750016175689247,
+          "rmse": 3.139433879912097,
+          "mae": 1.8614386378057053,
+          "grade_accuracy": 0.916323377960865,
+          "train_seconds": 1.57,
+          "infer_seconds": 0.179
+        },
+        {
+          "name": "RandomForestRegressor",
+          "r2": 0.9847506127961682,
+          "rmse": 2.452006306567464,
+          "mae": 0.5499169055693128,
+          "grade_accuracy": 0.9781153450051493,
+          "train_seconds": 3.605,
+          "infer_seconds": 0.0951
+        },
+        {
+          "name": "Ridge",
+          "r2": 0.17086574519454423,
+          "rmse": 18.080390905219666,
+          "mae": 15.252646892162272,
+          "grade_accuracy": 0.40396498455200824,
+          "train_seconds": 0.045,
+          "infer_seconds": 0.0021
+        }
+      ],
+      "violation_clf": [
+        {
+          "name": "RandomForestClassifier",
+          "accuracy": 0.5406797116374872,
+          "macro_f1": 0.10283930083673622,
+          "train_seconds": 2.608,
+          "infer_seconds": 0.1619
+        },
+        {
+          "name": "HistGradientBoostingClassifier",
+          "accuracy": 0.54129763130793,
+          "macro_f1": 0.10371222595435234,
+          "train_seconds": 1.92,
+          "infer_seconds": 0.1749
+        },
+        {
+          "name": "LogisticRegression",
+          "accuracy": 0.5419155509783729,
+          "macro_f1": 0.10041601465592917,
+          "train_seconds": 3.193,
+          "infer_seconds": 0.0037
+        }
+      ],
+      "severity_clf": [
+        {
+          "name": "RandomForestClassifier",
+          "accuracy": 0.7116889804325438,
+          "macro_f1": 0.22973845836257667,
+          "train_seconds": 2.679,
+          "infer_seconds": 0.1029
+        },
+        {
+          "name": "HistGradientBoostingClassifier",
+          "accuracy": 0.7125128733264675,
+          "macro_f1": 0.2189315430038774,
+          "train_seconds": 1.007,
+          "infer_seconds": 0.0884
+        },
+        {
+          "name": "LogisticRegression",
+          "accuracy": 0.7141606591143151,
+          "macro_f1": 0.20831205503319414,
+          "train_seconds": 1.501,
+          "infer_seconds": 0.0035
+        }
+      ],
+      "winners": {
+        "regressor": "RandomForestRegressor",
+        "violation_clf": "LogisticRegression",
+        "severity_clf": "LogisticRegression",
+        "rule": {
+          "regressor": "min MAE, then max grade_accuracy",
+          "classifier": "max accuracy, then max macro_f1"
+        }
+      }
+    }
+  ]
+}

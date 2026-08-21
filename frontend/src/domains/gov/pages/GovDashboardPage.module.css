@@ -1,0 +1,428 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.table th {
+  text-align: left;
+  padding: 8px 6px;
+  font-weight: var(--font-weight-medium);
+  color: var(--color-hint);
+  border-bottom: 0.5px solid var(--color-border-light);
+}
+
+.table td {
+  padding: 10px 6px;
+  color: var(--color-ink);
+  border-bottom: 0.5px solid var(--color-border-light);
+  font-variant-numeric: tabular-nums;
+}
+
+.risk {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: var(--font-weight-medium);
+}
+
+.chartHint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--color-hint);
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 140px;
+  padding-top: 20px;
+}
+
+.barCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.barCol:hover .bar {
+  opacity: 0.85;
+}
+
+.barCol:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.barValue {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-body);
+  line-height: 1;
+}
+
+.bar {
+  width: 100%;
+  max-width: 36px;
+  border-radius: 4px 4px 0 0;
+  background: var(--color-teal);
+  min-height: 4px;
+}
+
+.barAmber {
+  background: var(--color-amber);
+}
+
+.barSelected {
+  background: var(--color-teal);
+  outline: 2px solid var(--color-ink);
+  outline-offset: 1px;
+}
+
+.barColSelected .barLabel {
+  color: var(--color-ink);
+  font-weight: var(--font-weight-medium);
+}
+
+.barLabel {
+  font-size: 10px;
+  color: var(--color-hint);
+  white-space: nowrap;
+}
+
+.formGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: 11.5px;
+  color: var(--color-hint);
+}
+
+.select {
+  height: 34px;
+  padding: 0 8px;
+  border: 0.5px solid var(--color-border-strong);
+  border-radius: 6px;
+  background: var(--color-surface);
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--color-ink);
+}
+
+.analyzeBtn {
+  grid-column: 1 / -1;
+  height: 36px;
+  margin-top: 4px;
+  border: none;
+  border-radius: 6px;
+  background: var(--color-amber);
+  color: var(--color-surface);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.analyzeBtn:hover {
+  background: var(--color-amber-tint-text);
+}
+
+@media (max-width: 1024px) {
+  .formGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.emptyHint {
+  margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-hint);
+  min-height: 120px;
+}
+
+.emptyHint strong {
+  color: var(--color-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.priorityHint {
+  margin: 8px 0 0;
+  text-align: right;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--color-hint);
+}
+
+.priorityPanel {
+  min-height: 0; /* 또는 삭제 */
+  display: flex;
+  flex-direction: column;
+}
+
+.loadingHint {
+  margin: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-hint);
+}
+
+/* (선택) 점 깜빡임 */
+.loadingHint[aria-busy='true'] {
+  animation: loadingPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes loadingPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.govPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1 0 auto;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 100%;
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  box-sizing: border-box;
+  padding-bottom: 8px;
+}
+
+/*
+  GOV 대시보드 반응형 요약
+  ─────────────────────────────────────────────────────────
+  기본 레이아웃 (가로 넓음, 1281px+)
+    row1: [지도 1.55fr | 비교 1fr]
+    row2: [추세 1.7fr | AI제안 1fr | TOP3 1fr]
+
+  가로 줄어듦 (breakpoint 순)
+    1280px↓  row2만 1열 (추세·제안·TOP3 세로 스택)
+    1120px↓  row1도 1열 (지도·비교 세로 스택) + 지도 min-height ↑
+
+  세로 줄어듦 (1121px+ 이면서 max-height 700px)
+    grid 열 수는 유지, row min-height만 키움
+    카드 압축 대신 govPage가 길어지고 AppLayout .content 에서 스크롤
+
+  지도 레이어 확장 (.govPageMapExpanded)
+    row2 숨김, row1=지도만, min-height = 100dvh - header
+    가로 1120px↓ / 세로 700px↓ 에서도 동일하게 큰 지도 유지
+
+  컴포넌트 단위 (이 파일 밖)
+    · MapCard: 오버레이 absolute, 지도 min-height
+    · SeverityStackedCard: 상해정도별 선·점 + 예측 구간 점선
+  ─────────────────────────────────────────────────────────
+*/
+
+.row1,
+.row2 {
+  display: grid;
+  gap: 16px;
+  min-height: 0;
+  min-width: 0;
+  align-items: stretch;
+}
+
+.row1 {
+  flex: 1 1 auto;
+  min-height: 340px;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+}
+
+.row2 {
+  flex: 1 1 auto;
+  min-height: 280px;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.cellMap,
+.cellCompare,
+.cellTrend,
+.cellSuggest,
+.cellTop3 {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cellMap > *,
+.cellCompare > *,
+.cellTrend > *,
+.cellSuggest > *,
+.cellTop3 > * {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.cellMap {
+  min-height: 320px;
+}
+
+.cellMap > * {
+  min-height: 300px;
+}
+
+.govPageMapExpanded .row2 {
+  display: none;
+}
+
+.govPageMapExpanded .row1 {
+  flex: 1 1 auto;
+  min-height: calc(100dvh - var(--header-height) - 64px);
+  grid-template-columns: 1fr;
+}
+
+.govPageMapExpanded .cellCompare {
+  display: none;
+}
+
+.govPageMapExpanded .cellMap {
+  min-height: calc(100dvh - var(--header-height) - 64px);
+}
+
+.govPageMapExpanded .cellMap > * {
+  min-height: calc(100dvh - var(--header-height) - 88px);
+}
+
+/* ── 가로 1280px↓: 하단 3열 → 1열 (막대 겹침 방지, row1은 2열 유지) ── */
+@media (max-width: 1280px) {
+  .row2 {
+    grid-template-columns: 1fr;
+    flex: none;
+    min-height: 0;
+  }
+
+  .cellTrend,
+  .cellSuggest,
+  .cellTop3 {
+    min-height: 240px;
+  }
+}
+
+/* ── 가로 1120px↓: 상단 2열 → 1열 (지도·비교 세로 스택) + 지도 확장 대응 ── */
+@media (max-width: 1120px) {
+  .govPage {
+    min-height: auto;
+  }
+
+  .row1 {
+    grid-template-columns: 1fr;
+    flex: none;
+    min-height: 0;
+  }
+
+  .cellMap,
+  .cellCompare {
+    min-height: 240px;
+  }
+
+  .cellMap {
+    min-height: 360px;
+  }
+
+  .cellMap > * {
+    min-height: 340px;
+  }
+
+  /* 반응형에서도 지도 레이어 확장 시 크게 보이도록 */
+  .govPageMapExpanded {
+    min-height: calc(100dvh - var(--header-height) - 42px);
+  }
+
+  .govPageMapExpanded .row2 {
+    display: none;
+  }
+
+  .govPageMapExpanded .row1 {
+    flex: 1 1 auto;
+    min-height: calc(100dvh - var(--header-height) - 64px);
+    grid-template-columns: 1fr;
+  }
+
+  .govPageMapExpanded .cellCompare {
+    display: none;
+  }
+
+  .govPageMapExpanded .cellMap,
+  .govPageMapExpanded .cellMap > * {
+    min-height: calc(100dvh - var(--header-height) - 72px);
+  }
+}
+
+/* ── 세로 700px↓ (가로 1121px+): 열 배치 유지, row min-height만 확보 → content 스크롤 ── */
+@media (min-width: 1121px) and (max-height: 700px) {
+  .govPage {
+    min-height: auto;
+    flex: 0 0 auto;
+  }
+
+  .row1,
+  .row2 {
+    flex: 0 0 auto;
+  }
+
+  .row1 {
+    min-height: 380px;
+  }
+
+  .row2 {
+    min-height: 320px;
+  }
+
+  .govPageMapExpanded {
+    min-height: calc(100dvh - var(--header-height) - 42px);
+  }
+
+  .govPageMapExpanded .row1,
+  .govPageMapExpanded .cellMap,
+  .govPageMapExpanded .cellMap > * {
+    min-height: calc(100dvh - var(--header-height) - 72px);
+  }
+}
+

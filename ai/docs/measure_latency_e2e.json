@@ -1,0 +1,96 @@
+{
+  "stack": "Frontend(page) + Backend proxy + AI direct",
+  "note": "Prediction E2E that the browser uses is Backend→AI. Frontend row is HTML document fetch only (not XHR timing).",
+  "health_ai_ms": 6.344,
+  "ai_direct": {
+    "POST /predict (ins)": {
+      "n": 20,
+      "mean_ms": 93.806,
+      "stdev_ms": 9.468,
+      "p50_ms": 89.626,
+      "p95_ms": 108.483,
+      "min_ms": 82.916,
+      "max_ms": 112.661,
+      "first_after_or_incl_warmup_ms": 109.623,
+      "last_bytes": 1631
+    },
+    "POST /predict/gov (all)": {
+      "n": 12,
+      "mean_ms": 337.0,
+      "stdev_ms": 24.507,
+      "p50_ms": 333.741,
+      "p95_ms": 376.098,
+      "min_ms": 314.431,
+      "max_ms": 407.788,
+      "first_after_or_incl_warmup_ms": 311.984,
+      "last_bytes": 11043
+    },
+    "POST /predict/gov/history": {
+      "n": 12,
+      "mean_ms": 62.963,
+      "stdev_ms": 38.177,
+      "p50_ms": 56.042,
+      "p95_ms": 119.073,
+      "min_ms": 40.593,
+      "max_ms": 180.995,
+      "first_after_or_incl_warmup_ms": 40.977,
+      "last_bytes": 1684
+    }
+  },
+  "backend_proxy": {
+    "POST /api/prediction/predict-ins": {
+      "n": 20,
+      "mean_ms": 102.619,
+      "stdev_ms": 17.163,
+      "p50_ms": 98.382,
+      "p95_ms": 127.305,
+      "min_ms": 86.525,
+      "max_ms": 155.515,
+      "first_after_or_incl_warmup_ms": 205.834,
+      "last_bytes": 1653
+    },
+    "POST /api/prediction/predict-gov": {
+      "n": 12,
+      "mean_ms": 406.72,
+      "stdev_ms": 97.764,
+      "p50_ms": 368.14,
+      "p95_ms": 601.669,
+      "min_ms": 331.993,
+      "max_ms": 625.19,
+      "first_after_or_incl_warmup_ms": 329.57,
+      "last_bytes": 11047
+    },
+    "POST /api/prediction/predict-gov-history": {
+      "n": 12,
+      "mean_ms": 56.166,
+      "stdev_ms": 8.523,
+      "p50_ms": 55.867,
+      "p95_ms": 67.868,
+      "min_ms": 46.086,
+      "max_ms": 72.881,
+      "first_after_or_incl_warmup_ms": 43.583,
+      "last_bytes": 1708
+    },
+    "GET /api/prediction/predict-gov-hotspots": {
+      "n": 3,
+      "mean_ms": 5.426,
+      "stdev_ms": 0.864,
+      "p50_ms": 5.647,
+      "p95_ms": 6.108,
+      "min_ms": 4.473,
+      "max_ms": 6.159,
+      "first_after_or_incl_warmup_ms": 7.944,
+      "last_bytes": 10875
+    }
+  },
+  "frontend": {
+    "url": "http://localhost:5173",
+    "status": 200,
+    "html_ms": 11.188,
+    "bytes": 827
+  },
+  "proxy_overhead_p50_ms": {
+    "ins": 8.756,
+    "gov_all": 34.399
+  }
+}

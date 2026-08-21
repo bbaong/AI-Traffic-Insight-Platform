@@ -1,0 +1,537 @@
+# -*- coding: utf-8 -*-
+"""
+GovGuard AI v1.0.1
+지자체용 지역별 다음 분기 사고율 + 중대사고(경중) 예측
+
+v1.0.0: 지역 사고 점유율(사고율)만 예측
+v1.0.1: + 다음 분기 중대사고율(중상+사망 비중) 및 경중 구성 예측
+        → "어느 구에서 큰 사고 비중이 커질지" 화면용
+
+- 학습 데이터: data/raw/사고분석_2016~2025_원본합본.csv
+- 사용자 인구통계 입력 없음
+"""
+
+from __future__ import annotations
+
+import pickle
+import warnings
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import HistGradientBoostingRegressor
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
+from sklearn.preprocessing import LabelEncoder
+
+warnings.filterwarnings("ignore", category=UserWarning)
+
+ROOT = Path(__file__).resolve().parents[2]  # scripts/archive -> ai
+DATA_PATH = ROOT / "data" / "raw" / "사고분석_2016~2025_원본합본.csv"
+MODEL_DIR = ROOT / "models"
+FIG_DIR = ROOT / "docs" / "figures" / "gov_v1_0_1"
+
+MODEL_NAME = "GovGuard AI"
+MODEL_VERSION = "1.0.1"
+MODEL_FILENAME = f"gov_model_v{MODEL_VERSION}.pkl"
+
+SEVERITY_ORDER = ["사망사고", "중상사고", "경상사고", "부상신고사고"]
+SEVERE_LABELS = {"사망사고", "중상사고"}
+
+FEATURE_COLS = [
+    "지역_code",
+    "분기",
+    "연도_idx",
+    "rate_t",
+    "rate_lag1",
+    "rate_lag2",
+    "rate_lag3",
+    "rate_lag4",
+    "count_t",
+    "count_lag1",
+    "count_lag2",
+    "rate_roll4",
+    "count_roll4",
+    "severe_t",
+    "severe_lag1",
+    "severe_lag2",
+    "severe_lag3",
+    "severe_lag4",
+    "severe_roll4",
+    "death_share_t",
+    "serious_share_t",
+]
+
+
+def parse_year_quarter(series: pd.Series) -> pd.DataFrame:
+    text = series.astype(str).str.replace(" ", "", regex=False)
+    year = text.str.extract(r"(\d{4})년")[0].astype(int)
+    month = text.str.extract(r"년(\d{1,2})월")[0].astype(int)
+    quarter = ((month - 1) // 3) + 1
+    return pd.DataFrame(
+        {
+            "연도": year,
+            "분기": quarter,
+            "연도분기": year.astype(str) + "Q" + quarter.astype(str),
+            "period_id": year * 4 + (quarter - 1),
+        }
+    )
+
+
+def load_raw(path: Path = DATA_PATH) -> pd.DataFrame:
+    df = pd.read_csv(path, encoding="utf-8-sig")
+    df["지역"] = df["시군구"].astype(str).str.replace(
+        r"^대구광역시\s*", "", regex=True
+    )
+    yq = parse_year_quarter(df["발생년월"])
+    df = pd.concat([df, yq], axis=1)
+    df = df.dropna(subset=["지역", "연도", "분기", "사고내용"])
+    df = df[df["지역"].astype(str).str.len() > 0]
+    df = df[df["사고내용"].isin(SEVERITY_ORDER)]
+    return df.reset_index(drop=True)
+
+
+def build_region_quarter_panel(df: pd.DataFrame) -> pd.DataFrame:
+    """지역 × 분기: 건수·점유율·중대사고율·경중 구성."""
+    keys = ["지역", "연도", "분기", "연도분기", "period_id"]
+    g = df.groupby(keys, as_index=False).size().rename(columns={"size": "사고건수"})
+    totals = (
+        g.groupby("period_id", as_index=False)["사고건수"]
+        .sum()
+        .rename(columns={"사고건수": "전체건수"})
+    )
+    panel = g.merge(totals, on="period_id", how="left")
+    panel["사고율"] = panel["사고건수"] / panel["전체건수"].clip(lower=1)
+
+    sev = (
+        df.groupby(keys + ["사고내용"], as_index=False)
+        .size()
+        .rename(columns={"size": "경중건수"})
+    )
+    sev_pivot = (
+        sev.pivot_table(
+            index=keys, columns="사고내용", values="경중건수", aggfunc="sum", fill_value=0
+        )
+        .reset_index()
+    )
+    for col in SEVERITY_ORDER:
+        if col not in sev_pivot.columns:
+            sev_pivot[col] = 0
+
+    panel = panel.merge(sev_pivot, on=keys, how="left")
+    for col in SEVERITY_ORDER:
+        panel[col] = panel[col].fillna(0).astype(int)
+
+    panel["중대건수"] = panel["사망사고"] + panel["중상사고"]
+    panel["중대사고율"] = panel["중대건수"] / panel["사고건수"].clip(lower=1)
+    for col in SEVERITY_ORDER:
+        panel[f"{col}_비율"] = panel[col] / panel["사고건수"].clip(lower=1)
+
+    return panel.sort_values(["지역", "period_id"]).reset_index(drop=True)
+
+
+def add_lag_features(panel: pd.DataFrame) -> pd.DataFrame:
+    out = panel.copy()
+    out["연도_idx"] = out["연도"] - int(out["연도"].min())
+    out["rate_t"] = out["사고율"]
+    out["count_t"] = out["사고건수"].astype(float)
+    out["severe_t"] = out["중대사고율"]
+    out["death_share_t"] = out["사망사고_비율"]
+    out["serious_share_t"] = out["중상사고_비율"]
+
+    for lag in (1, 2, 3, 4):
+        out[f"rate_lag{lag}"] = out.groupby("지역")["사고율"].shift(lag)
+        out[f"count_lag{lag}"] = out.groupby("지역")["사고건수"].shift(lag)
+        out[f"severe_lag{lag}"] = out.groupby("지역")["중대사고율"].shift(lag)
+
+    def _roll(s: pd.Series) -> pd.Series:
+        return s.shift(1).rolling(4, min_periods=2).mean()
+
+    out["rate_roll4"] = out.groupby("지역")["사고율"].transform(_roll)
+    out["count_roll4"] = out.groupby("지역")["사고건수"].transform(_roll)
+    out["severe_roll4"] = out.groupby("지역")["중대사고율"].transform(_roll)
+
+    out["next_사고율"] = out.groupby("지역")["사고율"].shift(-1)
+    out["next_사고건수"] = out.groupby("지역")["사고건수"].shift(-1)
+    out["next_중대사고율"] = out.groupby("지역")["중대사고율"].shift(-1)
+    out["next_연도분기"] = out.groupby("지역")["연도분기"].shift(-1)
+    for col in SEVERITY_ORDER:
+        out[f"next_{col}_비율"] = out.groupby("지역")[f"{col}_비율"].shift(-1)
+    return out
+
+
+def encode_region(panel: pd.DataFrame, le: LabelEncoder | None = None):
+    fitted = le is None
+    le = LabelEncoder() if le is None else le
+    out = panel.copy()
+    if fitted:
+        out["지역_code"] = le.fit_transform(out["지역"].astype(str))
+    else:
+        known = set(le.classes_)
+        vals = out["지역"].astype(str).tolist()
+        fallback = str(le.classes_[0])
+        safe = [v if v in known else fallback for v in vals]
+        out["지역_code"] = le.transform(safe)
+    return out, le
+
+
+def prepare_work(panel: pd.DataFrame) -> pd.DataFrame:
+    need = FEATURE_COLS + [
+        "next_사고율",
+        "next_중대사고율",
+        "지역",
+        "연도분기",
+        "next_연도분기",
+    ] + [f"next_{c}_비율" for c in SEVERITY_ORDER]
+    return panel.dropna(subset=need).copy()
+
+
+def time_split_mask(work: pd.DataFrame, test_years: set[int] | None = None):
+    test_years = test_years or {2024, 2025}
+    next_year = work["next_연도분기"].astype(str).str.slice(0, 4).astype(int)
+    is_test = next_year.isin(test_years)
+    return ~is_test, is_test
+
+
+def _fit_regressor(X_tr, y_tr, X_te, y_te, name: str) -> tuple:
+    model = HistGradientBoostingRegressor(
+        max_depth=6,
+        learning_rate=0.08,
+        max_iter=300,
+        min_samples_leaf=8,
+        l2_regularization=0.1,
+        random_state=42,
+    )
+    model.fit(X_tr, y_tr)
+    pred = np.clip(model.predict(X_te), 0.0, 1.0)
+    metrics = {
+        "r2": float(r2_score(y_te, pred)),
+        "rmse": float(root_mean_squared_error(y_te, pred)),
+        "mae": float(mean_absolute_error(y_te, pred)),
+        "mae_percent_points": float(mean_absolute_error(y_te, pred) * 100),
+    }
+    print(
+        f"   [{name}] R²={metrics['r2']:.4f}  RMSE={metrics['rmse']:.4f}  "
+        f"MAE={metrics['mae']:.4f} ({metrics['mae_percent_points']:.2f}%p)"
+    )
+    return model, metrics
+
+
+def train_models(df: pd.DataFrame | None = None) -> dict:
+    raw = df if df is not None else load_raw()
+    panel = build_region_quarter_panel(raw)
+    panel = add_lag_features(panel)
+    panel, region_le = encode_region(panel)
+    work = prepare_work(panel)
+
+    tr_mask, te_mask = time_split_mask(work)
+    if te_mask.sum() < 10 or tr_mask.sum() < 20:
+        cutoff = work["period_id"].quantile(0.8)
+        tr_mask = work["period_id"] < cutoff
+        te_mask = ~tr_mask
+
+    X_tr = work.loc[tr_mask, FEATURE_COLS]
+    X_te = work.loc[te_mask, FEATURE_COLS]
+
+    print("\n모델 학습...")
+    print(f"   regions={list(region_le.classes_)}")
+    print(f"   n_train={len(X_tr):,}  n_test={len(X_te):,}")
+
+    rate_reg, rate_m = _fit_regressor(
+        X_tr,
+        work.loc[tr_mask, "next_사고율"].to_numpy(),
+        X_te,
+        work.loc[te_mask, "next_사고율"].to_numpy(),
+        "Share Rate",
+    )
+    severe_reg, severe_m = _fit_regressor(
+        X_tr,
+        work.loc[tr_mask, "next_중대사고율"].to_numpy(),
+        X_te,
+        work.loc[te_mask, "next_중대사고율"].to_numpy(),
+        "Severe Rate",
+    )
+
+    severity_regs: dict[str, object] = {}
+    severity_metrics: dict[str, dict] = {}
+    for col in SEVERITY_ORDER:
+        ycol = f"next_{col}_비율"
+        m, met = _fit_regressor(
+            X_tr,
+            work.loc[tr_mask, ycol].to_numpy(),
+            X_te,
+            work.loc[te_mask, ycol].to_numpy(),
+            f"Sev {col}",
+        )
+        severity_regs[col] = m
+        severity_metrics[col] = met
+
+    panel_cols = [
+        "지역",
+        "연도",
+        "분기",
+        "연도분기",
+        "period_id",
+        "사고건수",
+        "전체건수",
+        "사고율",
+        "중대사고율",
+        "사망사고",
+        "중상사고",
+        "경상사고",
+        "부상신고사고",
+        "사망사고_비율",
+        "중상사고_비율",
+        "경상사고_비율",
+        "부상신고사고_비율",
+    ]
+
+    return {
+        "name": MODEL_NAME,
+        "version": MODEL_VERSION,
+        "task": "region_next_quarter_share_and_severity",
+        "rate_definition": "region_count / city_total_same_quarter",
+        "severe_definition": "(death+serious) / region_count",
+        "regressor": rate_reg,  # 하위호환
+        "rate_regressor": rate_reg,
+        "severe_regressor": severe_reg,
+        "severity_regressors": severity_regs,
+        "region_encoder": region_le,
+        "features": FEATURE_COLS,
+        "input_features": [],
+        "severity_order": SEVERITY_ORDER,
+        "panel_meta": {
+            "regions": list(region_le.classes_),
+            "n_panel_rows": int(len(panel)),
+            "n_train": int(len(X_tr)),
+            "n_test": int(len(X_te)),
+            "year_min": int(panel["연도"].min()),
+            "year_max": int(panel["연도"].max()),
+        },
+        "metrics": {
+            "share_rate": rate_m,
+            "severe_rate": severe_m,
+            "severity_shares": severity_metrics,
+        },
+        "latest_panel": panel[panel_cols].copy(),
+    }
+
+
+def _next_period(year: int, quarter: int) -> tuple[int, int, str, int]:
+    if quarter == 4:
+        ny, nq = year + 1, 1
+    else:
+        ny, nq = year, quarter + 1
+    return ny, nq, f"{ny}Q{nq}", ny * 4 + (nq - 1)
+
+
+def severe_level(severe_rate: float) -> str:
+    if severe_rate >= 0.35:
+        return "CRITICAL"
+    if severe_rate >= 0.28:
+        return "HIGH"
+    if severe_rate >= 0.22:
+        return "MODERATE"
+    return "LOW"
+
+
+def _build_feature_row(
+    rh: pd.DataFrame, cur: pd.Series, package: dict, panel: pd.DataFrame
+) -> dict | None:
+    le = package["region_encoder"]
+    region = str(cur["지역"])
+    rates = rh["사고율"].tolist()
+    counts = rh["사고건수"].astype(float).tolist()
+    severes = rh["중대사고율"].tolist()
+    deaths = rh["사망사고_비율"].tolist()
+    serious = rh["중상사고_비율"].tolist()
+    idx = list(rh.index).index(cur.name)
+
+    def at(series: list[float], offset: int) -> float:
+        pos = idx + offset
+        return float(series[pos]) if 0 <= pos < len(series) else float("nan")
+
+    feat = {
+        "지역_code": int(le.transform([region])[0])
+        if region in set(le.classes_)
+        else 0,
+        "분기": int(cur["분기"]),
+        "연도_idx": int(cur["연도"]) - int(panel["연도"].min()),
+        "rate_t": at(rates, 0),
+        "rate_lag1": at(rates, -1),
+        "rate_lag2": at(rates, -2),
+        "rate_lag3": at(rates, -3),
+        "rate_lag4": at(rates, -4),
+        "count_t": at(counts, 0),
+        "count_lag1": at(counts, -1),
+        "count_lag2": at(counts, -2),
+        "severe_t": at(severes, 0),
+        "severe_lag1": at(severes, -1),
+        "severe_lag2": at(severes, -2),
+        "severe_lag3": at(severes, -3),
+        "severe_lag4": at(severes, -4),
+        "death_share_t": at(deaths, 0),
+        "serious_share_t": at(serious, 0),
+    }
+    hist_r = [v for v in (at(rates, -k) for k in range(1, 5)) if not np.isnan(v)]
+    hist_c = [v for v in (at(counts, -k) for k in range(1, 5)) if not np.isnan(v)]
+    hist_s = [v for v in (at(severes, -k) for k in range(1, 5)) if not np.isnan(v)]
+    feat["rate_roll4"] = float(np.mean(hist_r)) if hist_r else float("nan")
+    feat["count_roll4"] = float(np.mean(hist_c)) if hist_c else float("nan")
+    feat["severe_roll4"] = float(np.mean(hist_s)) if hist_s else float("nan")
+    if any(np.isnan(feat[c]) for c in package["features"]):
+        return None
+    return feat
+
+
+def predict_next_quarter(
+    package: dict,
+    지역: str | None = None,
+    as_of_연도분기: str | None = None,
+) -> list[dict] | dict:
+    panel = package["latest_panel"].copy()
+    if as_of_연도분기 is None:
+        as_of_연도분기 = str(panel["연도분기"].iloc[panel["period_id"].argmax()])
+
+    base = panel[panel["연도분기"] == as_of_연도분기]
+    if base.empty:
+        raise ValueError(f"기준 분기 없음: {as_of_연도분기}")
+
+    year = int(base["연도"].iloc[0])
+    quarter = int(base["분기"].iloc[0])
+    _, _, nlabel, _ = _next_period(year, quarter)
+
+    rate_reg = package.get("rate_regressor") or package["regressor"]
+    severe_reg = package["severe_regressor"]
+    sev_regs = package["severity_regressors"]
+    le = package["region_encoder"]
+    hist = panel.sort_values(["지역", "period_id"])
+    regions = [지역] if 지역 else list(le.classes_)
+    rows: list[dict] = []
+
+    for region in regions:
+        rh = hist[hist["지역"] == region].sort_values("period_id")
+        if rh.empty or as_of_연도분기 not in set(rh["연도분기"].astype(str)):
+            continue
+        cur = rh[rh["연도분기"] == as_of_연도분기].iloc[0]
+        feat = _build_feature_row(rh, cur, package, panel)
+        if feat is None:
+            continue
+        X = pd.DataFrame([feat])[package["features"]]
+        share = float(np.clip(rate_reg.predict(X)[0], 0.0, 1.0))
+        severe = float(np.clip(severe_reg.predict(X)[0], 0.0, 1.0))
+        sev_shares = {
+            col: float(np.clip(sev_regs[col].predict(X)[0], 0.0, 1.0))
+            for col in package["severity_order"]
+        }
+        # 합=1 정규화
+        ssum = sum(sev_shares.values()) or 1.0
+        sev_shares = {k: v / ssum for k, v in sev_shares.items()}
+
+        city_total = float(cur["전체건수"])
+        pred_count = int(round(share * city_total))
+        pred_severe_count = int(round(pred_count * severe))
+
+        rows.append(
+            {
+                "모델": package["name"],
+                "버전": package["version"],
+                "지역": region,
+                "기준분기": as_of_연도분기,
+                "예측분기": nlabel,
+                "예측사고율": round(share, 4),
+                "예측사고율_퍼센트": round(share * 100, 2),
+                "예측중대사고율": round(severe, 4),
+                "예측중대사고율_퍼센트": round(severe * 100, 2),
+                "중대사고등급": severe_level(severe),
+                "예측사고경중비율": {
+                    k: round(v, 4) for k, v in sev_shares.items()
+                },
+                "예측사고경중_퍼센트": {
+                    k: round(v * 100, 2) for k, v in sev_shares.items()
+                },
+                "참고_기준분기사고건수": int(cur["사고건수"]),
+                "참고_기준분기사고율_퍼센트": round(float(cur["사고율"]) * 100, 2),
+                "참고_기준분기중대사고율_퍼센트": round(
+                    float(cur["중대사고율"]) * 100, 2
+                ),
+                "추정_다음분기사고건수": pred_count,
+                "추정_다음분기중대사고건수": pred_severe_count,
+            }
+        )
+
+    if 지역 is not None:
+        if not rows:
+            raise ValueError(f"예측 불가: 지역={지역}, as_of={as_of_연도분기}")
+        return rows[0]
+    rows.sort(key=lambda r: r["예측중대사고율"], reverse=True)
+    return rows
+
+
+def save_package(package: dict) -> Path:
+    MODEL_DIR.mkdir(parents=True, exist_ok=True)
+    path = MODEL_DIR / MODEL_FILENAME
+    with open(path, "wb") as f:
+        pickle.dump(package, f)
+    return path
+
+
+def _setup_font() -> None:
+    plt.rcParams["font.family"] = "Malgun Gothic"
+    plt.rcParams["axes.unicode_minus"] = False
+
+
+def plot_region_severe(panel: pd.DataFrame, outfile: Path) -> None:
+    _setup_font()
+    FIG_DIR.mkdir(parents=True, exist_ok=True)
+    pivot = panel.pivot_table(
+        index="연도분기", columns="지역", values="중대사고율", aggfunc="first"
+    )
+    pivot = pivot.reindex(sorted(pivot.index, key=lambda s: (int(s[:4]), int(s[-1]))))
+    fig, ax = plt.subplots(figsize=(12, 5.5))
+    for col in pivot.columns:
+        ax.plot(pivot.index, pivot[col] * 100, marker="o", markersize=2, label=col)
+    ax.set_title("지역별 분기 중대사고율(%) — (중상+사망)/지역사고")
+    ax.set_ylabel("중대사고율 (%)")
+    ax.legend(ncol=3, fontsize=8)
+    plt.xticks(rotation=45, ha="right", fontsize=7)
+    fig.tight_layout()
+    fig.savefig(outfile, dpi=140, bbox_inches="tight")
+    plt.close()
+
+
+def main() -> None:
+    print(f"=== {MODEL_NAME} v{MODEL_VERSION} 학습 시작 ===")
+    raw = load_raw()
+    print(f"1. raw rows: {len(raw):,}")
+    panel = build_region_quarter_panel(raw)
+    print(f"   panel rows: {len(panel):,}")
+    plot_region_severe(panel, FIG_DIR / "region_quarter_severe_rate.png")
+    print(f"2. graph: {FIG_DIR / 'region_quarter_severe_rate.png'}")
+
+    package = train_models(raw)
+    path = save_package(package)
+    print(f"3. saved: {path}")
+    print(f"   metrics.share={package['metrics']['share_rate']}")
+    print(f"   metrics.severe={package['metrics']['severe_rate']}")
+
+    print("\n4. 추론 (중대사고율 높은 순)...")
+    preds = predict_next_quarter(package)
+    assert isinstance(preds, list)
+    print(
+        f"{'지역':<8} {'점유%':>7} {'중대%':>7} {'등급':<10} "
+        f"{'사망%':>6} {'중상%':>6} {'경상%':>6}"
+    )
+    print("-" * 64)
+    for r in preds:
+        s = r["예측사고경중_퍼센트"]
+        print(
+            f"{r['지역']:<8} {r['예측사고율_퍼센트']:>7.2f} "
+            f"{r['예측중대사고율_퍼센트']:>7.2f} {r['중대사고등급']:<10} "
+            f"{s['사망사고']:>6.1f} {s['중상사고']:>6.1f} {s['경상사고']:>6.1f}"
+        )
+    print(f"\n=== {MODEL_NAME} v{MODEL_VERSION} 완료 ===")
+
+
+if __name__ == "__main__":
+    main()

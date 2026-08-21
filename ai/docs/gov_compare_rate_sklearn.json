@@ -1,0 +1,192 @@
+{
+  "scope": "sklearn_only_rate_under_B1_lastx2",
+  "serving_algo": "HistGradientBoostingRegressor",
+  "pipeline": "share_hat * city_total_next; min(., last*2)",
+  "split": "next year in {2024,2025}",
+  "small_region_names": [
+    "남구",
+    "중구"
+  ],
+  "n_train": 216,
+  "n_test": 69,
+  "variants": {
+    "HistGradientBoostingRegressor": {
+      "overall": {
+        "r2": 0.9722378677437229,
+        "mae": 20.579710144927535,
+        "mape_pct": 14.772816140715667,
+        "top3_hit_rate": 0.9166666666666666,
+        "share_mae": 0.010509630933866261,
+        "train_seconds": 1.618,
+        "jump_ratio_p95": 2.0,
+        "over_2x_rate": 0.0
+      },
+      "small_regions": {
+        "r2": 0.6919044955811509,
+        "mae": 18.6875,
+        "mape_pct": 14.235216695303782,
+        "jump_ratio_p95": 1.4366340181557573,
+        "over_2x_rate": 0.0
+      },
+      "cases": [
+        {
+          "지역": "군위군",
+          "last_count": 31.0,
+          "y_true": 36.0,
+          "y_pred_capped": 62.0,
+          "share_count": 152.78878722032994
+        },
+        {
+          "지역": "중구",
+          "last_count": 226.0,
+          "y_true": 198.0,
+          "y_pred_capped": 202.0,
+          "share_count": 202.14919151983958
+        },
+        {
+          "지역": "달성군",
+          "last_count": 266.0,
+          "y_true": 294.0,
+          "y_pred_capped": 228.0,
+          "share_count": 227.84047760219545
+        },
+        {
+          "지역": "달서구",
+          "last_count": 536.0,
+          "y_true": 563.0,
+          "y_pred_capped": 549.0,
+          "share_count": 549.1917336871162
+        },
+        {
+          "지역": "수성구",
+          "last_count": 498.0,
+          "y_true": 462.0,
+          "y_pred_capped": 463.0,
+          "share_count": 463.30792446348755
+        }
+      ]
+    },
+    "RandomForestRegressor": {
+      "overall": {
+        "r2": 0.9772328287074049,
+        "mae": 19.347826086956523,
+        "mape_pct": 14.487383927299028,
+        "top3_hit_rate": 0.9166666666666666,
+        "share_mae": 0.010091540519746032,
+        "train_seconds": 0.32,
+        "jump_ratio_p95": 2.0,
+        "over_2x_rate": 0.0
+      },
+      "small_regions": {
+        "r2": 0.661514269734869,
+        "mae": 19.5,
+        "mape_pct": 14.7359392875469,
+        "jump_ratio_p95": 1.5046469487958851,
+        "over_2x_rate": 0.0
+      },
+      "cases": [
+        {
+          "지역": "군위군",
+          "last_count": 31.0,
+          "y_true": 36.0,
+          "y_pred_capped": 62.0,
+          "share_count": 154.3430997376439
+        },
+        {
+          "지역": "중구",
+          "last_count": 226.0,
+          "y_true": 198.0,
+          "y_pred_capped": 198.0,
+          "share_count": 198.16283957954374
+        },
+        {
+          "지역": "달성군",
+          "last_count": 266.0,
+          "y_true": 294.0,
+          "y_pred_capped": 230.0,
+          "share_count": 229.94106694019436
+        },
+        {
+          "지역": "달서구",
+          "last_count": 536.0,
+          "y_true": 563.0,
+          "y_pred_capped": 552.0,
+          "share_count": 551.9156381084199
+        },
+        {
+          "지역": "수성구",
+          "last_count": 498.0,
+          "y_true": 462.0,
+          "y_pred_capped": 470.0,
+          "share_count": 469.6858132915841
+        }
+      ]
+    },
+    "Ridge": {
+      "overall": {
+        "r2": 0.9821458954756407,
+        "mae": 15.91304347826087,
+        "mape_pct": 7.824228963645149,
+        "top3_hit_rate": 0.9166666666666666,
+        "share_mae": 0.006202345127211534,
+        "train_seconds": 0.008,
+        "jump_ratio_p95": 1.2847363552266418,
+        "over_2x_rate": 0.0
+      },
+      "small_regions": {
+        "r2": 0.8417806165044215,
+        "mae": 12.25,
+        "mape_pct": 8.218442366899502,
+        "jump_ratio_p95": 1.3079311992355471,
+        "over_2x_rate": 0.0
+      },
+      "cases": [
+        {
+          "지역": "군위군",
+          "last_count": 31.0,
+          "y_true": 36.0,
+          "y_pred_capped": 27.0,
+          "share_count": 27.162698007931308
+        },
+        {
+          "지역": "중구",
+          "last_count": 226.0,
+          "y_true": 198.0,
+          "y_pred_capped": 209.0,
+          "share_count": 209.23209805108084
+        },
+        {
+          "지역": "달성군",
+          "last_count": 266.0,
+          "y_true": 294.0,
+          "y_pred_capped": 240.0,
+          "share_count": 240.33223760918992
+        },
+        {
+          "지역": "달서구",
+          "last_count": 536.0,
+          "y_true": 563.0,
+          "y_pred_capped": 546.0,
+          "share_count": 545.5112538465366
+        },
+        {
+          "지역": "수성구",
+          "last_count": 498.0,
+          "y_true": 462.0,
+          "y_pred_capped": 480.0,
+          "share_count": 479.5004110828401
+        }
+      ]
+    }
+  },
+  "decision": {
+    "winner": "Ridge",
+    "rule": "min small-region MAPE, then overall MAE, then Top-3",
+    "ranking": [
+      "Ridge",
+      "HistGradientBoostingRegressor",
+      "RandomForestRegressor"
+    ]
+  },
+  "related_pipeline_compare": "docs/gov_compare_b1_b2_v1_0_4.md"
+}

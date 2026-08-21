@@ -1,0 +1,254 @@
+.viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--color-page-bg);
+  pointer-events: none;
+  user-select: none;
+}
+
+.stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+}
+
+.shell {
+  display: flex;
+  background: var(--color-page-bg);
+  font-family: var(--font-sans);
+  color: var(--color-ink);
+  overflow: hidden;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border-right: 1px solid #eceff3;
+  background: #fff;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: var(--header-height);
+  padding: 0 16px;
+  border-bottom: 0.5px solid var(--color-border);
+  box-sizing: border-box;
+}
+
+.logo {
+  width: 36px;
+  height: 24px;
+  object-fit: contain;
+  border-radius: 4px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.brandName {
+  font-size: 13px;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 10px;
+  min-height: 0;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  color: #5a6573;
+}
+
+.navActive {
+  font-weight: var(--font-weight-medium);
+}
+
+.shellGov .navActive {
+  background: color-mix(in srgb, var(--color-teal) 14%, transparent);
+  color: var(--color-teal-text);
+}
+
+.shellIns .navActive {
+  background: color-mix(in srgb, var(--color-amber) 14%, transparent);
+  color: var(--color-amber-tint-text);
+}
+
+.sideFooter {
+  padding: 12px 14px 16px;
+}
+
+.userName {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--color-hint);
+}
+
+.logout {
+  font-size: 12.5px;
+  color: var(--color-ink);
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-page-bg);
+}
+
+.topbar {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px;
+  background: var(--color-surface);
+  border-bottom: 0.5px solid var(--color-border);
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: var(--font-weight-medium);
+}
+
+.roleTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: var(--font-weight-medium);
+}
+
+.shellGov .roleTag {
+  background: var(--color-teal-bg);
+  color: var(--color-teal-text);
+}
+
+.shellIns .roleTag {
+  background: var(--color-amber-bg);
+  color: var(--color-amber-tint-text);
+}
+
+.bodyGov,
+.bodyIns {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.bodyGov {
+  padding: 18px 20px 24px;
+}
+
+.bodyIns {
+  padding: 12px 20px 24px;
+}
+
+.govPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.row1,
+.row2 {
+  display: grid;
+  gap: 16px;
+  min-height: 0;
+  min-width: 0;
+  align-items: stretch;
+}
+
+.row1 {
+  flex: 1.15;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+}
+
+.row2 {
+  flex: 1;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.cellMap,
+.cell {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cellMap > *,
+.cell > * {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.mapCard,
+.mapWrap {
+  min-height: 0 !important;
+}
+
+.choropleth {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.insPage {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.insPage :global([class*='stepRoot']) {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
+
+.insPage :global([class*='grid2']) {
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.insPage :global([class*='column']) {
+  min-height: 0;
+  height: 100%;
+}
+
+.insPage :global([class*='cardFill']) {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+}
