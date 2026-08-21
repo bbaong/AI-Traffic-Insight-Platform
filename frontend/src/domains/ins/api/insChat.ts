@@ -19,12 +19,12 @@ export type InsChatData = {
 };
 
 export class InsChatError extends Error {
-  constructor(
-    message: string,
-    public readonly status: number,
-  ) {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
     super(message);
     this.name = 'InsChatError';
+    this.status = status;
   }
 }
 

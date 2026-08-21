@@ -144,10 +144,12 @@ function mapGender(g: string): 'FEMALE' | 'MALE' {
 function mapRiskGrade(
   grade: string,
 ): 'Low' | 'Moderate' | 'High' | 'Critical' {
-  const g = String(grade).toUpperCase();
-  if (g.includes('CRITICAL')) return 'Critical';
-  if (g.includes('HIGH')) return 'High';
-  if (g.includes('MODERATE') || g.includes('MEDIUM')) return 'Moderate';
+  const g = String(grade).trim();
+  const key = g.toUpperCase().replace(/\s/g, '');
+  if (key === 'CRITICAL' || g === '매우높음' || g === '매우 높음') return 'Critical';
+  if (key === 'HIGH' || g === '높음') return 'High';
+  if (key === 'MODERATE' || key === 'MEDIUM' || g === '보통') return 'Moderate';
+  if (key === 'LOW' || g === '낮음') return 'Low';
   return 'Low';
 }
 

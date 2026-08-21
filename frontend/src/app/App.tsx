@@ -4,7 +4,7 @@ import { ScrollToTop } from './router/ScrollToTop';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/AI-Traffic-Insight-Platform">
       <ScrollToTop />
       <AppRouter />
     </BrowserRouter>
