@@ -56,7 +56,7 @@ export function LandingNav() {
           onClick={handleLogoClick}
         >
           <img
-            src="/icon_logo.png"
+            src={`${import.meta.env.BASE_URL}icon_logo.png`}
             alt=""
             className={styles.logoMark}
             aria-hidden="true"
