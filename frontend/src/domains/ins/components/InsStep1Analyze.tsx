@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import {
   AGE_OPTIONS,
   GENDER_OPTIONS,
@@ -14,6 +15,36 @@ function formatPhoneInput(next: string): string {
   if (digits.length <= 3) return digits;
   if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
   return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+}
+
+const HANGUL = /[\u3131-\u318E\uAC00-\uD7A3]/;
+const LATIN = /[A-Za-z]/;
+
+function detectNameScript(value: string): 'ko' | 'en' | null {
+  for (const ch of value) {
+    if (HANGUL.test(ch)) return 'ko';
+    if (LATIN.test(ch)) return 'en';
+  }
+  return null;
+}
+
+function isAllowedNameChar(ch: string, script: 'ko' | 'en' | null): boolean {
+  if (ch === ' ') return true;
+  if (script === 'ko') return HANGUL.test(ch);
+  if (script === 'en') return LATIN.test(ch);
+  return HANGUL.test(ch) || LATIN.test(ch);
+}
+
+function filterCustomerName(
+  next: string,
+  locked: 'ko' | 'en' | null = null,
+): string {
+  const chars = [...next].filter(
+    (ch) => HANGUL.test(ch) || LATIN.test(ch) || ch === ' ',
+  );
+  const script = locked ?? detectNameScript(chars.join(''));
+  if (!script) return chars.join('');
+  return chars.filter((ch) => isAllowedNameChar(ch, script)).join('');
 }
 
 type Props = {
@@ -39,6 +70,11 @@ export function InsStep1Analyze({
   onAnalyze,
   onNext,
 }: Props) {
+  const composingName = useRef(false);
+  const customerRef = useRef(customer);
+  const nameBeforeIme = useRef(customer.name);
+  customerRef.current = customer;
+
   const phoneDigits = customer.phone.replace(/\D/g, '');
   const canAnalyze =
     customer.name.trim().length > 0 &&
@@ -62,9 +98,48 @@ export function InsStep1Analyze({
                     id="customer-name"
                     className={styles.input}
                     value={customer.name}
-                    onChange={(e) =>
-                      onCustomerChange({ ...customer, name: e.target.value })
-                    }
+                    onBeforeInput={(e) => {
+                      if (composingName.current) return;
+                      const data = e.data;
+                      if (data == null) return;
+                      const lock = detectNameScript(customer.name);
+                      if (
+                        [...data].some((ch) => !isAllowedNameChar(ch, lock))
+                      ) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onCompositionStart={() => {
+                      composingName.current = true;
+                      nameBeforeIme.current = customerRef.current.name;
+                    }}
+                    onCompositionEnd={(e) => {
+                      composingName.current = false;
+                      const lock = detectNameScript(nameBeforeIme.current);
+                      onCustomerChange({
+                        ...customerRef.current,
+                        name: filterCustomerName(
+                          e.currentTarget.value,
+                          lock,
+                        ),
+                      });
+                    }}
+                    onChange={(e) => {
+                      if (composingName.current) {
+                        onCustomerChange({
+                          ...customerRef.current,
+                          name: e.target.value,
+                        });
+                        return;
+                      }
+                      onCustomerChange({
+                        ...customerRef.current,
+                        name: filterCustomerName(
+                          e.target.value,
+                          detectNameScript(customerRef.current.name),
+                        ),
+                      });
+                    }}
                     placeholder="홍길동"
                     autoComplete="name"
                     required

@@ -18,10 +18,10 @@ const HOTSPOT_FILL = '#8E24AA';
 const SELECTED = 'suseong';
 
 const LEGEND = [
-  { label: '≥35% 매우높음', color: RISK_COLORS.CRITICAL },
-  { label: '≥28% 높음', color: RISK_COLORS.HIGH },
-  { label: '≥22% 보통', color: RISK_COLORS.MODERATE },
-  { label: '<22% 낮음', color: RISK_COLORS.LOW },
+  { label: '상위 25%', color: RISK_COLORS.CRITICAL },
+  { label: '상위 25–50%', color: RISK_COLORS.HIGH },
+  { label: '하위 25–50%', color: RISK_COLORS.MODERATE },
+  { label: '하위 25%', color: RISK_COLORS.LOW },
 ] as const;
 
 const HOTSPOTS: { lat: number; lng: number; r: number }[] = [
