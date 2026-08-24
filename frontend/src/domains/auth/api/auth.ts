@@ -91,5 +91,7 @@ export async function logout(refreshToken: string | null): Promise<void> {
 export async function signOut(redirectTo: string): Promise<void> {
   await logout(getRefreshToken());
   clearAuthStorage();
-  window.location.replace(redirectTo);
+  const base = import.meta.env.BASE_URL;
+  const path = redirectTo.replace(/^\//, '');
+  window.location.replace(`${base}${path}`);
 }
