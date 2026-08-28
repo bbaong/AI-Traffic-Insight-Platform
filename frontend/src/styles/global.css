@@ -39,3 +39,7 @@ svg {
   outline: 2px solid var(--color-teal);
   outline-offset: 2px;
 }
+
+[data-accent='amber'] :focus-visible {
+  outline-color: var(--color-amber);
+}

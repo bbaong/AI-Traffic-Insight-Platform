@@ -1,3 +1,4 @@
+import { RISK_LABEL_KO } from '../../shared/constants/riskLabels';
 import styles from './InsDetailSection.module.css';
 import { SolutionBeforeAfter } from './SolutionBeforeAfter';
 import { SolutionChapter } from './SolutionChapter';
@@ -75,8 +76,8 @@ function ScoreGauge() {
         />
       </svg>
       <div className={styles.gaugeLabel}>
+        <span className={styles.gradePill}>{RISK_LABEL_KO.HIGH}</span>
         <strong>74</strong>
-        <span>HIGH</span>
       </div>
     </div>
   );
@@ -156,7 +157,6 @@ export function InsDetailSection() {
           <div className={styles.viz}>
             <div className={styles.vizHead}>
               <span>AI 고객 분석</span>
-              <span className={styles.pill}>HIGH</span>
             </div>
             <ScoreGauge />
             <p className={styles.script}>

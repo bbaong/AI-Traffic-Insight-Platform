@@ -166,7 +166,7 @@ export function SignupAccountFields({
             value={values.position}
             onChange={(e) => onChange('position', e.target.value)}
             className={fieldStyles.control}
-            placeholder="예) 주무관"
+            placeholder={accent === 'amber' ? '예) 팀장' : '예) 주무관'}
             maxLength={50}
           />
         </FormField>
