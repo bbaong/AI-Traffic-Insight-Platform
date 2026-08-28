@@ -87,11 +87,15 @@ export async function logout(refreshToken: string | null): Promise<void> {
   }).catch(() => undefined);
 }
 
+/** GitHub Pages 서브패스를 포함한 앱 내 절대 URL */
+export function resolveAppUrl(route: string): string {
+  const base = import.meta.env.BASE_URL;
+  return new URL(route, window.location.origin + base).href;
+}
+
 // 로그아웃 후 리다이렉트
 export async function signOut(redirectTo: string): Promise<void> {
   await logout(getRefreshToken());
   clearAuthStorage();
-  const base = import.meta.env.BASE_URL;
-  const path = redirectTo.replace(/^\//, '');
-  window.location.replace(`${base}${path}`);
+  window.location.replace(resolveAppUrl(redirectTo));
 }
